@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Kodland Tutor Assistant",
   "version": "1.1.0",
-  "description": "Automated WhatsApp tool for Kodland tutors to send welcome messages, weekly summaries, and class reminders to parents. Desarrollado por tutores de LatAm y GCC con amor para el resto del mundo. Saludos TL Camilo Bermudez.",
+  "description": "Automated WhatsApp tool for Kodland tutors to send welcome messages, weekly summaries, and class reminders to parents. Built by LatAm and GCC tutors with love for the rest of the world. Regards, TL Camilo Bermudez.",
   "permissions": [
     "storage"
   ],
