@@ -1,88 +1,126 @@
-# Kodland WhatsApp Welcome - Extensión de Chrome
+# Kodland Tutor Assistant — إضافة كروم لمعلّمي Kodland
 
-Extensión de Chrome que agrega un botón para enviar un mensaje de bienvenida a WhatsApp desde la plataforma Kodland.
+<div dir="rtl">
 
-## Características
+إضافة لمتصفح Chrome تساعد معلّمي Kodland على التواصل مع الطلاب وأولياء الأمور عبر واتساب مباشرةً من لوحة التحكّم (`bo.kodland.org`): رسائل الترحيب وبيانات الدخول، الملخصات الأسبوعية، تذكيرات الحصص، تنبيهات الغياب، تسجيل الحضور، وتصدير جهات الاتصال.
 
-- ✅ Botón integrado en la interfaz de Kodland
-- ✅ Mensaje de bienvenida predefinido
-- ✅ Abre WhatsApp Web automáticamente
-- ✅ Diseño moderno y responsive
+**لغة الواجهة والرسائل: العربية (الفصحى) افتراضياً**، مع إمكانية التبديل إلى أي من اللغات المدعومة الأخرى من نافذة الإعدادات.
 
-## Instalación
+## المزايا
 
-> 📖 **¿Necesitas ayuda detallada?** Consulta el archivo [INSTALACION.md](INSTALACION.md) para una guía paso a paso con capturas y solución de problemas.
+### في صفحة المجموعة (`bo.kodland.org/groups/{id}`)
 
-### Instalación Manual (Resumen)
+بجانب اسم كل طالب تظهر أزرار صغيرة:
 
-1. **Abrir Chrome Extensions**
-   - Abre Chrome y escribe en la barra de direcciones: `chrome://extensions/`
-   - O ve a: Menú (⋮) → Más herramientas → Extensiones
+| الزر | الوظيفة |
+|------|---------|
+| 💬 | فتح محادثة واتساب مع وليّ الأمر |
+| ✅ | إرسال رسالة الترحيب كاملة (بيانات الدخول + رابط المجموعة + موعد أول حصة) |
+| 📊 | عرض تقدّم الطالب في الوحدات والمهام، ومنه يمكن إرسال الملخص الأسبوعي |
+| 📅 | إرسال تذكير بالحصة القادمة (مع رابط Zoom إن وُجد) |
+| ⏰ | إرسال تنبيه بالغياب عن الحصة الجارية |
+| 📤 | إرسال تقرير بالمهام غير المُسلَّمة |
 
-2. **Activar Modo de Desarrollador**
-   - En la esquina superior derecha, activa el interruptor **"Modo de desarrollador"**
+وفي أسفل يمين الصفحة أزرار عائمة:
 
-3. **Cargar la extensión sin empaquetar**
-   - Haz clic en el botón **"Cargar extensión sin empaquetar"** (aparece arriba)
-   - En la ventana que se abre, navega hasta: `C:\Users\Juan Garay\Desktop\KodlandFaster`
-   - **Selecciona la carpeta** `KodlandFaster` (no entres dentro, selecciona la carpeta)
-   - Haz clic en **"Seleccionar carpeta"**
+| الزر | الوظيفة |
+|------|---------|
+| 📇 تصدير جهات الاتصال | تنزيل ملف CSV جاهز للاستيراد في جهات اتصال الهاتف أو Google |
+| 📋 رابط مجموعة واتساب | حفظ رابط مجموعة واتساب الخاصة بالدورة (يُستخدم في رسالة الترحيب) |
+| ✅ تسجيل الحضور | وضع علامة "حاضر" لجميع الطلاب المسجّلين دفعةً واحدة |
+| 📊 تقرير التصحيح | عرض عدد المهام التي تنتظر التصحيح لكل طالب في المجموعة |
+| ⚙️ | الإعدادات |
 
-4. **Verificar**
-   - La extensión "Kodland WhatsApp Welcome" debería aparecer en la lista
-   - Asegúrate de que esté **Activada** (interruptor azul)
+### في صفحة الطالب (`bo.kodland.org/students/{id}`)
 
-## Uso
+زر **فتح واتساب** وزر **إرسال بيانات الدخول** (يقوم بنسخ البيانات وفتح واتساب برسالة جاهزة).
 
-1. Navega a https://bo.kodland.org/
-2. El botón "Enviar bienvenida a WA" aparecerá automáticamente en la ubicación especificada
-3. Haz clic en el botón para abrir WhatsApp Web con el mensaje de bienvenida predefinido
-4. Selecciona el contacto o grupo al que deseas enviar el mensaje y envía
+## الإعدادات ⚙️
 
-## Personalización del Mensaje
+من الزر الرمادي ⚙️ في أسفل يمين صفحة المجموعة:
 
-Para cambiar el mensaje de bienvenida, edita el archivo `content.js` y modifica la línea:
+- **إظهار/إخفاء** أي من الأزرار السابقة.
+- **لغة الواجهة والرسائل** — العربية افتراضياً. يوجد أيضاً خيار "تلقائي" الذي يتبع لغة صفحة Kodland نفسها.
+- **اسم المعلّم** — يظهر في كل الرسائل. ⚠️ **اضبطه قبل أول استخدام**، وإلا ستظهر عبارة `[اكتب اسمك في ⚙️ الإعدادات]` داخل الرسالة.
+- **المنطقة الزمنية** — بصيغة IANA (`Africa/Cairo` افتراضياً، أو `Asia/Riyadh` أو `Asia/Dubai` …)، **واسمها كما يظهر في نص الرسالة** (`القاهرة` افتراضياً). تُستخدم لعرض موعد أول حصة في رسالة الترحيب.
+- **قوالب الرسائل** — نصّا رسالة الترحيب ورسالة الغياب قابلان للتعديل بالكامل، مع زر لاستعادة النص الافتراضي.
 
-```javascript
-const message = encodeURIComponent('¡Bienvenido/a al curso! 🎉 Estamos muy contentos de tenerte aquí. ¡Comencemos juntos este increíble viaje de aprendizaje!');
-```
+### الرموز المتاحة داخل القوالب
 
-## Estructura del Proyecto
+تُستبدل تلقائياً عند إرسال الرسالة:
+
+| الرمز | المعنى | متاح في |
+|-------|--------|---------|
+| `{{studentName}}` | اسم الطالب | الترحيب والغياب |
+| `{{tutorName}}` | اسم المعلّم | الترحيب والغياب |
+| `{{courseName}}` | اسم الدورة | الترحيب والغياب |
+| `{{scheduleLine}}` | جملة موعد أول حصة | الترحيب فقط |
+| `{{waGroupLink}}` | رابط مجموعة واتساب | الترحيب فقط |
+| `{{wonderLoginUrl}}` | رابط الدخول المباشر للطالب | الترحيب فقط |
+| `{{username}}` | اسم المستخدم | الترحيب فقط |
+| `{{password}}` | كلمة المرور | الترحيب فقط |
+
+> تُحفظ الإعدادات في `localStorage` للمتصفح، أي أنها خاصة بهذا الجهاز وهذا الملف الشخصي في Chrome. بعد الحفظ **أعد تحميل الصفحة** لتطبيقها.
+
+## التثبيت
+
+راجع [INSTALL.md](INSTALL.md) للخطوات التفصيلية. باختصار:
+
+1. افتح `chrome://extensions/`
+2. فعّل **"وضع المطوّر" / Developer mode**
+3. اضغط **"تحميل غير مُحزَّمة" / Load unpacked**
+4. اختر مجلد `KodlandFaster`
+
+## بنية المشروع
 
 ```
 KodlandFaster/
-├── manifest.json       # Configuración de la extensión
-├── content.js          # Script que inyecta el botón
-├── styles.css          # Estilos del botón
-└── README.md          # Este archivo
+├── manifest.json              # إعدادات الإضافة
+├── background.js              # عامل الخدمة (التقاط رمز المصادقة)
+├── content.js                 # نقطة دخول بسيطة
+├── open-wa-button.js          # زر "فتح واتساب" في صفحة الطالب
+├── send-credential-button.js  # زر "إرسال بيانات الدخول" في صفحة الطالب
+├── group-students-info.js     # المنطق الأساسي: أزرار المجموعة، النوافذ، الرسائل، الترجمة
+├── styles.css                 # التنسيقات ودعم الاتجاه من اليمين لليسار
+└── README.md
 ```
 
-## Iconos (Opcional)
+## اللغات المدعومة
 
-Los iconos (`icon16.png`, `icon48.png`, `icon128.png`) son opcionales. Si deseas agregarlos:
-- Crea imágenes PNG con los tamaños especificados
-- Colócalas en la raíz del proyecto
-- O edita el `manifest.json` para remover la sección de iconos
+العربية (افتراضياً)، الإسبانية، الإنجليزية، الروسية، الفرنسية، التركية، الإندونيسية، الإيطالية، البولندية، البرتغالية.
 
-## Notas
+جميع نصوص الواجهة والرسائل مجمّعة في `group-students-info.js`:
 
-- La extensión funciona solo en `https://bo.kodland.org/*`
-- El botón se inyecta automáticamente cuando se carga la página
-- Si el elemento objetivo no aparece inmediatamente, la extensión intentará encontrarlo durante 30 segundos
+- `UI_STRINGS` — نصوص الأزرار والنوافذ والتنبيهات.
+- دوال `generate*Message` و`createWelcomeMessage` — نصوص رسائل واتساب.
+- `DEFAULT_WELCOME_TEMPLATE` و`DEFAULT_ABSENCE_TEMPLATE` — القوالب الافتراضية.
 
-## Solución de Problemas
+لإضافة لغة جديدة: أضف رمزها إلى `SUPPORTED_MESSAGE_LANGUAGES`، وأضف مدخلاتها في `UI_STRINGS` وفي قواميس الرسائل. أضفها إلى `RTL_LANGUAGES` إن كانت تُكتب من اليمين لليسار.
 
-**El botón no aparece:**
-- Verifica que estés en la URL correcta: `https://bo.kodland.org/`
-- Recarga la página
-- Verifica que la extensión esté activada en `chrome://extensions/`
-- Abre la consola del navegador (F12) para ver posibles errores
+> ملاحظة: روابط المهام تُبنى بدون أي مقطع للغة — `https://learn.kodland.org/task/{رقم المهمة}/check/{رقم الطالب}` — لأن المنصة تخدم هذه الصفحات مباشرةً. لا تُضِف `/ar/` أو `/en/` إليها.
 
-**El botón aparece pero no funciona:**
-- Verifica que no tengas bloqueadores de pop-ups activos
-- Asegúrate de que WhatsApp Web esté permitido en tu navegador
+## حلّ المشكلات
 
-## Licencia
+**الأزرار لا تظهر**
+- تأكد أنك في صفحة مجموعة (`/groups/{id}`) أو صفحة طالب (`/students/{id}`).
+- أعد تحميل الصفحة، وتأكد أن الإضافة مفعّلة في `chrome://extensions/`.
+- تأكد أن الأزرار ليست مُخفاة من نافذة الإعدادات ⚙️.
+- افتح وحدة تحكّم المتصفح (F12) وابحث عن رسائل تبدأ بـ `[Group Students Info]`.
 
-Este proyecto es de uso personal/educacional.
+**رسالة الترحيب تحتوي على `[اكتب اسمك في ⚙️ الإعدادات]`**
+- اضبط اسم المعلّم من نافذة الإعدادات، ثم أعد تحميل الصفحة.
 
+**رسالة الترحيب تحتوي على `[لم يتم حفظ رابط مجموعة واتساب بعد …]`**
+- اضغط زر 📋 **الصق رابط مجموعة واتساب** والصق رابط المجموعة. يُحفظ الرابط لكل مجموعة على حدة.
+
+**موعد الحصة في الرسالة غير صحيح**
+- عدّل **المنطقة الزمنية** واسمها من نافذة الإعدادات.
+
+**واتساب لا يُفتح**
+- تأكد من عدم وجود مانع للنوافذ المنبثقة في المتصفح.
+
+## الترخيص
+
+مشروع للاستخدام الشخصي/التعليمي.
+
+</div>
