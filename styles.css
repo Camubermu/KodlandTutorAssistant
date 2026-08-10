@@ -1,14 +1,3 @@
-/* ---------------------------------------------------------------------
-   Font stack
-   ---------------------------------------------------------------------
-   Every injected element uses this. The Arabic faces come first so Arabic
-   text picks a proper Arabic font instead of a Latin fallback, and the
-   Latin faces still handle names, links and numbers mixed into the text. */
-:root {
-  --kodland-font: 'Segoe UI', 'Noto Naskh Arabic', 'Noto Sans Arabic', 'Dubai',
-    'Tahoma', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-}
-
 .kodland-wa-btn {
   display: inline-flex;
   align-items: center;
@@ -24,7 +13,7 @@
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);
   margin: 5px 0;
-  font-family: var(--kodland-font);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   z-index: 9999;
   position: relative;
 }
@@ -68,88 +57,80 @@
   box-shadow: 0 4px 12px rgba(255, 87, 34, 0.35);
 }
 
-/* Botón flotante: Exportar contactos */
-.kodland-export-contacts-btn {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 100000;
+/* Botones que viven dentro de la barra superior compartida
+   (#kodland-broadcast-buttons), junto a "Aviso de clase" y el resto de
+   botones de difusión: configuración, exportar contactos, reporte de
+   calificación, link de WhatsApp del grupo y tomar asistencia. */
+.kodland-toolbar-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 12px 18px;
-  background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
+  padding: 8px 14px;
   color: white;
   border: none;
-  border-radius: 30px;
-  font-size: 14px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(33, 150, 243, 0.4);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
   transition: all 0.2s ease;
-  font-family: var(--kodland-font);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.kodland-toolbar-btn:hover {
+  transform: translateY(-1px);
+}
+
+.kodland-toolbar-btn:active {
+  transform: translateY(0);
+}
+
+.kodland-toolbar-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Exportar contactos */
+.kodland-export-contacts-btn {
+  background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
 }
 
 .kodland-export-contacts-btn:hover {
   background: linear-gradient(135deg, #1976D2 0%, #0d47a1 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(33, 150, 243, 0.5);
 }
 
-.kodland-export-contacts-btn:active {
-  transform: translateY(0);
-}
-
-/* Segundo botón flotante: estado del link de WA del grupo (se apila arriba del de contactos) */
+/* Link de WhatsApp del grupo */
 .kodland-wa-group-link-btn {
-  bottom: 76px;
   background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
-  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.4);
 }
 
 .kodland-wa-group-link-btn:hover {
   background: linear-gradient(135deg, #20bd5a 0%, #0f7a6e 100%);
 }
 
-/* Tercer botón flotante: tomar asistencia (se apila arriba de los otros dos) */
+/* Tomar asistencia */
 .kodland-attendance-btn {
-  bottom: 128px;
   background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
-  box-shadow: 0 4px 14px rgba(76, 175, 80, 0.4);
 }
 
 .kodland-attendance-btn:hover {
   background: linear-gradient(135deg, #43a047 0%, #1b5e20 100%);
 }
 
-.kodland-attendance-btn:disabled {
-  opacity: 0.6;
-  cursor: wait;
-}
-
-/* Reporte de calificación grupal (se apila arriba de asistencia) */
+/* Reporte de calificación grupal */
 .kodland-grading-report-btn {
-  bottom: 180px;
   background: linear-gradient(135deg, #7e57c2 0%, #4527a0 100%);
-  box-shadow: 0 4px 14px rgba(126, 87, 194, 0.4);
 }
 
 .kodland-grading-report-btn:hover {
   background: linear-gradient(135deg, #6a45b5 0%, #38208a 100%);
 }
 
-.kodland-grading-report-btn:disabled {
-  opacity: 0.6;
-  cursor: wait;
-}
-
-/* Configuración (siempre visible, arriba de todos) */
+/* Configuración (siempre visible) */
 .kodland-settings-btn {
-  bottom: 232px;
   background: linear-gradient(135deg, #616161 0%, #424242 100%);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
-  padding: 12px 14px;
-  font-size: 18px;
+  padding: 8px 10px;
+  font-size: 16px;
 }
 
 .kodland-settings-btn:hover {
@@ -164,6 +145,69 @@
 
 .kodland-task-report-btn:hover {
   background: linear-gradient(135deg, #0097a7 0%, #006d75 100%);
+}
+
+/* Botón Grabación de la última clase (por estudiante) */
+.kodland-recording-btn {
+  background: linear-gradient(135deg, #ec407a 0%, #ad1457 100%);
+  box-shadow: 0 2px 8px rgba(236, 64, 122, 0.25);
+}
+
+.kodland-recording-btn:hover {
+  background: linear-gradient(135deg, #d81b60 0%, #880e4f 100%);
+}
+
+/* Botones dentro del modal de "Información de la clase" (pestaña Horario) */
+.kodland-schedule-modal-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 0 16px 12px 16px;
+}
+
+.kodland-schedule-modal-buttons .kodland-wa-btn {
+  margin: 0;
+}
+
+/* Contenedor de botones de difusión al grupo (fila fija arriba de la página) */
+.kodland-broadcast-buttons {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100000;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 92vw;
+}
+
+.kodland-broadcast-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, #5c6bc0 0%, #3949ab 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(57, 73, 171, 0.4);
+  transition: all 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.kodland-broadcast-btn:hover {
+  background: linear-gradient(135deg, #4b5aad 0%, #2c3a91 100%);
+  transform: translateY(-1px);
+}
+
+.kodland-broadcast-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 /* Botón Send Credential - más minimalista */
@@ -200,7 +244,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
-  font-family: var(--kodland-font);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   z-index: 10;
   position: relative;
 }
@@ -299,7 +343,7 @@
   border-radius: 4px;
   pointer-events: none;
   z-index: 2147483647; /* ensure tooltip renders above all */
-  font-family: var(--kodland-font);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
 .kodland-student-buttons button[title]:hover::before {
@@ -322,7 +366,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(15, 23, 42, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -333,21 +377,21 @@
 }
 
 .kodland-modal-content {
-  background: #1e1e1e;
-  border-radius: 12px;
+  background: #ffffff;
+  border-radius: 14px;
   width: 100%;
   max-width: 1200px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  color: #ffffff;
-  font-family: var(--kodland-font);
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.22), 0 2px 8px rgba(15, 23, 42, 0.08);
+  color: #1f2937;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
 .kodland-modal-header {
   padding: 20px 24px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #e5e7eb;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -361,9 +405,9 @@
 }
 
 .kodland-refresh-btn {
-  background: #2a2a2a;
-  border: 1px solid #444;
-  color: #e0e0e0;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #374151;
   width: 32px;
   height: 32px;
   border-radius: 6px;
@@ -374,8 +418,8 @@
 }
 
 .kodland-refresh-btn:hover:not(:disabled) {
-  background: #333;
-  border-color: #555;
+  background: #e5e7eb;
+  border-color: #d1d5db;
 }
 
 .kodland-refresh-btn:disabled {
@@ -384,9 +428,9 @@
 }
 
 .kodland-weekly-summary-btn {
-  background: #2a2a2a;
-  border: 1px solid #444;
-  color: #e0e0e0;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #374151;
   width: 32px;
   height: 32px;
   border-radius: 6px;
@@ -406,9 +450,9 @@
 }
 
 .kodland-schedule-btn {
-  background: #2a2a2a;
-  border: 1px solid #444;
-  color: #e0e0e0;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #374151;
   width: 32px;
   height: 32px;
   border-radius: 6px;
@@ -436,13 +480,13 @@
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: #ffffff;
+  color: #111827;
 }
 
 .kodland-modal-close {
   background: none;
   border: none;
-  color: #ffffff;
+  color: #6b7280;
   font-size: 28px;
   cursor: pointer;
   padding: 0;
@@ -456,7 +500,8 @@
 }
 
 .kodland-modal-close:hover {
-  background-color: #333;
+  background-color: #f3f4f6;
+  color: #111827;
 }
 
 .kodland-modal-body {
@@ -484,19 +529,19 @@
 }
 
 .kodland-lesson-card {
-  background: #2a2a2a;
-  border-radius: 8px;
+  background: #f9fafb;
+  border-radius: 10px;
   padding: 16px;
-  border: 1px solid #333;
+  border: 1px solid #e5e7eb;
 }
 
 .kodland-lesson-header {
   font-size: 16px;
   font-weight: 600;
-  color: #ffffff;
+  color: #111827;
   margin-bottom: 12px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #444;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .kodland-tasks-section {
@@ -507,7 +552,7 @@
   margin: 0 0 12px 0;
   font-size: 14px;
   font-weight: 600;
-  color: #ffffff;
+  color: #111827;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -528,10 +573,11 @@
 }
 
 .kodland-task-item {
-  background: #1e1e1e;
-  border-radius: 6px;
+  background: #ffffff;
+  border-radius: 8px;
   padding: 12px;
-  border-left: 3px solid #444;
+  border: 1px solid #eef0f3;
+  border-left: 3px solid #d1d5db;
 }
 
 .kodland-task-info {
@@ -544,7 +590,7 @@
 .kodland-task-name {
   flex: 1;
   font-size: 14px;
-  color: #e0e0e0;
+  color: #374151;
   word-break: break-word;
 }
 
@@ -567,7 +613,7 @@
 }
 
 .kodland-no-tasks {
-  color: #888;
+  color: #9ca3af;
   font-size: 14px;
   font-style: italic;
   margin: 8px 0;
@@ -579,33 +625,33 @@
 }
 
 .kodland-modal-body::-webkit-scrollbar-track {
-  background: #1e1e1e;
+  background: #f3f4f6;
 }
 
 .kodland-modal-body::-webkit-scrollbar-thumb {
-  background: #444;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
 .kodland-modal-body::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #94a3b8;
 }
 
 /* Filter bar styles */
 .kodland-filter-bar {
   padding: 16px 24px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #e5e7eb;
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  background: #252525;
+  background: #f9fafb;
   flex-shrink: 0;
 }
 
 .kodland-filter-btn {
-  background: #2a2a2a;
-  border: 1px solid #444;
-  color: #e0e0e0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #374151;
   padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
@@ -615,12 +661,12 @@
   align-items: center;
   gap: 8px;
   transition: all 0.2s;
-  font-family: var(--kodland-font);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
 .kodland-filter-btn:hover {
-  background: #333;
-  border-color: #555;
+  background: #f3f4f6;
+  border-color: #d1d5db;
 }
 
 .kodland-filter-btn.active {
@@ -631,7 +677,8 @@
 }
 
 .kodland-filter-count {
-  background: rgba(0, 0, 0, 0.3);
+  background: #eef2f7;
+  color: #374151;
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 12px;
@@ -641,7 +688,8 @@
 }
 
 .kodland-filter-btn.active .kodland-filter-count {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
 }
 
 /* Task status styles */
@@ -690,78 +738,83 @@
 }
 
 /* ---------------------------------------------------------------------
-   Right-to-left support (Arabic)
-   ---------------------------------------------------------------------
-   The Kodland page itself stays left-to-right; only the elements this
-   extension injects get dir="rtl" (set by applyLanguageDirection in
-   group-students-info.js). The rules below are the few places where a
-   physical left/right value was baked in and has to follow the text
-   direction instead. */
-
-/* Directional properties that should mirror in RTL. Logical properties do
-   the mirroring for us, so these apply in both directions. */
-.kodland-student-buttons {
-  margin-left: 0;
-  margin-inline-start: 8px;
+   Settings modal & grading report modal: back to their original dark
+   theme. These two reuse the general .kodland-modal-content styling
+   (now light, see above), but the settings modal in particular builds
+   its inputs/textareas with dark colors written directly inline
+   (background:#1e1e1e; color:#fff), so lightening the shell around them
+   left dark boxes floating in a white modal. Scoped by ID so the rest
+   of the app (e.g. the per-student lessons/tasks modal) stays light.
+--------------------------------------------------------------------- */
+#kodland-settings-modal,
+#kodland-grading-report-modal {
+  background-color: rgba(0, 0, 0, 0.7);
 }
 
-.kodland-task-item {
-  border-left: none;
-  border-inline-start: 3px solid #444;
+#kodland-settings-modal .kodland-modal-content,
+#kodland-grading-report-modal .kodland-modal-content {
+  background: #1e1e1e;
+  color: #ffffff;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
-.kodland-task-grade {
-  margin-left: 0;
-  margin-inline-start: 4px;
+#kodland-settings-modal .kodland-modal-header,
+#kodland-grading-report-modal .kodland-modal-header {
+  border-bottom: 1px solid #333;
 }
 
-/* The modal body scrolls; keep its padding symmetric in both directions. */
-.kodland-modal[dir="rtl"] .kodland-modal-content {
-  text-align: right;
+#kodland-settings-modal .kodland-modal-header h2,
+#kodland-grading-report-modal .kodland-modal-header h2 {
+  color: #ffffff;
 }
 
-.kodland-modal[dir="rtl"] .kodland-modal-header h2,
-.kodland-modal[dir="rtl"] .kodland-module-section h3,
-.kodland-modal[dir="rtl"] .kodland-lesson-header,
-.kodland-modal[dir="rtl"] .kodland-tasks-section h4 {
-  text-align: right;
+#kodland-settings-modal .kodland-modal-close,
+#kodland-grading-report-modal .kodland-modal-close {
+  color: #ffffff;
 }
 
-/* Form controls inside the settings modal. Browsers don't inherit dir into
-   the value of an input, so set it explicitly. */
-.kodland-modal[dir="rtl"] input[type="text"],
-.kodland-modal[dir="rtl"] select,
-.kodland-modal[dir="rtl"] textarea {
-  direction: rtl;
-  text-align: right;
+#kodland-settings-modal .kodland-modal-close:hover,
+#kodland-grading-report-modal .kodland-modal-close:hover {
+  background-color: #333;
+  color: #ffffff;
 }
 
-/* The message templates mix Arabic prose with {{placeholder}} tokens and
-   URLs; RTL with plain (non-monospace-forced) alignment keeps them
-   readable, and the browser's bidi algorithm orders the Latin runs. */
-.kodland-modal[dir="rtl"] textarea {
-  font-family: var(--kodland-font) !important;
+#kodland-grading-report-modal .kodland-lesson-card {
+  background: #2a2a2a;
+  border: 1px solid #333;
 }
 
-/* Floating action buttons stay in the bottom-right corner (they are page
-   chrome, not content, and the Kodland sidebar occupies the left), but
-   their Arabic label + emoji still need RTL ordering. */
-.kodland-export-contacts-btn[dir="rtl"],
-.kodland-wa-btn[dir="rtl"],
-.kodland-student-buttons[dir="rtl"] {
-  direction: rtl;
+#kodland-grading-report-modal .kodland-lesson-header {
+  color: #ffffff;
+  border-bottom: 1px solid #444;
 }
 
-/* Tooltips on the small per-student buttons: anchor from the correct edge
-   so long Arabic tooltips don't run off-screen. */
-.kodland-student-buttons[dir="rtl"] button[title]:hover::after {
-  left: auto;
-  right: 50%;
-  direction: rtl;
+#kodland-grading-report-modal .kodland-task-item {
+  background: #1e1e1e;
+  border: none;
+  border-left: 3px solid #444;
 }
 
-.kodland-student-buttons[dir="rtl"] button[title]:hover::before {
-  left: auto;
-  right: 50%;
+#kodland-grading-report-modal .kodland-task-name {
+  color: #e0e0e0;
+}
+
+#kodland-grading-report-modal .kodland-no-tasks {
+  color: #888;
+}
+
+#kodland-settings-modal .kodland-modal-body::-webkit-scrollbar-track,
+#kodland-grading-report-modal .kodland-modal-body::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+#kodland-settings-modal .kodland-modal-body::-webkit-scrollbar-thumb,
+#kodland-grading-report-modal .kodland-modal-body::-webkit-scrollbar-thumb {
+  background: #444;
+}
+
+#kodland-settings-modal .kodland-modal-body::-webkit-scrollbar-thumb:hover,
+#kodland-grading-report-modal .kodland-modal-body::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 

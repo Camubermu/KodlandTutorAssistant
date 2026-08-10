@@ -1,85 +1,6 @@
 // Module to add "Send Credential" button
 // This button intercepts the credential copy button and sends the message to WhatsApp
 
-// This script runs on student pages and keeps its own small label set
-// (rather than depending on group-students-info.js), but it follows the
-// same language chosen in the ⚙️ settings modal so the whole app stays
-// consistent across languages.
-const SEND_CREDENTIAL_LABELS_BY_LANG = {
-  ar: {
-    sendCredentials: 'إرسال بيانات الدخول',
-    sending: '⏳ جارٍ الإرسال...',
-    copyFirst: 'يُرجى نسخ بيانات الدخول أولاً، ثم النقر على هذا الزر.'
-  },
-  es: {
-    sendCredentials: 'Enviar datos de acceso',
-    sending: '⏳ Enviando...',
-    copyFirst: 'Por favor copia primero los datos de acceso y luego haz clic en este botón.'
-  },
-  en: {
-    sendCredentials: 'Send credentials',
-    sending: '⏳ Sending...',
-    copyFirst: 'Please copy the credentials first, then click this button.'
-  },
-  ru: {
-    sendCredentials: 'Отправить данные для входа',
-    sending: '⏳ Отправка...',
-    copyFirst: 'Сначала скопируйте данные для входа, затем нажмите эту кнопку.'
-  },
-  fr: {
-    sendCredentials: 'Envoyer les identifiants',
-    sending: '⏳ Envoi...',
-    copyFirst: 'Veuillez d\'abord copier les identifiants, puis cliquer sur ce bouton.'
-  },
-  tr: {
-    sendCredentials: 'Giriş bilgilerini gönder',
-    sending: '⏳ Gönderiliyor...',
-    copyFirst: 'Lütfen önce giriş bilgilerini kopyalayın, ardından bu düğmeye tıklayın.'
-  },
-  id: {
-    sendCredentials: 'Kirim data login',
-    sending: '⏳ Mengirim...',
-    copyFirst: 'Silakan salin data login terlebih dahulu, lalu klik tombol ini.'
-  },
-  it: {
-    sendCredentials: 'Invia credenziali',
-    sending: '⏳ Invio...',
-    copyFirst: 'Copia prima le credenziali, poi clicca su questo pulsante.'
-  },
-  pl: {
-    sendCredentials: 'Wyślij dane logowania',
-    sending: '⏳ Wysyłanie...',
-    copyFirst: 'Najpierw skopiuj dane logowania, a następnie kliknij ten przycisk.'
-  },
-  pt: {
-    sendCredentials: 'Enviar dados de acesso',
-    sending: '⏳ Enviando...',
-    copyFirst: 'Copie primeiro os dados de acesso e depois clique neste botão.'
-  }
-};
-
-const SEND_CREDENTIAL_RTL_LANGUAGES = ['ar'];
-
-// getMessageLanguage() comes from group-students-info.js, which is
-// guaranteed to have already run (it is injected before this script
-// finishes loading and before any user click), but we still fall back to
-// Arabic defensively in case that ever changes.
-function getSendCredentialLanguage() {
-  try {
-    if (typeof getMessageLanguage === 'function') {
-      return getMessageLanguage();
-    }
-  } catch (error) {
-    // Ignore and fall back below
-  }
-  return 'ar';
-}
-
-function getSendCredentialLabels() {
-  const language = getSendCredentialLanguage();
-  return SEND_CREDENTIAL_LABELS_BY_LANG[language] || SEND_CREDENTIAL_LABELS_BY_LANG.ar;
-}
-
 // Function to check if we're on a student page
 function isStudentPage() {
   const url = window.location.href;
@@ -194,8 +115,7 @@ function extractPhoneNumber(containerElement) {
     /\+?[0-9]{1,3}[0-9]{8,12}/g,
     /Телефон:\s*([+\d\s\-()]+)/i,
     /Phone:\s*([+\d\s\-()]+)/i,
-    /Teléfono:\s*([+\d\s\-()]+)/i,
-    /(?:الهاتف|رقم الهاتف)\s*:\s*([+\d\s\-()]+)/  // Arabic phone label
+    /Teléfono:\s*([+\d\s\-()]+)/i
   ];
   
   for (const pattern of phonePatterns) {
@@ -207,7 +127,7 @@ function extractPhoneNumber(containerElement) {
         phone = matchWithGroup[1];
       }
       phone = phone.replace(/[\s\-()]/g, '').trim();
-      phone = phone.replace(/^(Телефон|Phone|Teléfono|الهاتف|رقم الهاتف)\s*:/i, '').trim();
+      phone = phone.replace(/^(Телефон|Phone|Teléfono):/i, '').trim();
       
       if (phone && phone.length >= 10) {
         console.log('Phone number found:', phone);
@@ -417,13 +337,11 @@ function interceptCredentialCopyButton() {
       }
       
       // Valid credentials should contain login info
-      const looksLikeCredentials = clipboardText.includes('Usuario') ||
+      const looksLikeCredentials = clipboardText.includes('Usuario') || 
                                     clipboardText.includes('Password') ||
                                     clipboardText.includes('Login') ||
                                     clipboardText.includes('Username') ||
                                     clipboardText.includes('Contraseña') ||
-                                    clipboardText.includes('اسم المستخدم') ||
-                                    clipboardText.includes('كلمة المرور') ||
                                     clipboardText.match(/\d{4,}/) ||
                                     clipboardText.length > 20;
       
@@ -556,43 +474,37 @@ async function processCredentialMessage(clipboardText) {
 
 // Function to create visible "Send Credential" button
 function createSendCredentialButton() {
-  const language = getSendCredentialLanguage();
-  const labels = SEND_CREDENTIAL_LABELS_BY_LANG[language] || SEND_CREDENTIAL_LABELS_BY_LANG.ar;
-  const isRtl = SEND_CREDENTIAL_RTL_LANGUAGES.includes(language);
-
   const button = document.createElement('button');
   button.id = 'kodland-send-credential-button';
   button.className = 'kodland-wa-btn kodland-send-btn';
-  button.setAttribute('lang', language);
-  button.setAttribute('dir', isRtl ? 'rtl' : 'ltr');
   button.innerHTML = `
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
     </svg>
-    ${labels.sendCredentials}
+    Send Credential
   `;
-
+  
   // Add a flag to prevent multiple clicks on this button
   let buttonClickInProgress = false;
-
+  
   button.addEventListener('click', async function(e) {
     // Prevent event bubbling to avoid triggering other handlers
     e.stopPropagation();
     e.stopImmediatePropagation();
-
+    
     // Skip if already processing (prevent duplicate execution)
     if (isProcessing || isOpeningWhatsApp || buttonClickInProgress) {
       console.log('[Send Credential Button] Already processing or click in progress, skipping duplicate click');
       console.log('[Send Credential Button] State - isProcessing:', isProcessing, 'isOpeningWhatsApp:', isOpeningWhatsApp, 'buttonClickInProgress:', buttonClickInProgress);
       return;
     }
-
+    
     console.log('[Send Credential Button] Send Credential button clicked');
     buttonClickInProgress = true;
-
+    
     // Visual feedback
     const originalText = button.innerHTML;
-    button.innerHTML = labels.sending;
+    button.innerHTML = '⏳ Sending...';
     button.disabled = true;
     
     try {
@@ -641,7 +553,7 @@ function createSendCredentialButton() {
         if (clipboardText) {
           await processCredentialMessage(clipboardText);
         } else {
-          alert(labels.copyFirst);
+          alert('Please copy the credentials first, then click this button.');
         }
         isProcessing = false;
         clickFromVisibleButton = false;

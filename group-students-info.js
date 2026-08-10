@@ -1,1137 +1,11 @@
 // Module to fetch and display student information on group pages
 // Activates on: https://bo.kodland.org/groups/{id}
 
-// ---------------------------------------------------------------------
-// Language
-// ---------------------------------------------------------------------
-// Everything the tutor sees (buttons, modals, alerts) and everything sent
-// to students/parents over WhatsApp is written in this language. Arabic is
-// the default; the tutor can pick another one - or "auto", which restores
-// the old behaviour of following Kodland's own language selector - from
-// the ⚙️ settings modal.
-const DEFAULT_MESSAGE_LANGUAGE = 'auto';
-
-// Languages that have a full set of message translations in this file.
-const SUPPORTED_MESSAGE_LANGUAGES = ['ar', 'es', 'en', 'ru', 'fr', 'tr', 'id', 'it', 'pl', 'pt'];
-
-const LANGUAGE_LABELS = {
-  auto: 'Auto',
-  ar: 'العربية',
-  es: 'Español',
-  en: 'English',
-  ru: 'Русский',
-  fr: 'Français',
-  tr: 'Türkçe',
-  id: 'Bahasa Indonesia',
-  it: 'Italiano',
-  pl: 'Polski',
-  pt: 'Português'
-};
-
-// Languages written right-to-left, used to flip the injected UI.
-const RTL_LANGUAGES = ['ar'];
-
-function normalizeMessageLanguage(language) {
-  if (!language) return DEFAULT_MESSAGE_LANGUAGE;
-  const normalized = String(language).trim().toLowerCase();
-  if (!normalized || normalized === 'auto') return 'auto';
-  const base = normalized.split('-')[0];
-  return SUPPORTED_MESSAGE_LANGUAGES.includes(base) ? base : DEFAULT_MESSAGE_LANGUAGE;
-}
-
-// The language for all UI labels and generated messages.
-function getMessageLanguage() {
-  try {
-    const configured = normalizeMessageLanguage(getExtensionSettings().messageLanguage);
-    if (configured === 'auto') return detectPageLanguage();
-    if (configured && SUPPORTED_MESSAGE_LANGUAGES.includes(configured)) return configured;
-  } catch (error) {
-    console.warn('[Language] Could not read language setting, using default:', error);
-  }
-  return DEFAULT_MESSAGE_LANGUAGE;
-}
-
-function isRtlLanguage(language = getMessageLanguage()) {
-  return RTL_LANGUAGES.includes(language);
-}
-
-// Tag an injected element with the message language and its text
-// direction, so the RTL rules in styles.css apply and Arabic text mixed
-// with Latin names/links/numbers is ordered correctly by the browser.
-function applyLanguageDirection(element, language = getMessageLanguage()) {
-  if (!element) return element;
-  element.setAttribute('lang', language);
-  element.setAttribute('dir', isRtlLanguage(language) ? 'rtl' : 'ltr');
-  return element;
-}
-
-// ---------------------------------------------------------------------
-// Arabic noun counting
-// ---------------------------------------------------------------------
-// Arabic doesn't have a simple singular/plural split: 1 and 2 have their
-// own forms and take no numeral, 3-10 take the plural, and 11 and above
-// go back to the singular. Getting this wrong is very visible to a native
-// reader ("8 درساً" instead of "8 دروس"), so counted nouns go through here.
-function arabicCount(count, forms) {
-  if (count === 1) return forms.one;
-  if (count === 2) return forms.two;
-  if (count >= 3 && count <= 10) return `${count} ${forms.few}`;
-  return `${count} ${forms.many}`;
-}
-
-const ARABIC_LESSON_FORMS = { one: 'درساً واحداً', two: 'درسين', few: 'دروس', many: 'درساً' };
-const ARABIC_TASK_FORMS = { one: 'مهمة واحدة', two: 'مهمتين', few: 'مهام', many: 'مهمة' };
-const ARABIC_MINUTE_FORMS = { one: 'دقيقة واحدة', two: 'دقيقتين', few: 'دقائق', many: 'دقيقة' };
-const ARABIC_HOUR_FORMS = { one: 'ساعة واحدة', two: 'ساعتين', few: 'ساعات', many: 'ساعة' };
-
-// ---------------------------------------------------------------------
-// UI strings
-// ---------------------------------------------------------------------
-// Labels, tooltips and alerts for the extension's own interface. Lookup
-// order is: requested language -> English -> Arabic, so a language with no
-// entry still gets something readable. `es` entries preserve the original
-// Spanish wording this extension shipped with.
-const UI_STRINGS = {
-  // --- Tasks modal ---
-  weeklySummaryTooltip: {
-    ar: 'إرسال الملخص الأسبوعي',
-    en: 'Send weekly summary',
-    es: 'Enviar resumen semanal',
-    ru: 'Отправить еженедельную сводку',
-    fr: 'Envoyer le résumé hebdomadaire',
-    tr: 'Haftalık özeti gönder',
-    id: 'Kirim ringkasan mingguan',
-    it: 'Invia il riepilogo settimanale',
-    pl: 'Wyślij cotygodniowe podsumowanie',
-    pt: 'Enviar resumo semanal'
-  },
-  refreshTooltip: {
-    ar: 'تحديث',
-    en: 'Refresh',
-    es: 'Actualizar',
-    ru: 'Обновить',
-    fr: 'Actualiser',
-    tr: 'Yenile',
-    id: 'Segarkan',
-    it: 'Aggiorna',
-    pl: 'Odśwież',
-    pt: 'Atualizar'
-  },
-  classTasksHeading: {
-    ar: '📚 أنشطة الحصة',
-    en: '📚 Class Tasks',
-    es: '📚 Actividades de Clase',
-    ru: '📚 Классные задания',
-    fr: '📚 Activités en classe',
-    tr: '📚 Sınıf Etkinlikleri',
-    id: '📚 Aktivitas Kelas',
-    it: '📚 Attività in classe',
-    pl: '📚 Zadania klasowe',
-    pt: '📚 Atividades de Classe'
-  },
-  homeworkTasksHeading: {
-    ar: '📝 الواجب المنزلي',
-    en: '📝 Homework Tasks',
-    es: '📝 Tareas',
-    ru: '📝 Домашние задания',
-    fr: '📝 Devoirs',
-    tr: '📝 Ev Ödevi',
-    id: '📝 Tugas Rumah',
-    it: '📝 Compiti a casa',
-    pl: '📝 Zadania domowe',
-    pt: '📝 Trabalhos de Casa'
-  },
-  lessonCardHeader: {
-    ar: (number, id) => `الدرس ${number} (المعرّف: ${id})`,
-    en: (number, id) => `Lesson ${number} (ID: ${id})`,
-    es: (number, id) => `Lección ${number} (ID: ${id})`,
-    ru: (number, id) => `Урок ${number} (ID: ${id})`,
-    fr: (number, id) => `Leçon ${number} (ID : ${id})`,
-    tr: (number, id) => `Ders ${number} (ID: ${id})`,
-    id: (number, lessonId) => `Pelajaran ${number} (ID: ${lessonId})`,
-    it: (number, id) => `Lezione ${number} (ID: ${id})`,
-    pl: (number, id) => `Lekcja ${number} (ID: ${id})`,
-    pt: (number, id) => `Aula ${number} (ID: ${id})`
-  },
-  lessonNumberLabel: {
-    ar: (number) => `الدرس ${number}`,
-    en: (number) => `Lesson ${number}`,
-    es: (number) => `Lección ${number}`,
-    ru: (number) => `Урок ${number}`,
-    fr: (number) => `Leçon ${number}`,
-    tr: (number) => `Ders ${number}`,
-    id: (number) => `Pelajaran ${number}`,
-    it: (number) => `Lezione ${number}`,
-    pl: (number) => `Lekcja ${number}`,
-    pt: (number) => `Aula ${number}`
-  },
-  noTasksMatchFilter: {
-    ar: 'لا توجد مهام تطابق هذا الفلتر',
-    en: 'No tasks match this filter',
-    es: 'No hay tareas que coincidan con este filtro',
-    ru: 'Нет заданий, соответствующих этому фильтру',
-    fr: 'Aucune tâche ne correspond à ce filtre',
-    tr: 'Bu filtreyle eşleşen görev yok',
-    id: 'Tidak ada tugas yang cocok dengan filter ini',
-    it: 'Nessuna attività corrisponde a questo filtro',
-    pl: 'Brak zadań pasujących do tego filtra',
-    pt: 'Nenhuma tarefa corresponde a este filtro'
-  },
-  noTasksThisFilter: {
-    ar: 'لا توجد مهام بهذا الفلتر',
-    en: 'No tasks with this filter',
-    es: 'No hay tareas con este filtro',
-    ru: 'Нет заданий с этим фильтром',
-    fr: 'Aucune tâche avec ce filtre',
-    tr: 'Bu filtreyle görev yok',
-    id: 'Tidak ada tugas dengan filter ini',
-    it: 'Nessuna attività con questo filtro',
-    pl: 'Brak zadań z tym filtrem',
-    pt: 'Nenhuma tarefa com este filtro'
-  },
-  noTasksDataAvailable: {
-    ar: 'لا تتوفر بيانات المهام',
-    en: 'No tasks data available',
-    es: 'No hay datos de tareas disponibles',
-    ru: 'Данные о заданиях недоступны',
-    fr: 'Aucune donnée de tâche disponible',
-    tr: 'Görev verisi mevcut değil',
-    id: 'Data tugas tidak tersedia',
-    it: 'Nessun dato sulle attività disponibile',
-    pl: 'Brak dostępnych danych o zadaniach',
-    pt: 'Nenhum dado de tarefa disponível'
-  },
-  noData: {
-    ar: 'لا توجد بيانات',
-    en: 'No data',
-    es: 'No hay datos',
-    ru: 'Нет данных',
-    fr: 'Aucune donnée',
-    tr: 'Veri yok',
-    id: 'Tidak ada data',
-    it: 'Nessun dato',
-    pl: 'Brak danych',
-    pt: 'Sem dados'
-  },
-  noTasks: {
-    ar: 'لا توجد مهام',
-    en: 'No tasks',
-    es: 'No hay tareas',
-    ru: 'Нет заданий',
-    fr: 'Aucune tâche',
-    tr: 'Görev yok',
-    id: 'Tidak ada tugas',
-    it: 'Nessuna attività',
-    pl: 'Brak zadań',
-    pt: 'Sem tarefas'
-  },
-  unnamedTask: {
-    ar: 'مهمة بلا عنوان',
-    en: 'Untitled task',
-    es: 'Tarea sin nombre',
-    ru: 'Задание без названия',
-    fr: 'Tâche sans titre',
-    tr: 'Adsız görev',
-    id: 'Tugas tanpa judul',
-    it: 'Attività senza titolo',
-    pl: 'Zadanie bez nazwy',
-    pt: 'Tarefa sem título'
-  },
-  unknownStatus: {
-    ar: 'غير معروف',
-    en: 'Unknown',
-    es: 'Desconocido',
-    ru: 'Неизвестно',
-    fr: 'Inconnu',
-    tr: 'Bilinmiyor',
-    id: 'Tidak diketahui',
-    it: 'Sconosciuto',
-    pl: 'Nieznany',
-    pt: 'Desconhecido'
-  },
-  studentFallback: {
-    ar: 'طالب',
-    en: 'Student',
-    es: 'Estudiante',
-    ru: 'Студент',
-    fr: 'Élève',
-    tr: 'Öğrenci',
-    id: 'Siswa',
-    it: 'Studente',
-    pl: 'Uczeń',
-    pt: 'Aluno'
-  },
-  // Used as the greeting name when the parent's name is missing, so it ends
-  // up inside WhatsApp messages.
-  parentFallback: {
-    ar: 'وليّ الأمر',
-    en: 'Parent',
-    es: 'Padre/Madre',
-    ru: 'Родитель',
-    fr: 'Parent',
-    tr: 'Veli',
-    id: 'Orang tua',
-    it: 'Genitore',
-    pl: 'Rodzic',
-    pt: 'Responsável'
-  },
-  loading: {
-    ar: '⏳ جارٍ التحميل...',
-    en: '⏳ Loading...',
-    es: '⏳ Cargando...',
-    ru: '⏳ Загрузка...',
-    fr: '⏳ Chargement...',
-    tr: '⏳ Yükleniyor...',
-    id: '⏳ Memuat...',
-    it: '⏳ Caricamento...',
-    pl: '⏳ Ładowanie...',
-    pt: '⏳ Carregando...'
-  },
-  // Shown when the tutor hasn't filled in their name yet. It has to read as
-  // an obvious "fill this in" marker rather than as part of the sentence -
-  // "my name is your tutor" would go out to a student unnoticed.
-  tutorNamePlaceholder: {
-    ar: '[اكتب اسمك في ⚙️ الإعدادات]',
-    en: '[Set your name in ⚙️ Settings]',
-    es: '[Escribe tu nombre en ⚙️ Configuración]',
-    ru: '[Укажите своё имя в ⚙️ Настройках]',
-    fr: '[Indiquez votre nom dans ⚙️ Paramètres]',
-    tr: '[Adınızı ⚙️ Ayarlar bölümünden girin]',
-    id: '[Atur nama Anda di ⚙️ Pengaturan]',
-    it: '[Imposta il tuo nome in ⚙️ Impostazioni]',
-    pl: '[Ustaw swoje imię w ⚙️ Ustawieniach]',
-    pt: '[Defina seu nome em ⚙️ Configurações]'
-  },
-  studentWithId: {
-    ar: (id) => `طالب ${id}`,
-    en: (id) => `Student ${id}`,
-    es: (id) => `Estudiante ${id}`,
-    ru: (id) => `Студент ${id}`,
-    fr: (id) => `Élève ${id}`,
-    tr: (id) => `Öğrenci ${id}`,
-    id: (studentId) => `Siswa ${studentId}`,
-    it: (id) => `Studente ${id}`,
-    pl: (id) => `Uczeń ${id}`,
-    pt: (id) => `Aluno ${id}`
-  },
-
-  // --- Group grading report ---
-  gradingReportButton: {
-    ar: '📊 تقرير التصحيح',
-    en: '📊 Grading report',
-    es: '📊 Reporte calificación',
-    ru: '📊 Отчёт о проверке',
-    fr: '📊 Rapport de correction',
-    tr: '📊 Notlandırma raporu',
-    id: '📊 Laporan penilaian',
-    it: '📊 Report correzioni',
-    pl: '📊 Raport oceniania',
-    pt: '📊 Relatório de correção'
-  },
-  gradingReportTooltip: {
-    ar: 'مراجعة عدد المهام التي لم تُصحَّح بعد لكل طالب في المجموعة',
-    en: 'Check how many tasks are still waiting to be graded for each student in the group',
-    es: 'Revisar cuántas tareas le faltan calificar a cada estudiante del grupo',
-    ru: 'Проверить, сколько заданий ещё не проверено у каждого студента группы',
-    fr: 'Vérifier combien de tâches restent à corriger pour chaque élève du groupe',
-    tr: 'Gruptaki her öğrenci için notlandırılmayı bekleyen görev sayısını kontrol et',
-    id: 'Periksa berapa banyak tugas yang masih menunggu penilaian untuk setiap siswa di grup',
-    it: 'Controlla quante attività restano da correggere per ogni studente del gruppo',
-    pl: 'Sprawdź, ile zadań czeka jeszcze na ocenę u każdego ucznia w grupie',
-    pt: 'Verificar quantas tarefas ainda aguardam correção para cada aluno do grupo'
-  },
-  gradingReportTitle: {
-    ar: (total) => `📊 تقرير تصحيح المجموعة (${arabicCount(total, ARABIC_TASK_FORMS)} معلّقة إجمالاً)`,
-    en: (total) => `📊 Group grading report (${total} pending in total)`,
-    es: (total) => `📊 Reporte de calificación del grupo (${total} pendientes en total)`,
-    ru: (total) => `📊 Отчёт о проверке группы (всего ожидает: ${total})`,
-    fr: (total) => `📊 Rapport de correction du groupe (${total} en attente au total)`,
-    tr: (total) => `📊 Grup notlandırma raporu (toplam ${total} bekliyor)`,
-    id: (total) => `📊 Laporan penilaian grup (total ${total} tertunda)`,
-    it: (total) => `📊 Report correzioni del gruppo (${total} in totale in sospeso)`,
-    pl: (total) => `📊 Raport oceniania grupy (łącznie oczekuje: ${total})`,
-    pt: (total) => `📊 Relatório de correção do grupo (${total} pendentes no total)`
-  },
-  gradingNobodyPending: {
-    ar: '🎉 لا توجد مهام بانتظار التصحيح لدى أي طالب.',
-    en: '🎉 Nobody has tasks waiting to be graded.',
-    es: '🎉 Nadie tiene tareas pendientes de calificar.',
-    ru: '🎉 Ни у кого нет заданий, ожидающих проверки.',
-    fr: '🎉 Personne n\'a de tâches en attente de correction.',
-    tr: '🎉 Notlandırılmayı bekleyen görevi olan kimse yok.',
-    id: '🎉 Tidak ada yang memiliki tugas menunggu penilaian.',
-    it: '🎉 Nessuno ha attività in attesa di correzione.',
-    pl: '🎉 Nikt nie ma zadań oczekujących na ocenę.',
-    pt: '🎉 Ninguém tem tarefas pendentes de correção.'
-  },
-  gradeTaskLink: {
-    ar: '↗ تصحيح',
-    en: '↗ Grade',
-    es: '↗ Calificar',
-    ru: '↗ Проверить',
-    fr: '↗ Corriger',
-    tr: '↗ Notlandır',
-    id: '↗ Nilai',
-    it: '↗ Correggi',
-    pl: '↗ Oceń',
-    pt: '↗ Corrigir'
-  },
-  gradingStudentRow: {
-    ar: (name, count) => `${name} — ${arabicCount(count, ARABIC_TASK_FORMS)} بانتظار التصحيح`,
-    en: (name, count) => `${name} — ${count} task(s) to grade`,
-    es: (name, count) => `${name} — ${count} tarea(s) por calificar`,
-    ru: (name, count) => `${name} — ${count} задание(й) на проверку`,
-    fr: (name, count) => `${name} — ${count} tâche(s) à corriger`,
-    tr: (name, count) => `${name} — notlandırılacak ${count} görev`,
-    id: (name, count) => `${name} — ${count} tugas untuk dinilai`,
-    it: (name, count) => `${name} — ${count} attività da correggere`,
-    pl: (name, count) => `${name} — ${count} zadanie(a) do oceny`,
-    pt: (name, count) => `${name} — ${count} tarefa(s) para corrigir`
-  },
-  gradingReportError: {
-    ar: 'حدث خطأ أثناء إعداد التقرير. راجع وحدة تحكّم المتصفح.',
-    en: 'Something went wrong building the report. Check the console.',
-    es: 'Ocurrió un error armando el reporte. Revisa la consola.',
-    ru: 'Произошла ошибка при формировании отчёта. Проверьте консоль браузера.',
-    fr: 'Une erreur est survenue lors de la génération du rapport. Vérifiez la console.',
-    tr: 'Rapor oluşturulurken bir hata oluştu. Konsolu kontrol edin.',
-    id: 'Terjadi kesalahan saat membuat laporan. Periksa konsol browser.',
-    it: 'Si è verificato un errore nella creazione del report. Controlla la console.',
-    pl: 'Wystąpił błąd podczas tworzenia raportu. Sprawdź konsolę.',
-    pt: 'Ocorreu um erro ao montar o relatório. Verifique o console.'
-  },
-
-  // --- Per-student buttons ---
-  classReminderTooltip: {
-    ar: 'إرسال تذكير بالحصة',
-    en: 'Send class reminder',
-    es: 'Enviar advertencia de la clase',
-    ru: 'Отправить напоминание об уроке',
-    fr: 'Envoyer un rappel de cours',
-    tr: 'Ders hatırlatması gönder',
-    id: 'Kirim pengingat kelas',
-    it: 'Invia promemoria della lezione',
-    pl: 'Wyślij przypomnienie o lekcji',
-    pt: 'Enviar lembrete de aula'
-  },
-  absenceTooltip: {
-    ar: 'إرسال تنبيه بالغياب عن الحصة',
-    en: 'Send class absence notice',
-    es: 'Enviar aviso de falta a clase',
-    ru: 'Отправить уведомление об отсутствии на уроке',
-    fr: 'Envoyer un avis d\'absence au cours',
-    tr: 'Derse devamsızlık bildirimi gönder',
-    id: 'Kirim pemberitahuan ketidakhadiran kelas',
-    it: 'Invia avviso di assenza alla lezione',
-    pl: 'Wyślij powiadomienie o nieobecności na lekcji',
-    pt: 'Enviar aviso de falta à aula'
-  },
-  taskReportTooltip: {
-    ar: 'إرسال تقرير بالمهام غير المُسلَّمة عبر واتساب',
-    en: 'Send a WhatsApp report of unsubmitted tasks',
-    es: 'Enviar por WhatsApp un reporte de tareas sin enviar',
-    ru: 'Отправить в WhatsApp отчёт о несданных заданиях',
-    fr: 'Envoyer par WhatsApp un rapport des tâches non soumises',
-    tr: 'WhatsApp üzerinden teslim edilmemiş görevler raporu gönder',
-    id: 'Kirim laporan WhatsApp tugas yang belum dikumpulkan',
-    it: 'Invia via WhatsApp un report delle attività non consegnate',
-    pl: 'Wyślij przez WhatsApp raport niezłożonych zadań',
-    pt: 'Enviar por WhatsApp um relatório de tarefas não enviadas'
-  },
-  noPhoneForStudent: {
-    ar: 'لا يوجد رقم هاتف متاح لهذا الطالب',
-    en: 'No phone number available for this student',
-    es: 'No hay teléfono disponible para este estudiante',
-    ru: 'Нет доступного номера телефона для этого студента',
-    fr: 'Aucun numéro de téléphone disponible pour cet élève',
-    tr: 'Bu öğrenci için kullanılabilir telefon numarası yok',
-    id: 'Tidak ada nomor telepon yang tersedia untuk siswa ini',
-    it: 'Nessun numero di telefono disponibile per questo studente',
-    pl: 'Brak dostępnego numeru telefonu dla tego ucznia',
-    pt: 'Nenhum número de telefone disponível para este aluno'
-  },
-  noPhoneAvailable: {
-    ar: 'لا يوجد رقم هاتف متاح',
-    en: 'No phone number available',
-    es: 'No hay teléfono disponible',
-    ru: 'Нет доступного номера телефона',
-    fr: 'Aucun numéro de téléphone disponible',
-    tr: 'Kullanılabilir telefon numarası yok',
-    id: 'Tidak ada nomor telepon yang tersedia',
-    it: 'Nessun numero di telefono disponibile',
-    pl: 'Brak dostępnego numeru telefonu',
-    pt: 'Nenhum telefone disponível'
-  },
-  noGroupId: {
-    ar: 'تعذّر الحصول على معرّف المجموعة',
-    en: 'Could not get the group ID',
-    es: 'No se pudo obtener el ID del grupo',
-    ru: 'Не удалось получить ID группы',
-    fr: 'Impossible d\'obtenir l\'ID du groupe',
-    tr: 'Grup kimliği alınamadı',
-    id: 'Tidak dapat memperoleh ID grup',
-    it: 'Impossibile ottenere l\'ID del gruppo',
-    pl: 'Nie udało się uzyskać ID grupy',
-    pt: 'Não foi possível obter o ID do grupo'
-  },
-  groupIdNotFound: {
-    ar: 'تعذّر العثور على معرّف المجموعة. تأكد من أنك في صفحة مجموعة.',
-    en: 'Could not find group ID. Please make sure you are on a group page.',
-    es: 'No se pudo encontrar el ID del grupo. Asegúrate de estar en una página de grupo.',
-    ru: 'Не удалось найти ID группы. Убедитесь, что вы находитесь на странице группы.',
-    fr: 'ID du groupe introuvable. Assurez-vous d\'être sur une page de groupe.',
-    tr: 'Grup kimliği bulunamadı. Bir grup sayfasında olduğunuzdan emin olun.',
-    id: 'ID grup tidak ditemukan. Pastikan Anda berada di halaman grup.',
-    it: 'ID del gruppo non trovato. Assicurati di essere in una pagina di gruppo.',
-    pl: 'Nie znaleziono ID grupy. Upewnij się, że jesteś na stronie grupy.',
-    pt: 'ID do grupo não encontrado. Certifique-se de estar em uma página de grupo.'
-  },
-  scheduleFetchError: {
-    ar: (status) => `تعذّر جلب الجدول: ${status}`,
-    en: (status) => `Error fetching the schedule: ${status}`,
-    es: (status) => `Error al obtener el horario: ${status}`,
-    ru: (status) => `Не удалось загрузить расписание: ${status}`,
-    fr: (status) => `Erreur lors de la récupération de l'horaire : ${status}`,
-    tr: (status) => `Program alınamadı: ${status}`,
-    id: (status) => `Gagal mengambil jadwal: ${status}`,
-    it: (status) => `Errore nel recupero dell'orario: ${status}`,
-    pl: (status) => `Błąd pobierania harmonogramu: ${status}`,
-    pt: (status) => `Erro ao obter o horário: ${status}`
-  },
-  noUpcomingLesson: {
-    ar: 'لم يتم العثور على حصة قادمة',
-    en: 'No upcoming class found',
-    es: 'No se encontró una clase próxima',
-    ru: 'Ближайший урок не найден',
-    fr: 'Aucun cours à venir trouvé',
-    tr: 'Yaklaşan ders bulunamadı',
-    id: 'Tidak ditemukan kelas mendatang',
-    it: 'Nessuna lezione imminente trovata',
-    pl: 'Nie znaleziono nadchodzącej lekcji',
-    pt: 'Nenhuma aula futura encontrada'
-  },
-  messageGenerationError: {
-    ar: 'تعذّر إنشاء الرسالة',
-    en: 'Error generating the message',
-    es: 'Error al generar el mensaje',
-    ru: 'Не удалось создать сообщение',
-    fr: 'Erreur lors de la génération du message',
-    tr: 'Mesaj oluşturulamadı',
-    id: 'Gagal membuat pesan',
-    it: 'Errore nella generazione del messaggio',
-    pl: 'Błąd podczas generowania wiadomości',
-    pt: 'Erro ao gerar a mensagem'
-  },
-  classReminderError: {
-    ar: 'تعذّر إرسال التذكير بالحصة',
-    en: 'Error sending the class reminder',
-    es: 'Error al enviar la advertencia de clase',
-    ru: 'Не удалось отправить напоминание об уроке',
-    fr: 'Erreur lors de l\'envoi du rappel de cours',
-    tr: 'Ders hatırlatması gönderilemedi',
-    id: 'Gagal mengirim pengingat kelas',
-    it: 'Errore nell\'invio del promemoria della lezione',
-    pl: 'Błąd podczas wysyłania przypomnienia o lekcji',
-    pt: 'Erro ao enviar o lembrete de aula'
-  },
-  taskInfoError: {
-    ar: 'تعذّر الحصول على بيانات المهام. راجع وحدة تحكّم المتصفح.',
-    en: 'Could not get the tasks information. Check the console.',
-    es: 'No se pudo obtener la información de tareas. Revisa la consola.',
-    ru: 'Не удалось получить данные о заданиях. Проверьте консоль браузера.',
-    fr: 'Impossible d\'obtenir les informations des tâches. Vérifiez la console.',
-    tr: 'Görev bilgileri alınamadı. Konsolu kontrol edin.',
-    id: 'Tidak dapat memperoleh informasi tugas. Periksa konsol browser.',
-    it: 'Impossibile ottenere le informazioni sulle attività. Controlla la console.',
-    pl: 'Nie udało się pobrać informacji o zadaniach. Sprawdź konsolę.',
-    pt: 'Não foi possível obter as informações das tarefas. Verifique o console.'
-  },
-  noPendingTasks: {
-    ar: 'لا توجد لدى هذا الطالب مهام غير مُسلَّمة. 🎉',
-    en: 'This student has no unsubmitted tasks. 🎉',
-    es: 'Este estudiante no tiene tareas pendientes de enviar. 🎉',
-    ru: 'У этого студента нет несданных заданий. 🎉',
-    fr: 'Cet élève n\'a aucune tâche non soumise. 🎉',
-    tr: 'Bu öğrencinin teslim edilmemiş görevi yok. 🎉',
-    id: 'Siswa ini tidak memiliki tugas yang belum dikumpulkan. 🎉',
-    it: 'Questo studente non ha attività non consegnate. 🎉',
-    pl: 'Ten uczeń nie ma niezłożonych zadań. 🎉',
-    pt: 'Este aluno não tem tarefas pendentes de envio. 🎉'
-  },
-  taskReportMessage: {
-    ar: ({ studentName, tutorName, courseName, taskListText, waveEmoji, smileEmoji }) =>
-      `مرحباً ${studentName} ${waveEmoji}، أنا ${tutorName}، معلّمك${courseName ? ` في دورة ${courseName}` : ''} على منصة Kodland.\nأردت تذكيرك بأن لديك المهام التالية غير مُسلَّمة:\n${taskListText}\nيُرجى رفعها على المنصة متى استطعت حتى لا تتأخر عن الدورة. وإن كان لديك أي سؤال فأنا هنا! ${smileEmoji}`,
-    en: ({ studentName, tutorName, courseName, taskListText, waveEmoji, smileEmoji }) =>
-      `Hi ${studentName} ${waveEmoji}, this is ${tutorName}, your${courseName ? ` ${courseName}` : ''} tutor at Kodland.\nI wanted to remind you that the following tasks are still not submitted:\n${taskListText}\nPlease upload them to the platform when you can, so you don't fall behind on the course. Any questions, I'm here! ${smileEmoji}`,
-    es: ({ studentName, tutorName, courseName, taskListText, waveEmoji, smileEmoji }) =>
-      `Hola ${studentName} ${waveEmoji}, soy ${tutorName}, tu tutor${courseName ? ` de ${courseName}` : ''} en Kodland.\nQuería recordarte que tienes pendientes de enviar las siguientes tareas:\n${taskListText}\nPor favor súbelas a la plataforma cuando puedas, para que no te atrases con el curso. ¡Cualquier duda, aquí estoy! ${smileEmoji}`,
-    ru: ({ studentName, tutorName, courseName, taskListText, waveEmoji, smileEmoji }) =>
-      `Привет ${studentName} ${waveEmoji}, я ${tutorName}, твой преподаватель${courseName ? ` курса ${courseName}` : ''} на Kodland.\nХочу напомнить, что у тебя есть следующие несданные задания:\n${taskListText}\nПожалуйста, загрузи их на платформу, как только сможешь, чтобы не отставать от курса. Если у тебя есть вопросы, я всегда на связи! ${smileEmoji}`,
-    fr: ({ studentName, tutorName, courseName, taskListText, waveEmoji, smileEmoji }) =>
-      `Bonjour ${studentName} ${waveEmoji}, c'est ${tutorName}, ton professeur${courseName ? ` de ${courseName}` : ''} sur Kodland.\nJe voulais te rappeler que les tâches suivantes ne sont pas encore soumises :\n${taskListText}\nMerci de les envoyer sur la plateforme dès que possible, pour ne pas prendre de retard dans le cours. N'hésite pas à me contacter pour toute question ! ${smileEmoji}`,
-    tr: ({ studentName, tutorName, courseName, taskListText, waveEmoji, smileEmoji }) =>
-      `Merhaba ${studentName} ${waveEmoji}, ben ${tutorName}, Kodland'daki${courseName ? ` ${courseName} dersinin` : ''} öğretmeniyim.\nAşağıdaki görevlerin henüz teslim edilmediğini hatırlatmak istedim:\n${taskListText}\nDersten geri kalmamak için lütfen mümkün olan en kısa sürede platforma yükle. Herhangi bir sorun varsa buradayım! ${smileEmoji}`,
-    id: ({ studentName, tutorName, courseName, taskListText, waveEmoji, smileEmoji }) =>
-      `Halo ${studentName} ${waveEmoji}, saya ${tutorName}, tutor${courseName ? ` kursus ${courseName}` : ''} Anda di Kodland.\nSaya ingin mengingatkan bahwa tugas-tugas berikut belum dikumpulkan:\n${taskListText}\nSilakan unggah ke platform saat Anda bisa, agar tidak tertinggal dari kursus. Jika ada pertanyaan, saya di sini! ${smileEmoji}`,
-    it: ({ studentName, tutorName, courseName, taskListText, waveEmoji, smileEmoji }) =>
-      `Ciao ${studentName} ${waveEmoji}, sono ${tutorName}, il tuo tutor${courseName ? ` del corso ${courseName}` : ''} su Kodland.\nVolevo ricordarti che le seguenti attività non sono ancora state consegnate:\n${taskListText}\nPer favore caricale sulla piattaforma appena puoi, per non rimanere indietro con il corso. Per qualsiasi domanda, sono qui! ${smileEmoji}`,
-    pl: ({ studentName, tutorName, courseName, taskListText, waveEmoji, smileEmoji }) =>
-      `Cześć ${studentName} ${waveEmoji}, jestem ${tutorName}, twoim nauczycielem${courseName ? ` kursu ${courseName}` : ''} na Kodland.\nChciałem przypomnieć, że poniższe zadania nie zostały jeszcze przesłane:\n${taskListText}\nProszę, prześlij je na platformę, gdy tylko będziesz mógł, aby nie zostać w tyle z kursem. Jeśli masz pytania, jestem tutaj! ${smileEmoji}`,
-    pt: ({ studentName, tutorName, courseName, taskListText, waveEmoji, smileEmoji }) =>
-      `Olá ${studentName} ${waveEmoji}, eu sou ${tutorName}, seu tutor${courseName ? ` do curso ${courseName}` : ''} na Kodland.\nQueria lembrar que você tem as seguintes tarefas ainda não enviadas:\n${taskListText}\nPor favor, envie-as para a plataforma assim que possível, para não ficar atrasado no curso. Qualquer dúvida, estou aqui! ${smileEmoji}`
-  },
-
-  // --- Welcome message placeholders ---
-  scheduleLine: {
-    ar: ({ dayName, fullDate, time, timezoneLabel }) =>
-      `التي تبدأ يوم ${dayName} ${fullDate} الساعة ${time} (بتوقيت ${timezoneLabel})`,
-    en: ({ dayName, fullDate, time, timezoneLabel }) =>
-      `starting this ${dayName} ${fullDate} at ${time} (${timezoneLabel} time)`,
-    es: ({ dayName, fullDate, time, timezoneLabel }) =>
-      `que comenzará este ${dayName} ${fullDate} a las ${time} horas (hora ${timezoneLabel})`,
-    ru: ({ dayName, fullDate, time, timezoneLabel }) =>
-      `который начнётся в ${dayName}, ${fullDate}, в ${time} (по времени ${timezoneLabel})`,
-    fr: ({ dayName, fullDate, time, timezoneLabel }) =>
-      `qui commencera ce ${dayName} ${fullDate} à ${time} (heure de ${timezoneLabel})`,
-    tr: ({ dayName, fullDate, time, timezoneLabel }) =>
-      `${dayName} günü ${fullDate} tarihinde saat ${time}'de başlayacak (${timezoneLabel} saatiyle)`,
-    id: ({ dayName, fullDate, time, timezoneLabel }) =>
-      `yang akan dimulai pada ${dayName} ${fullDate} pukul ${time} (waktu ${timezoneLabel})`,
-    it: ({ dayName, fullDate, time, timezoneLabel }) =>
-      `che inizierà ${dayName} ${fullDate} alle ${time} (ora di ${timezoneLabel})`,
-    pl: ({ dayName, fullDate, time, timezoneLabel }) =>
-      `który rozpocznie się w ${dayName}, ${fullDate}, o ${time} (czasu ${timezoneLabel})`,
-    pt: ({ dayName, fullDate, time, timezoneLabel }) =>
-      `que começará nesta ${dayName}, ${fullDate}, às ${time} (horário de ${timezoneLabel})`
-  },
-  scheduleLineSoon: {
-    ar: 'التي ستبدأ قريباً',
-    en: 'starting very soon',
-    es: 'que comenzará muy pronto',
-    ru: 'который начнётся очень скоро',
-    fr: 'qui commencera très bientôt',
-    tr: 'çok yakında başlayacak',
-    id: 'yang akan segera dimulai',
-    it: 'che inizierà molto presto',
-    pl: 'który rozpocznie się już wkrótce',
-    pt: 'que começará muito em breve'
-  },
-  waGroupLinkMissing: {
-    ar: '[لم يتم حفظ رابط مجموعة واتساب بعد — انقر على زر رابط المجموعة أسفل الصفحة]',
-    en: '[The WhatsApp group link has not been saved yet - click the group link button at the bottom of the page]',
-    es: '[Aún no se detectó el link del grupo de WhatsApp - haz clic en el botón de chat de la página del curso]',
-    ru: '[Ссылка на группу WhatsApp ещё не сохранена — нажмите кнопку ссылки группы внизу страницы]',
-    fr: '[Le lien du groupe WhatsApp n\'a pas encore été enregistré — cliquez sur le bouton du lien du groupe en bas de la page]',
-    tr: '[WhatsApp grup bağlantısı henüz kaydedilmedi — sayfanın altındaki grup bağlantısı düğmesine tıklayın]',
-    id: '[Tautan grup WhatsApp belum disimpan — klik tombol tautan grup di bagian bawah halaman]',
-    it: '[Il link del gruppo WhatsApp non è ancora stato salvato — clicca sul pulsante del link del gruppo in fondo alla pagina]',
-    pl: '[Link do grupy WhatsApp nie został jeszcze zapisany — kliknij przycisk linku grupy na dole strony]',
-    pt: '[O link do grupo do WhatsApp ainda não foi salvo — clique no botão de link do grupo na parte inferior da página]'
-  },
-  loginLinkMissing: {
-    ar: '[تعذّر إنشاء رابط الدخول، راجع ملف الطالب]',
-    en: '[Could not generate the access link, check the student profile]',
-    es: '[No se pudo generar el link de acceso, revisa el perfil del estudiante]',
-    ru: '[Не удалось создать ссылку для входа, проверьте профиль студента]',
-    fr: '[Impossible de générer le lien d\'accès, vérifiez le profil de l\'élève]',
-    tr: '[Giriş bağlantısı oluşturulamadı, öğrenci profilini kontrol edin]',
-    id: '[Tidak dapat membuat tautan akses, periksa profil siswa]',
-    it: '[Impossibile generare il link di accesso, controlla il profilo dello studente]',
-    pl: '[Nie udało się wygenerować linku dostępu, sprawdź profil ucznia]',
-    pt: '[Não foi possível gerar o link de acesso, verifique o perfil do aluno]'
-  },
-
-  // --- Settings ---
-  settingsTooltip: {
-    ar: 'إعدادات الإضافة (إظهار/إخفاء الأزرار، اسم المعلّم، اللغة)',
-    en: 'Extension settings (show/hide buttons, tutor name, language)',
-    es: 'Configuración de la extensión (mostrar/ocultar botones, nombre del tutor)',
-    ru: 'Настройки расширения (показать/скрыть кнопки, имя преподавателя, язык)',
-    fr: 'Paramètres de l\'extension (afficher/masquer les boutons, nom du professeur, langue)',
-    tr: 'Uzantı ayarları (düğmeleri göster/gizle, öğretmen adı, dil)',
-    id: 'Pengaturan ekstensi (tampilkan/sembunyikan tombol, nama tutor, bahasa)',
-    it: 'Impostazioni dell\'estensione (mostra/nascondi pulsanti, nome del tutor, lingua)',
-    pl: 'Ustawienia rozszerzenia (pokaż/ukryj przyciski, imię nauczyciela, język)',
-    pt: 'Configurações da extensão (mostrar/ocultar botões, nome do tutor, idioma)'
-  },
-  settingsTitle: {
-    ar: '⚙️ الإعدادات',
-    en: '⚙️ Settings',
-    es: '⚙️ Configuración',
-    ru: '⚙️ Настройки',
-    fr: '⚙️ Paramètres',
-    tr: '⚙️ Ayarlar',
-    id: '⚙️ Pengaturan',
-    it: '⚙️ Impostazioni',
-    pl: '⚙️ Ustawienia',
-    pt: '⚙️ Configurações'
-  },
-  settingShowExport: {
-    ar: '📇 إظهار زر "تصدير جهات الاتصال"',
-    en: '📇 Show the "Export contacts" button',
-    es: '📇 Mostrar botón "Exportar contactos"',
-    ru: '📇 Показать кнопку "Экспорт контактов"',
-    fr: '📇 Afficher le bouton "Exporter les contacts"',
-    tr: '📇 "Kişileri dışa aktar" düğmesini göster',
-    id: '📇 Tampilkan tombol "Ekspor kontak"',
-    it: '📇 Mostra il pulsante "Esporta contatti"',
-    pl: '📇 Pokaż przycisk "Eksportuj kontakty"',
-    pt: '📇 Mostrar botão "Exportar contatos"'
-  },
-  settingShowWaLink: {
-    ar: '💬 إظهار زر "رابط مجموعة واتساب"',
-    en: '💬 Show the "WhatsApp group link" button',
-    es: '💬 Mostrar botón "Link WA grupo"',
-    ru: '💬 Показать кнопку "Ссылка на группу WhatsApp"',
-    fr: '💬 Afficher le bouton "Lien du groupe WhatsApp"',
-    tr: '💬 "WhatsApp grup bağlantısı" düğmesini göster',
-    id: '💬 Tampilkan tombol "Tautan grup WhatsApp"',
-    it: '💬 Mostra il pulsante "Link gruppo WhatsApp"',
-    pl: '💬 Pokaż przycisk "Link do grupy WhatsApp"',
-    pt: '💬 Mostrar botão "Link do grupo do WhatsApp"'
-  },
-  settingShowAttendance: {
-    ar: '✅ إظهار زر "تسجيل الحضور"',
-    en: '✅ Show the "Take attendance" button',
-    es: '✅ Mostrar botón "Tomar asistencia"',
-    ru: '✅ Показать кнопку "Отметить посещаемость"',
-    fr: '✅ Afficher le bouton "Prendre les présences"',
-    tr: '✅ "Yoklama al" düğmesini göster',
-    id: '✅ Tampilkan tombol "Ambil absensi"',
-    it: '✅ Mostra il pulsante "Registra presenze"',
-    pl: '✅ Pokaż przycisk "Zaznacz obecność"',
-    pt: '✅ Mostrar botão "Registrar presença"'
-  },
-  settingShowAbsence: {
-    ar: '⏰ إظهار زر "الغياب عن الحصة" (لكل طالب)',
-    en: '⏰ Show the "Class absence" button (per student)',
-    es: '⏰ Mostrar botón "Falta a clase" (por estudiante)',
-    ru: '⏰ Показать кнопку "Отсутствие на уроке" (для каждого студента)',
-    fr: '⏰ Afficher le bouton "Absence au cours" (par élève)',
-    tr: '⏰ "Derse devamsızlık" düğmesini göster (öğrenci başına)',
-    id: '⏰ Tampilkan tombol "Ketidakhadiran kelas" (per siswa)',
-    it: '⏰ Mostra il pulsante "Assenza alla lezione" (per studente)',
-    pl: '⏰ Pokaż przycisk "Nieobecność na lekcji" (dla każdego ucznia)',
-    pt: '⏰ Mostrar botão "Falta à aula" (por aluno)'
-  },
-  settingShowTaskReport: {
-    ar: '📤 إظهار زر "تقرير المهام" (لكل طالب)',
-    en: '📤 Show the "Tasks report" button (per student)',
-    es: '📤 Mostrar botón "Reporte de tareas" (por estudiante)',
-    ru: '📤 Показать кнопку "Отчёт по заданиям" (для каждого студента)',
-    fr: '📤 Afficher le bouton "Rapport des tâches" (par élève)',
-    tr: '📤 "Görev raporu" düğmesini göster (öğrenci başına)',
-    id: '📤 Tampilkan tombol "Laporan tugas" (per siswa)',
-    it: '📤 Mostra il pulsante "Report attività" (per studente)',
-    pl: '📤 Pokaż przycisk "Raport zadań" (dla każdego ucznia)',
-    pt: '📤 Mostrar botão "Relatório de tarefas" (por aluno)'
-  },
-  settingShowGradingReport: {
-    ar: '📊 إظهار زر "تقرير التصحيح" (للمجموعة كاملة)',
-    en: '📊 Show the "Grading report" button (whole group)',
-    es: '📊 Mostrar botón "Reporte calificación" (grupo completo)',
-    ru: '📊 Показать кнопку "Отчёт о проверке" (для всей группы)',
-    fr: '📊 Afficher le bouton "Rapport de correction" (groupe entier)',
-    tr: '📊 "Notlandırma raporu" düğmesini göster (tüm grup)',
-    id: '📊 Tampilkan tombol "Laporan penilaian" (seluruh grup)',
-    it: '📊 Mostra il pulsante "Report correzioni" (intero gruppo)',
-    pl: '📊 Pokaż przycisk "Raport oceniania" (cała grupa)',
-    pt: '📊 Mostrar botão "Relatório de correção" (grupo inteiro)'
-  },
-  settingTutorName: {
-    ar: 'اسم المعلّم:',
-    en: 'Tutor name:',
-    es: 'Nombre del tutor:',
-    ru: 'Имя преподавателя:',
-    fr: 'Nom du professeur :',
-    tr: 'Öğretmen adı:',
-    id: 'Nama tutor:',
-    it: 'Nome del tutor:',
-    pl: 'Imię nauczyciela:',
-    pt: 'Nome do tutor:'
-  },
-  settingLanguage: {
-    ar: 'لغة الواجهة والرسائل:',
-    en: 'Interface and message language:',
-    es: 'Idioma de la interfaz y los mensajes:',
-    ru: 'Язык интерфейса и сообщений:',
-    fr: 'Langue de l\'interface et des messages :',
-    tr: 'Arayüz ve mesaj dili:',
-    id: 'Bahasa antarmuka dan pesan:',
-    it: 'Lingua dell\'interfaccia e dei messaggi:',
-    pl: 'Język interfejsu i wiadomości:',
-    pt: 'Idioma da interface e das mensagens:'
-  },
-  settingLanguageAuto: {
-    ar: 'تلقائي (حسب لغة صفحة Kodland)',
-    en: 'Automatic (follow the Kodland page language)',
-    es: 'Automático (seguir el idioma de la página de Kodland)',
-    ru: 'Автоматически (следовать языку страницы Kodland)',
-    fr: 'Automatique (suivre la langue de la page Kodland)',
-    tr: 'Otomatik (Kodland sayfa dilini takip et)',
-    id: 'Otomatis (mengikuti bahasa halaman Kodland)',
-    it: 'Automatico (segui la lingua della pagina Kodland)',
-    pl: 'Automatyczny (zgodnie z językiem strony Kodland)',
-    pt: 'Automático (seguir o idioma da página Kodland)'
-  },
-  settingTimezone: {
-    ar: 'المنطقة الزمنية للحصص (صيغة IANA، مثل Africa/Cairo):',
-    en: 'Class timezone (IANA format, e.g. Africa/Cairo):',
-    es: 'Zona horaria de la clase (formato IANA, p. ej. America/Mexico_City):',
-    ru: 'Часовой пояс занятий (формат IANA, напр. Europe/Moscow):',
-    fr: 'Fuseau horaire des cours (format IANA, ex. Europe/Paris) :',
-    tr: 'Ders saat dilimi (IANA biçimi, örn. Europe/Istanbul):',
-    id: 'Zona waktu kelas (format IANA, mis. Asia/Jakarta):',
-    it: 'Fuso orario delle lezioni (formato IANA, es. Europe/Rome):',
-    pl: 'Strefa czasowa zajęć (format IANA, np. Europe/Warsaw):',
-    pt: 'Fuso horário das aulas (formato IANA, ex. America/Sao_Paulo):'
-  },
-  settingTimezoneLabel: {
-    ar: 'اسم المنطقة الزمنية كما يظهر في الرسائر:',
-    en: 'Timezone name as it appears in messages:',
-    es: 'Nombre de la zona horaria como aparece en los mensajes:',
-    ru: 'Название часового пояса, как оно отображается в сообщениях:',
-    fr: 'Nom du fuseau horaire tel qu\'il apparaît dans les messages :',
-    tr: 'Mesajlarda görünen saat dilimi adı:',
-    id: 'Nama zona waktu seperti yang muncul di pesan:',
-    it: 'Nome del fuso orario come appare nei messaggi:',
-    pl: 'Nazwa strefy czasowej wyświetlana w wiadomościach:',
-    pt: 'Nome do fuso horário como aparece nas mensagens:'
-  },
-  settingsTemplatesHelp: {
-    ar: 'قوالب الرسائل: استخدم {{studentName}} و{{tutorName}} و{{courseName}}، وفي رسالة الترحيب فقط {{scheduleLine}} و{{waGroupLink}} و{{wonderLoginUrl}} و{{username}} و{{password}}. تُملأ هذه القيم تلقائياً عند إرسال الرسالة.',
-    en: 'Message templates: use {{studentName}}, {{tutorName}}, {{courseName}}, and (welcome message only) {{scheduleLine}}, {{waGroupLink}}, {{wonderLoginUrl}}, {{username}}, {{password}}. These are filled in automatically when the message is sent.',
-    es: 'Plantillas de mensajes: usa {{studentName}}, {{tutorName}}, {{courseName}} y (solo en bienvenida) {{scheduleLine}}, {{waGroupLink}}, {{wonderLoginUrl}}, {{username}}, {{password}}. Esos textos se rellenan solos al enviar el mensaje.',
-    ru: 'Шаблоны сообщений: используйте {{studentName}}, {{tutorName}}, {{courseName}}, а в приветственном сообщении также {{scheduleLine}}, {{waGroupLink}}, {{wonderLoginUrl}}, {{username}}, {{password}}. Эти значения подставляются автоматически при отправке сообщения.',
-    fr: 'Modèles de messages : utilisez {{studentName}}, {{tutorName}}, {{courseName}}, et (message de bienvenue uniquement) {{scheduleLine}}, {{waGroupLink}}, {{wonderLoginUrl}}, {{username}}, {{password}}. Ces valeurs sont remplies automatiquement lors de l\'envoi du message.',
-    tr: 'Mesaj şablonları: {{studentName}}, {{tutorName}}, {{courseName}} kullanın; hoş geldin mesajında ayrıca {{scheduleLine}}, {{waGroupLink}}, {{wonderLoginUrl}}, {{username}}, {{password}}. Bu değerler mesaj gönderilirken otomatik olarak doldurulur.',
-    id: 'Templat pesan: gunakan {{studentName}}, {{tutorName}}, {{courseName}}, dan (khusus pesan selamat datang) {{scheduleLine}}, {{waGroupLink}}, {{wonderLoginUrl}}, {{username}}, {{password}}. Nilai-nilai ini akan diisi otomatis saat pesan dikirim.',
-    it: 'Modelli di messaggio: usa {{studentName}}, {{tutorName}}, {{courseName}} e (solo nel messaggio di benvenuto) {{scheduleLine}}, {{waGroupLink}}, {{wonderLoginUrl}}, {{username}}, {{password}}. Questi valori vengono compilati automaticamente all\'invio del messaggio.',
-    pl: 'Szablony wiadomości: użyj {{studentName}}, {{tutorName}}, {{courseName}}, a w wiadomości powitalnej także {{scheduleLine}}, {{waGroupLink}}, {{wonderLoginUrl}}, {{username}}, {{password}}. Te wartości są uzupełniane automatycznie podczas wysyłania wiadomości.',
-    pt: 'Modelos de mensagem: use {{studentName}}, {{tutorName}}, {{courseName}} e (somente na mensagem de boas-vindas) {{scheduleLine}}, {{waGroupLink}}, {{wonderLoginUrl}}, {{username}}, {{password}}. Esses valores são preenchidos automaticamente ao enviar a mensagem.'
-  },
-  settingWelcomeTemplate: {
-    ar: 'رسالة الترحيب:',
-    en: 'Welcome message:',
-    es: 'Mensaje de bienvenida:',
-    ru: 'Приветственное сообщение:',
-    fr: 'Message de bienvenue :',
-    tr: 'Hoş geldin mesajı:',
-    id: 'Pesan selamat datang:',
-    it: 'Messaggio di benvenuto:',
-    pl: 'Wiadomość powitalna:',
-    pt: 'Mensagem de boas-vindas:'
-  },
-  settingAbsenceTemplate: {
-    ar: 'رسالة الغياب عن الحصة:',
-    en: 'Class absence message:',
-    es: 'Mensaje de falta a clase:',
-    ru: 'Сообщение об отсутствии на уроке:',
-    fr: 'Message d\'absence au cours :',
-    tr: 'Derse devamsızlık mesajı:',
-    id: 'Pesan ketidakhadiran kelas:',
-    it: 'Messaggio di assenza alla lezione:',
-    pl: 'Wiadomość o nieobecności na lekcji:',
-    pt: 'Mensagem de falta à aula:'
-  },
-  settingsReset: {
-    ar: 'استعادة الافتراضي',
-    en: 'Reset',
-    es: 'Restablecer',
-    ru: 'Восстановить по умолчанию',
-    fr: 'Réinitialiser',
-    tr: 'Varsayılana sıfırla',
-    id: 'Kembalikan ke default',
-    it: 'Ripristina predefinito',
-    pl: 'Przywróć domyślne',
-    pt: 'Restaurar padrão'
-  },
-  settingsSave: {
-    ar: 'حفظ',
-    en: 'Save',
-    es: 'Guardar',
-    ru: 'Сохранить',
-    fr: 'Enregistrer',
-    tr: 'Kaydet',
-    id: 'Simpan',
-    it: 'Salva',
-    pl: 'Zapisz',
-    pt: 'Salvar'
-  },
-  settingsSaved: {
-    ar: 'تم حفظ الإعدادات. أعد تحميل الصفحة لتطبيقها.',
-    en: 'Settings saved. Reload the page to apply them.',
-    es: 'Configuración guardada. Recarga la página para que se aplique.',
-    ru: 'Настройки сохранены. Перезагрузите страницу, чтобы применить их.',
-    fr: 'Paramètres enregistrés. Rechargez la page pour les appliquer.',
-    tr: 'Ayarlar kaydedildi. Uygulamak için sayfayı yeniden yükleyin.',
-    id: 'Pengaturan disimpan. Muat ulang halaman untuk menerapkannya.',
-    it: 'Impostazioni salvate. Ricarica la pagina per applicarle.',
-    pl: 'Ustawienia zapisane. Odśwież stronę, aby je zastosować.',
-    pt: 'Configurações salvas. Recarregue a página para aplicá-las.'
-  },
-
-  // --- Export contacts ---
-  exportContactsButton: {
-    ar: '📇 تصدير جهات الاتصال',
-    en: '📇 Export contacts',
-    es: '📇 Exportar contactos',
-    ru: '📇 Экспорт контактов',
-    fr: '📇 Exporter les contacts',
-    tr: '📇 Kişileri dışa aktar',
-    id: '📇 Ekspor kontak',
-    it: '📇 Esporta contatti',
-    pl: '📇 Eksportuj kontakty',
-    pt: '📇 Exportar contatos'
-  },
-  exportContactsTooltip: {
-    ar: 'تنزيل ملف CSV بجهات الاتصال (الاسم، اليوم والساعة، الهاتف)',
-    en: 'Download a contacts CSV (Name, Day+Time, Phone)',
-    es: 'Descargar CSV de contactos (Nombre, Día+Hora, Teléfono)',
-    ru: 'Скачать CSV-файл контактов (Имя, День+Время, Телефон)',
-    fr: 'Télécharger un CSV de contacts (Nom, Jour+Heure, Téléphone)',
-    tr: 'Kişiler CSV dosyasını indir (Ad, Gün+Saat, Telefon)',
-    id: 'Unduh CSV kontak (Nama, Hari+Waktu, Telepon)',
-    it: 'Scarica CSV dei contatti (Nome, Giorno+Ora, Telefono)',
-    pl: 'Pobierz plik CSV z kontaktami (Imię, Dzień+Godzina, Telefon)',
-    pt: 'Baixar CSV de contatos (Nome, Dia+Hora, Telefone)'
-  },
-  exportingContacts: {
-    ar: '⏳ جارٍ التصدير...',
-    en: '⏳ Exporting...',
-    es: '⏳ Exportando...',
-    ru: '⏳ Экспорт...',
-    fr: '⏳ Exportation...',
-    tr: '⏳ Dışa aktarılıyor...',
-    id: '⏳ Mengekspor...',
-    it: '⏳ Esportazione...',
-    pl: '⏳ Eksportowanie...',
-    pt: '⏳ Exportando...'
-  },
-  noStudentsProcessed: {
-    ar: 'لم تتم معالجة أي طلاب بعد. انتظر بضع ثوانٍ حتى تُحمَّل البيانات ثم أعد المحاولة.',
-    en: 'No students processed yet. Wait a few seconds for the data to load and try again.',
-    es: 'Todavía no hay estudiantes procesados. Espera unos segundos a que carguen los datos y vuelve a intentar.',
-    ru: 'Пока не обработано ни одного студента. Подождите несколько секунд, пока данные загрузятся, и попробуйте снова.',
-    fr: 'Aucun élève traité pour le moment. Attendez quelques secondes que les données se chargent et réessayez.',
-    tr: 'Henüz işlenen öğrenci yok. Verilerin yüklenmesi için birkaç saniye bekleyip tekrar deneyin.',
-    id: 'Belum ada siswa yang diproses. Tunggu beberapa detik hingga data dimuat lalu coba lagi.',
-    it: 'Nessuno studente elaborato ancora. Attendi qualche secondo che i dati si carichino e riprova.',
-    pl: 'Żaden uczeń nie został jeszcze przetworzony. Poczekaj kilka sekund, aż dane się załadują, i spróbuj ponownie.',
-    pt: 'Nenhum aluno processado ainda. Aguarde alguns segundos até os dados carregarem e tente novamente.'
-  },
-
-  // --- WhatsApp group link ---
-  waGroupLinkSaved: {
-    ar: '✅ رابط مجموعة واتساب',
-    en: '✅ WhatsApp group link',
-    es: '✅ Link WA grupo',
-    ru: '✅ Ссылка на группу WhatsApp',
-    fr: '✅ Lien du groupe WhatsApp',
-    tr: '✅ WhatsApp grup bağlantısı',
-    id: '✅ Tautan grup WhatsApp',
-    it: '✅ Link gruppo WhatsApp',
-    pl: '✅ Link do grupy WhatsApp',
-    pt: '✅ Link do grupo do WhatsApp'
-  },
-  waGroupLinkPaste: {
-    ar: '📋 الصق رابط مجموعة واتساب',
-    en: '📋 Paste WhatsApp group link',
-    es: '📋 Pegar link WA grupo',
-    ru: '📋 Вставить ссылку на группу WhatsApp',
-    fr: '📋 Coller le lien du groupe WhatsApp',
-    tr: '📋 WhatsApp grup bağlantısını yapıştır',
-    id: '📋 Tempel tautan grup WhatsApp',
-    it: '📋 Incolla link gruppo WhatsApp',
-    pl: '📋 Wklej link do grupy WhatsApp',
-    pt: '📋 Colar link do grupo do WhatsApp'
-  },
-  waGroupLinkSavedTooltip: {
-    ar: (link) => `الرابط المحفوظ: ${link}\nانقر لتغييره`,
-    en: (link) => `Saved link: ${link}\nClick to change it`,
-    es: (link) => `Link guardado: ${link}\nClic para cambiarlo`,
-    ru: (link) => `Сохранённая ссылка: ${link}\nНажмите, чтобы изменить`,
-    fr: (link) => `Lien enregistré : ${link}\nCliquez pour le modifier`,
-    tr: (link) => `Kaydedilen bağlantı: ${link}\nDeğiştirmek için tıklayın`,
-    id: (link) => `Tautan tersimpan: ${link}\nKlik untuk mengubahnya`,
-    it: (link) => `Link salvato: ${link}\nClicca per modificarlo`,
-    pl: (link) => `Zapisany link: ${link}\nKliknij, aby go zmienić`,
-    pt: (link) => `Link salvo: ${link}\nClique para alterá-lo`
-  },
-  waGroupLinkPasteTooltip: {
-    ar: 'انقر للصق رابط مجموعة واتساب الخاصة بهذه الدورة.',
-    en: "Click to paste this course's WhatsApp group link.",
-    es: 'Clic para pegar el link del grupo de WhatsApp de este curso.',
-    ru: 'Нажмите, чтобы вставить ссылку на группу WhatsApp этого курса.',
-    fr: 'Cliquez pour coller le lien du groupe WhatsApp de ce cours.',
-    tr: 'Bu kursun WhatsApp grup bağlantısını yapıştırmak için tıklayın.',
-    id: 'Klik untuk menempelkan tautan grup WhatsApp kursus ini.',
-    it: 'Clicca per incollare il link del gruppo WhatsApp di questo corso.',
-    pl: 'Kliknij, aby wkleić link do grupy WhatsApp tego kursu.',
-    pt: 'Clique para colar o link do grupo do WhatsApp deste curso.'
-  },
-  waGroupLinkPrompt: {
-    ar: 'الصق رابط مجموعة واتساب الخاصة بهذه الدورة أو صحّحه:',
-    en: "Paste or correct this course's WhatsApp group link:",
-    es: 'Pega o corrige el link del grupo de WhatsApp de este curso:',
-    ru: 'Вставьте или исправьте ссылку на группу WhatsApp этого курса:',
-    fr: 'Collez ou corrigez le lien du groupe WhatsApp de ce cours :',
-    tr: 'Bu kursun WhatsApp grup bağlantısını yapıştırın veya düzeltin:',
-    id: 'Tempel atau perbaiki tautan grup WhatsApp kursus ini:',
-    it: 'Incolla o correggi il link del gruppo WhatsApp di questo corso:',
-    pl: 'Wklej lub popraw link do grupy WhatsApp tego kursu:',
-    pt: 'Cole ou corrija o link do grupo do WhatsApp deste curso:'
-  },
-
-  // --- Attendance ---
-  attendanceButton: {
-    ar: '✅ تسجيل الحضور',
-    en: '✅ Take attendance',
-    es: '✅ Tomar asistencia',
-    ru: '✅ Отметить посещаемость',
-    fr: '✅ Prendre les présences',
-    tr: '✅ Yoklama al',
-    id: '✅ Ambil absensi',
-    it: '✅ Registra presenze',
-    pl: '✅ Zaznacz obecność',
-    pt: '✅ Registrar presença'
-  },
-  attendanceTooltip: {
-    ar: 'وضع علامة "حاضر" لجميع الطلاب. يمكنك بعدها تعديل الغائبين يدوياً.',
-    en: 'Mark ALL students as "Attended". You can then fix the absentees by hand.',
-    es: 'Marca a TODOS los estudiantes como "Asistió". Luego puedes ajustar a mano los que faltaron.',
-    ru: 'Отметить ВСЕХ студентов как "Присутствовал". Затем вы можете вручную исправить отсутствующих.',
-    fr: 'Marquer TOUS les élèves comme "Présent". Vous pourrez ensuite corriger les absents manuellement.',
-    tr: 'TÜM öğrencileri "Katıldı" olarak işaretle. Daha sonra devamsızları elle düzeltebilirsin.',
-    id: 'Tandai SEMUA siswa sebagai "Hadir". Anda dapat memperbaiki yang tidak hadir secara manual nanti.',
-    it: 'Segna TUTTI gli studenti come "Presente". Potrai poi correggere manualmente gli assenti.',
-    pl: 'Oznacz WSZYSTKICH uczniów jako "Obecny". Następnie możesz ręcznie poprawić nieobecnych.',
-    pt: 'Marcar TODOS os alunos como "Presente". Depois você pode ajustar manualmente os ausentes.'
-  },
-  attendanceConfirm: {
-    ar: 'هل تريد وضع علامة "حاضر" لجميع الطلاب الظاهرين؟\n\nيمكنك بعد ذلك تغيير حالة الغائبين يدوياً (بالنقر بالزر الأيمن على رقم الدرس).',
-    en: 'Mark ALL visible students as "Attended"?\n\nYou can then change the absentees manually (right-click on the lesson number).',
-    es: '¿Marcar a TODOS los estudiantes visibles como "Asistió"?\n\nDespués puedes cambiar manualmente (clic derecho sobre el número de la lección) a los que hayan faltado.',
-    ru: 'Отметить ВСЕХ видимых студентов как "Присутствовал"?\n\nПосле этого вы можете вручную изменить статус отсутствующих (правый клик по номеру урока).',
-    fr: 'Marquer TOUS les élèves visibles comme "Présent" ?\n\nVous pourrez ensuite modifier manuellement les absents (clic droit sur le numéro de la leçon).',
-    tr: 'Görünen TÜM öğrenciler "Katıldı" olarak işaretlensin mi?\n\nDaha sonra devamsız olanları elle değiştirebilirsin (ders numarasına sağ tıklayarak).',
-    id: 'Tandai SEMUA siswa yang terlihat sebagai "Hadir"?\n\nAnda kemudian dapat mengubah status yang tidak hadir secara manual (klik kanan pada nomor pelajaran).',
-    it: 'Segnare TUTTI gli studenti visibili come "Presente"?\n\nPotrai poi modificare manualmente gli assenti (clic destro sul numero della lezione).',
-    pl: 'Oznaczyć WSZYSTKICH widocznych uczniów jako "Obecny"?\n\nNastępnie możesz ręcznie zmienić status nieobecnych (kliknięcie prawym przyciskiem na numer lekcji).',
-    pt: 'Marcar TODOS os alunos visíveis como "Presente"?\n\nDepois você pode alterar manualmente os ausentes (clique com o botão direito no número da aula).'
-  },
-  attendanceMarking: {
-    ar: '⏳ جارٍ التسجيل...',
-    en: '⏳ Marking...',
-    es: '⏳ Marcando...',
-    ru: '⏳ Отмечаем...',
-    fr: '⏳ Marquage...',
-    tr: '⏳ İşaretleniyor...',
-    id: '⏳ Menandai...',
-    it: '⏳ Registrazione...',
-    pl: '⏳ Zaznaczanie...',
-    pt: '⏳ Marcando...'
-  },
-  attendanceNoChips: {
-    ar: 'لم يتم العثور على أي درس مُميَّز (الدرس الحالي) في الصفحة. راجع وحدة تحكّم المتصفح.',
-    en: 'No highlighted lesson chip (current lesson) found on the page. Check the console.',
-    es: 'No se encontró ningún chip resaltado (lección actual) en la página. Revisa la consola.',
-    ru: 'На странице не найден выделенный урок (текущий урок). Проверьте консоль браузера.',
-    fr: 'Aucune leçon en cours mise en évidence trouvée sur la page. Vérifiez la console.',
-    tr: 'Sayfada vurgulanmış bir ders (mevcut ders) bulunamadı. Konsolu kontrol edin.',
-    id: 'Tidak ditemukan chip pelajaran yang disorot (pelajaran saat ini) di halaman. Periksa konsol browser.',
-    it: 'Nessuna lezione evidenziata (lezione attuale) trovata nella pagina. Controlla la console.',
-    pl: 'Nie znaleziono podświetlonej lekcji (bieżącej lekcji) na stronie. Sprawdź konsolę.',
-    pt: 'Nenhuma aula destacada (aula atual) encontrada na página. Verifique o console.'
-  },
-  attendanceSummary: {
-    ar: ({ ok, skipped, failed }) =>
-      `تم تسجيل الحضور: ${ok} بنجاح` +
-      (skipped.length > 0 ? `، وتم تخطّي ${skipped.length} (غير مسجّلين)` : '') +
-      (failed.length > 0 ? `، وفشل ${failed.length} (راجع وحدة تحكّم المتصفح): ${failed.join('، ')}` : ''),
-    en: ({ ok, skipped, failed }) =>
-      `Attendance marked: ${ok} ok` +
-      (skipped.length > 0 ? `, ${skipped.length} skipped (not enrolled)` : '') +
-      (failed.length > 0 ? `, ${failed.length} failed (check the console): ${failed.join(', ')}` : ''),
-    es: ({ ok, skipped, failed }) =>
-      `Asistencia marcada: ${ok} ok` +
-      (skipped.length > 0 ? `, ${skipped.length} omitidos (no inscritos)` : '') +
-      (failed.length > 0 ? `, ${failed.length} fallaron (revisa la consola): ${failed.join(', ')}` : ''),
-    ru: ({ ok, skipped, failed }) =>
-      `Посещаемость отмечена: ${ok} успешно` +
-      (skipped.length > 0 ? `, пропущено ${skipped.length} (не записаны)` : '') +
-      (failed.length > 0 ? `, не удалось ${failed.length} (проверьте консоль): ${failed.join(', ')}` : ''),
-    fr: ({ ok, skipped, failed }) =>
-      `Présences enregistrées : ${ok} réussies` +
-      (skipped.length > 0 ? `, ${skipped.length} ignorées (non inscrits)` : '') +
-      (failed.length > 0 ? `, ${failed.length} échouées (vérifiez la console) : ${failed.join(', ')}` : ''),
-    tr: ({ ok, skipped, failed }) =>
-      `Yoklama işaretlendi: ${ok} başarılı` +
-      (skipped.length > 0 ? `, ${skipped.length} atlandı (kayıtlı değil)` : '') +
-      (failed.length > 0 ? `, ${failed.length} başarısız (konsolu kontrol edin): ${failed.join(', ')}` : ''),
-    id: ({ ok, skipped, failed }) =>
-      `Absensi ditandai: ${ok} berhasil` +
-      (skipped.length > 0 ? `, ${skipped.length} dilewati (tidak terdaftar)` : '') +
-      (failed.length > 0 ? `, ${failed.length} gagal (periksa konsol): ${failed.join(', ')}` : ''),
-    it: ({ ok, skipped, failed }) =>
-      `Presenze registrate: ${ok} riuscite` +
-      (skipped.length > 0 ? `, ${skipped.length} saltate (non iscritti)` : '') +
-      (failed.length > 0 ? `, ${failed.length} fallite (controlla la console): ${failed.join(', ')}` : ''),
-    pl: ({ ok, skipped, failed }) =>
-      `Obecność zaznaczona: ${ok} pomyślnie` +
-      (skipped.length > 0 ? `, pominięto ${skipped.length} (niezapisani)` : '') +
-      (failed.length > 0 ? `, nie powiodło się ${failed.length} (sprawdź konsolę): ${failed.join(', ')}` : ''),
-    pt: ({ ok, skipped, failed }) =>
-      `Presença marcada: ${ok} com sucesso` +
-      (skipped.length > 0 ? `, ${skipped.length} ignorados (não inscritos)` : '') +
-      (failed.length > 0 ? `, ${failed.length} falharam (verifique o console): ${failed.join(', ')}` : '')
-  }
-};
-
-// Look up a UI string in the current message language, falling back to
-// English and then Arabic. Entries that are functions are called with the
-// extra arguments, so callers can write uiText('studentWithId', 42).
-function uiTextForLanguage(key, languageOverride, ...args) {
-  const entry = UI_STRINGS[key];
-  if (!entry) {
-    console.warn(`[UI] Missing UI string: ${key}`);
-    return key;
-  }
-
-  const requestedLanguage = normalizeMessageLanguage(languageOverride || getMessageLanguage());
-  const language = requestedLanguage === 'auto' ? detectPageLanguage() : requestedLanguage;
-  const value = entry[language] ?? entry.es ?? entry.en ?? entry.ar;
-  return typeof value === 'function' ? value(...args) : value;
-}
-
-function uiText(key, ...args) {
-  return uiTextForLanguage(key, getMessageLanguage(), ...args);
-}
-
-function refreshInjectedUiLanguage() {
-  const currentLanguage = getMessageLanguage();
-
-  const settingsButton = document.getElementById('kodland-settings-button');
-  if (settingsButton) {
-    settingsButton.setAttribute('title', uiTextForLanguage('settingsTooltip', currentLanguage));
-    settingsButton.setAttribute('aria-label', uiTextForLanguage('settingsTooltip', currentLanguage));
-  }
-
-  document.querySelectorAll('[data-kodland-ui-key]').forEach((node) => {
-    const key = node.getAttribute('data-kodland-ui-key');
-    if (!key) return;
-
-    const label = uiTextForLanguage(key, currentLanguage);
-    if (node.tagName === 'BUTTON' && !node.querySelector('svg') && node.textContent.trim() !== '') {
-      node.textContent = label;
-    }
-    node.setAttribute('title', label);
-    node.setAttribute('aria-label', label);
-  });
-}
-
-// Store authentication token
-let authToken = null;
+// Store authentication token. `var` on purpose - shared with
+// early-auth-capture.js (document_start), which usually captures this
+// before this file even runs. Guard against overwriting a value that
+// script already found.
+var authToken = (typeof authToken !== 'undefined' && authToken) ? authToken : null;
 
 // Track processed students to avoid duplicate fetches
 const processedStudents = new Set();
@@ -1139,9 +13,10 @@ const processedStudents = new Set();
 // Track if processing is in progress
 let isProcessingStudents = false;
 
-// Function to capture Bearer token from network requests
-function captureAuthToken() {
-  // Intercept fetch requests (keep intercepting to catch tokens from any request)
+// Fallback interceptor installer, only used if early-auth-capture.js
+// somehow didn't run (should be rare - it's a separate document_start
+// content script matching the same pages).
+function installAuthTokenInterceptorsFallback() {
   const originalFetch = window.fetch;
   window.fetch = function(...args) {
     const [url, options = {}] = args;
@@ -1192,6 +67,16 @@ function captureAuthToken() {
     }
     return originalSetRequestHeader.apply(this, arguments);
   };
+}
+
+function captureAuthToken() {
+  // The fetch/XHR interceptors are normally already installed by
+  // early-auth-capture.js at document_start (before this script even runs).
+  // Only install them here as a fallback, in case that file somehow didn't run.
+  if (!window.__kodlandAuthInterceptorsInstalled) {
+    window.__kodlandAuthInterceptorsInstalled = true;
+    installAuthTokenInterceptorsFallback();
+  }
   
   // Try to get token from localStorage/sessionStorage
   try {
@@ -1271,14 +156,116 @@ function captureAuthToken() {
 }
 
 // ---------------------------------------------------------------------
-// WhatsApp group link (manual only - no auto-detection)
+// Group general info (backoffice API)
 // ---------------------------------------------------------------------
-// The tutor pastes the group's WhatsApp invite link once per course; we just
-// store and read it back, without trying to intercept or detect anything.
+// GET /api/v2/student_groups/{id}/get_general_info_for_group_backoffice_page
+// One call gives us, among other things: chat_link (the WhatsApp group
+// invite link), group_miro_board_url, group_teacher.full_name,
+// predicted_end_date and course.title. We use it mainly to auto-detect the
+// WhatsApp link (so the tutor doesn't have to paste it manually), with an
+// in-memory cache so we don't hit the API more than needed per group.
+
+const GROUP_INFO_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const groupInfoCache = new Map(); // groupId -> { data, fetchedAt }
+const groupInfoInFlight = new Map(); // groupId -> Promise (dedupes concurrent calls)
+
+// Fetch (and cache) the general info blob for a group. Auto-saves chat_link
+// into the same localStorage key the manual "paste link" flow reads from,
+// so that flow becomes a fallback/correction tool instead of a requirement.
+async function fetchGroupGeneralInfo(groupId, { force = false, _retry = false } = {}) {
+  if (!groupId) return null;
+
+  if (!force) {
+    const cached = groupInfoCache.get(groupId);
+    if (cached && (Date.now() - cached.fetchedAt) < GROUP_INFO_CACHE_TTL_MS) {
+      return cached.data;
+    }
+  }
+
+  if (groupInfoInFlight.has(groupId)) {
+    return groupInfoInFlight.get(groupId);
+  }
+
+  const requestPromise = (async () => {
+    try {
+      const apiUrl = `https://backoffice.kodland.org/api/v2/student_groups/${groupId}/get_general_info_for_group_backoffice_page`;
+
+      const headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      };
+      if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+      const response = await fetch(apiUrl, { method: 'GET', credentials: 'include', headers });
+
+      if (!response.ok) {
+        console.warn(`[Group Info] HTTP ${response.status} fetching general info for group ${groupId}`);
+        // The very first call on page load can race the auth token capture
+        // (it only fills in once some other authenticated request fires).
+        // Give it one retry a few seconds later before giving up.
+        if (!_retry) {
+          groupInfoInFlight.delete(groupId);
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          return fetchGroupGeneralInfo(groupId, { force: true, _retry: true });
+        }
+        return null;
+      }
+
+      const data = await response.json();
+      groupInfoCache.set(groupId, { data, fetchedAt: Date.now() });
+
+      if (data && data.chat_link) {
+        try {
+          localStorage.setItem(`kodland_wa_group_link_${groupId}`, data.chat_link);
+        } catch (e) {
+          // Ignore storage errors (e.g. private mode)
+        }
+      }
+
+      return data;
+    } catch (error) {
+      console.error(`[Group Info] Error fetching general info for group ${groupId}:`, error);
+      return null;
+    } finally {
+      groupInfoInFlight.delete(groupId);
+    }
+  })();
+
+  groupInfoInFlight.set(groupId, requestPromise);
+  return requestPromise;
+}
+
+// Synchronous read of whatever's cached right now, without triggering a
+// fetch. Use fetchGroupGeneralInfo() first (it's cheap once cached).
+function getCachedGroupGeneralInfo(groupId) {
+  const cached = groupInfoCache.get(groupId);
+  return cached ? cached.data : null;
+}
+
+// Small convenience getters for other data the endpoint brings along for
+// free - ready to wire into templates/UI as needed.
+function getGroupMiroBoardUrl(groupId) {
+  return getCachedGroupGeneralInfo(groupId)?.group_miro_board_url || null;
+}
+
+function getGroupTeacherName(groupId) {
+  return getCachedGroupGeneralInfo(groupId)?.group_teacher?.full_name || null;
+}
+
+function getGroupPredictedEndDate(groupId) {
+  return getCachedGroupGeneralInfo(groupId)?.predicted_end_date || null;
+}
+
+// ---------------------------------------------------------------------
+// WhatsApp group link
+// ---------------------------------------------------------------------
+// Auto-detected via fetchGroupGeneralInfo() above (chat_link), which saves
+// it into the same localStorage key this reads from. The tutor can still
+// paste/correct it manually as a fallback if auto-detection ever fails.
 
 // Get the cached WhatsApp group link for the current group, if any
-function getGroupWhatsAppLink() {
-  const groupId = extractGroupId();
+function getGroupWhatsAppLink(groupIdOverride = null) {
+  const groupId = groupIdOverride || extractGroupId();
   if (!groupId) return null;
   return localStorage.getItem(`kodland_wa_group_link_${groupId}`) || null;
 }
@@ -1785,17 +772,10 @@ function calculateTaskPercentages(organizedData) {
 }
 
 // Function to generate weekly summary message
-function generateWeeklySummaryMessage(studentName, lessonsCompleted, percentages, language = getMessageLanguage()) {
+function generateWeeklySummaryMessage(studentName, lessonsCompleted, percentages, language = 'es') {
   const { homeworkPercentage, classPercentage } = percentages;
   
   const messages = {
-    ar: {
-      greeting: `مرحباً ${studentName}،`,
-      intro: `إليك ملخصك الأسبوعي: أنجزنا حتى الآن ${arabicCount(lessonsCompleted, ARABIC_LESSON_FORMS)}، وقد سلّمت ${homeworkPercentage}% من الأنشطة المنزلية و${classPercentage}% من الأنشطة الصفية.`,
-      allCompleted: `تهانينا! لقد أكملت جميع أنشطتك. واصل على هذا المنوال، فأنت تقوم بعمل ممتاز.`,
-      lowPercentage: `ألاحظ وجود بعض الأنشطة المعلّقة. لا تقلق، يمكنك الاعتماد على مساعدتي لإكمالها. وإن أردت أن أوضّح لك ما هي هذه الأنشطة وأن نراجعها معاً، فلا تتردد في التواصل معي.`,
-      regularPercentage: `أنت تحرز تقدماً جيداً. وإن أردت أن أوضّح لك ما هي الأنشطة المتبقية وأن نراجعها معاً، فلا تتردد في التواصل معي.`
-    },
     es: {
       greeting: `Hola ${studentName},`,
       intro: `Aquí está tu resumen semanal, llevamos ya ${lessonsCompleted} lecciones realizadas y tienes ${homeworkPercentage}% de actividades en casa entregadas y ${classPercentage}% de actividades en clase entregadas.`,
@@ -1861,8 +841,8 @@ function generateWeeklySummaryMessage(studentName, lessonsCompleted, percentages
     }
   };
   
-  const msg = messages[language] || messages.ar;
-
+  const msg = messages[language] || messages.es;
+  
   let message = `${msg.greeting}\n\n${msg.intro}\n\n`;
   
   // Determine message based on percentages
@@ -1885,21 +865,32 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
     existingModal.remove();
   }
   
-  // Message language for labels
-  const detectedLang = getMessageLanguage();
+  // Detect language and path for links
+  const detectedLang = detectPageLanguage();
+  const langUrlMap = {
+    'es': 'es',
+    'en': 'en',
+    'ru': 'ru',
+    'fr': 'fr',
+    'tr': 'tr',
+    'id': 'id',
+    'it': 'it',
+    'pl': 'pl',
+    'pt': 'pt'
+  };
+  const langPath = langUrlMap[detectedLang] || 'es';
 
   // Organize data by modules
   const organizedData = organizeTasksByModules(modulesData, tasksData);
-
+  
   // Get student name
-  const studentName = document.querySelector(`a[href="/students/${studentId}"] h3`)?.textContent?.trim() || uiText('studentWithId', studentId);
-
+  const studentName = document.querySelector(`a[href="/students/${studentId}"] h3`)?.textContent?.trim() || `Student ${studentId}`;
+  
   // Create modal
   const modal = document.createElement('div');
   modal.id = 'kodland-tasks-modal';
   modal.className = 'kodland-modal';
-  applyLanguageDirection(modal, detectedLang);
-
+  
   // Create modal content
   const modalContent = document.createElement('div');
   modalContent.className = 'kodland-modal-content';
@@ -1907,7 +898,6 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
   // Localized labels
   const labels = {
     title: {
-      ar: 'تقدّم المهام',
       es: 'Progreso de tareas',
       en: 'Tasks Progress',
       ru: 'Прогресс заданий',
@@ -1919,14 +909,14 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
       pt: 'Progresso das tarefas'
     },
     filters: {
-      all: { ar: 'الكل', es: 'Todas', en: 'All', ru: 'Все', fr: 'Toutes', tr: 'Tümü', id: 'Semua', it: 'Tutte', pl: 'Wszystkie', pt: 'Todas' },
-      submitted: { ar: 'بانتظار التصحيح', es: 'Por Calificar', en: 'To Grade', ru: 'На проверке', fr: 'À corriger', tr: 'Notlanacak', id: 'Perlu dinilai', it: 'Da valutare', pl: 'Do oceny', pt: 'Para avaliar' },
-      checked: { ar: 'مُصحَّحة', es: 'Revisadas', en: 'Checked', ru: 'Проверено', fr: 'Corrigées', tr: 'Kontrol edildi', id: 'Sudah diperiksa', it: 'Corrette', pl: 'Sprawdzone', pt: 'Revisadas' },
-      notSubmitted: { ar: 'غير مُسلَّمة', es: 'No Enviadas', en: 'Not Submitted', ru: 'Не отправлено', fr: 'Non envoyées', tr: 'Gönderilmedi', id: 'Belum dikirim', it: 'Non inviate', pl: 'Nie wysłane', pt: 'Não enviadas' },
-      submittedLate: { ar: 'مُسلَّمة متأخرة', es: 'Enviadas tarde', en: 'Submitted late', ru: 'Отправлено поздно', fr: 'Envoyées en retard', tr: 'Geç gönderildi', id: 'Terlambat dikirim', it: 'Inviate in ritardo', pl: 'Wysłane po czasie', pt: 'Enviadas tarde' }
+      all: { es: 'Todas', en: 'All', ru: 'Все', fr: 'Toutes', tr: 'Tümü', id: 'Semua', it: 'Tutte', pl: 'Wszystkie', pt: 'Todas' },
+      submitted: { es: 'Por Calificar', en: 'To Grade', ru: 'На проверке', fr: 'À corriger', tr: 'Notlanacak', id: 'Perlu dinilai', it: 'Da valutare', pl: 'Do oceny', pt: 'Para avaliar' },
+      checked: { es: 'Revisadas', en: 'Checked', ru: 'Проверено', fr: 'Corrigées', tr: 'Kontrol edildi', id: 'Sudah diperiksa', it: 'Corrette', pl: 'Sprawdzone', pt: 'Revisadas' },
+      notSubmitted: { es: 'No Enviadas', en: 'Not Submitted', ru: 'Не отправлено', fr: 'Non envoyées', tr: 'Gönderilmedi', id: 'Belum dikirim', it: 'Non inviate', pl: 'Nie wysłane', pt: 'Não enviadas' },
+      submittedLate: { es: 'Enviadas tarde', en: 'Submitted late', ru: 'Отправлено поздно', fr: 'Envoyées en retard', tr: 'Geç gönderildi', id: 'Terlambat dikirim', it: 'Inviate in ritardo', pl: 'Wysłane po czasie', pt: 'Enviadas tarde' }
     }
   };
-  const t = (group, key) => (labels[group]?.[key]?.[detectedLang]) || labels[group]?.[key]?.['ar'] || key;
+  const t = (group, key) => (labels[group]?.[key]?.[detectedLang]) || labels[group]?.[key]?.['es'] || key;
 
   // Calculate task percentages
   const percentages = calculateTaskPercentages(organizedData);
@@ -1939,12 +929,11 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
   // Modal header
   const header = document.createElement('div');
   header.className = 'kodland-modal-header';
-  const modalTitle = labels.title[detectedLang] || labels.title.ar;
   header.innerHTML = `
-    <h2>${escapeHtml(modalTitle)} - ${escapeHtml(studentName)}</h2>
+    <h2>${t('title', detectedLang)} - ${studentName}</h2>
     <div class="kodland-header-actions">
-      <button class="kodland-weekly-summary-btn" title="${escapeHtml(uiText('weeklySummaryTooltip'))}">📊</button>
-      <button class="kodland-refresh-btn" title="${escapeHtml(uiText('refreshTooltip'))}" ${onRefresh ? '' : 'disabled'}>⟳</button>
+      <button class="kodland-weekly-summary-btn" title="Enviar resumen semanal">📊</button>
+      <button class="kodland-refresh-btn" title="Refresh" ${onRefresh ? '' : 'disabled'}>⟳</button>
       <button class="kodland-modal-close">&times;</button>
     </div>
   `;
@@ -2071,16 +1060,16 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
         
         const lessonHeader = document.createElement('div');
         lessonHeader.className = 'kodland-lesson-header';
-        lessonHeader.textContent = uiText('lessonCardHeader', lessonIndex + 1, lesson.id);
+        lessonHeader.textContent = `Lesson ${lessonIndex + 1} (ID: ${lesson.id})`;
         lessonCard.appendChild(lessonHeader);
         
         // Class tasks section
         if (lesson.classTasks && hasClassTasks) {
           const classTasksSection = document.createElement('div');
           classTasksSection.className = 'kodland-tasks-section kodland-class-tasks';
-          classTasksSection.innerHTML = `<h4>${escapeHtml(uiText('classTasksHeading'))}</h4>`;
+          classTasksSection.innerHTML = `<h4>📚 Class Tasks</h4>`;
           
-          const classTasksList = renderTasksList(lesson.classTasks, filterStatus, studentId);
+          const classTasksList = renderTasksList(lesson.classTasks, filterStatus, studentId, langPath);
           classTasksSection.appendChild(classTasksList);
           lessonCard.appendChild(classTasksSection);
         }
@@ -2089,15 +1078,15 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
         if (lesson.homeworkTasks && hasHomeworkTasks) {
           const homeworkTasksSection = document.createElement('div');
           homeworkTasksSection.className = 'kodland-tasks-section kodland-homework-tasks';
-          homeworkTasksSection.innerHTML = `<h4>${escapeHtml(uiText('homeworkTasksHeading'))}</h4>`;
+          homeworkTasksSection.innerHTML = `<h4>📝 Homework Tasks</h4>`;
           
-          const homeworkTasksList = renderTasksList(lesson.homeworkTasks, filterStatus, studentId);
+          const homeworkTasksList = renderTasksList(lesson.homeworkTasks, filterStatus, studentId, langPath);
           homeworkTasksSection.appendChild(homeworkTasksList);
           lessonCard.appendChild(homeworkTasksSection);
         }
         
         if (!lesson.classTasks && !lesson.homeworkTasks) {
-          lessonCard.innerHTML += `<p class="kodland-no-tasks">${escapeHtml(uiText('noTasksDataAvailable'))}</p>`;
+          lessonCard.innerHTML += '<p class="kodland-no-tasks">No tasks data available</p>';
         }
         
         lessonsContainer.appendChild(lessonCard);
@@ -2115,7 +1104,7 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
     
     // Show message if no tasks match filter
     if (body.children.length === 0 && filterStatus !== null) {
-      body.innerHTML = `<p class="kodland-no-tasks" style="text-align: center; padding: 40px; font-size: 16px;">${escapeHtml(uiText('noTasksMatchFilter'))}</p>`;
+      body.innerHTML = '<p class="kodland-no-tasks" style="text-align: center; padding: 40px; font-size: 16px;">No hay tareas que coincidan con este filtro</p>';
     }
   }
   
@@ -2154,11 +1143,6 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
       try {
         // Alert messages by language
         const alertMessages = {
-          ar: {
-            noStudentData: 'تعذّر الحصول على بيانات الطالب',
-            noPhone: 'لم يتم العثور على رقم هاتف وليّ الأمر',
-            error: 'تعذّر إنشاء الملخص الأسبوعي'
-          },
           es: {
             noStudentData: 'No se pudo obtener la información del estudiante',
             noPhone: 'No se encontró el teléfono del padre',
@@ -2206,7 +1190,7 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
           }
         };
         
-        const alerts = alertMessages[detectedLang] || alertMessages.ar;
+        const alerts = alertMessages[detectedLang] || alertMessages.es;
         
         // Fetch student data to get parent phone
         const studentData = await fetchStudentInfo(studentId);
@@ -2244,7 +1228,6 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
       } catch (err) {
         console.error('[Group Students Info] Error sending weekly summary:', err);
         const alertMessages = {
-          ar: 'تعذّر إنشاء الملخص الأسبوعي',
           es: 'Error al generar el resumen semanal',
           en: 'Error generating weekly summary',
           ru: 'Ошибка при создании еженедельной сводки',
@@ -2255,7 +1238,7 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
           pl: 'Błąd podczas generowania cotygodniowego podsumowania',
           pt: 'Erro ao gerar o resumo semanal'
         };
-        alert(alertMessages[detectedLang] || alertMessages.ar);
+        alert(alertMessages[detectedLang] || alertMessages.es);
       }
     });
   }
@@ -2304,12 +1287,12 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
 }
 
 // Function to render tasks list
-function renderTasksList(tasksData, filterStatus = null, studentId = null) {
+function renderTasksList(tasksData, filterStatus = null, studentId = null, langPath = 'es') {
   const list = document.createElement('div');
   list.className = 'kodland-tasks-list';
-
+  
   if (!tasksData) {
-    list.innerHTML = `<p>${escapeHtml(uiText('noData'))}</p>`;
+    list.innerHTML = '<p>No data</p>';
     return list;
   }
   
@@ -2322,7 +1305,7 @@ function renderTasksList(tasksData, filterStatus = null, studentId = null) {
   }
   
   if (tasks.length === 0) {
-    list.innerHTML = `<p>${escapeHtml(uiText('noTasks'))}</p>`;
+    list.innerHTML = '<p>No tasks</p>';
     return list;
   }
   
@@ -2336,7 +1319,7 @@ function renderTasksList(tasksData, filterStatus = null, studentId = null) {
   }
   
   if (filteredTasks.length === 0) {
-    list.innerHTML = `<p class="kodland-no-tasks">${escapeHtml(uiText('noTasksThisFilter'))}</p>`;
+    list.innerHTML = '<p class="kodland-no-tasks">No hay tareas con este filtro</p>';
     return list;
   }
   
@@ -2347,9 +1330,9 @@ function renderTasksList(tasksData, filterStatus = null, studentId = null) {
     taskItem.setAttribute('data-task-status', task.task_status_key || task.status_key || '');
     
     // Use task_title as primary source, fallback to other fields
-    const taskName = task.task_title || task.title || task.name || task.task_name || uiText('unnamedTask');
+    const taskName = task.task_title || task.title || task.name || task.task_name || 'Tarea sin nombre';
     const taskStatusKey = task.task_status_key || task.status_key || '';
-    const taskStatusValue = task.task_status_value || task.status_value || task.status || uiText('unknownStatus');
+    const taskStatusValue = task.task_status_value || task.status_value || task.status || 'Desconocido';
     
     // Determine status class based on task_status_key
     let statusClass = 'pending';
@@ -2382,9 +1365,7 @@ function renderTasksList(tasksData, filterStatus = null, studentId = null) {
     // Build task link if task_id and studentId are available
     let taskLinkHtml = '';
     if (task.task_id && studentId) {
-      // No locale segment: learn.kodland.org serves task pages at
-      // /task/{taskId}/check/{studentId} directly.
-      const taskUrl = `https://learn.kodland.org/task/${task.task_id}/check/${studentId}`;
+      const taskUrl = `https://learn.kodland.org/${langPath}/task/${task.task_id}/check/${studentId}`;
       taskLinkHtml = `<a class="kodland-task-link" href="${taskUrl}" target="_blank" rel="noopener noreferrer">↗</a>`;
     }
 
@@ -3025,92 +2006,83 @@ async function getStudentCredentials(studentId) {
   if (studentCredentialsCache[studentId]) {
     return studentCredentialsCache[studentId];
   }
-  
-  // Try to fetch credentials from API
+
+  // Reuse the general-info response already fetched for this student (e.g.
+  // by processAllStudents when the group page loaded) instead of hitting
+  // the same API endpoint a second time. Only fetch if we truly don't have
+  // it cached anywhere yet.
+  let data = studentGeneralInfoCache[studentId] || null;
+
+  if (!data) {
+    data = await fetchStudentInfo(studentId);
+    if (data) studentGeneralInfoCache[studentId] = data;
+  }
+
+  if (!data) return null;
+
   try {
-    const apiUrl = `https://backoffice.kodland.org/api/v2/students/${studentId}/get_general_info_for_student_backoffice_page/`;
+    // Try to extract credentials from response
+    // Look for student_login and student_password specifically (as mentioned by user)
+    const username = data.student_login || 
+                    data.student_user || 
+                    data.student_username || 
+                    data.username || 
+                    data.login || 
+                    data.user_name || 
+                    data.user_login || '';
     
-    const headers = {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    };
+    const password = data.student_password || 
+                    data.student_pass || 
+                    data.password || 
+                    data.user_password || 
+                    data.pass || '';
     
-    if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`;
-    }
-    
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      credentials: 'include',
-      headers: headers
+    console.log(`[Group Students Info] Extracted credentials for student ${studentId}:`, {
+      username: username ? `${username.substring(0, 3)}...` : 'NOT FOUND',
+      password: password ? '***' : 'NOT FOUND',
+      availableFields: Object.keys(data).filter(k => k.toLowerCase().includes('login') || k.toLowerCase().includes('password') || k.toLowerCase().includes('user') || k.toLowerCase().includes('pass'))
     });
     
-    if (response.ok) {
-      const data = await response.json();
-      
-      // Try to extract credentials from response
-      // Look for student_login and student_password specifically (as mentioned by user)
-      const username = data.student_login || 
-                      data.student_user || 
-                      data.student_username || 
-                      data.username || 
-                      data.login || 
-                      data.user_name || 
-                      data.user_login || '';
-      
-      const password = data.student_password || 
-                      data.student_pass || 
-                      data.password || 
-                      data.user_password || 
-                      data.pass || '';
-      
-      console.log(`[Group Students Info] Extracted credentials for student ${studentId}:`, {
-        username: username ? `${username.substring(0, 3)}...` : 'NOT FOUND',
-        password: password ? '***' : 'NOT FOUND',
-        availableFields: Object.keys(data).filter(k => k.toLowerCase().includes('login') || k.toLowerCase().includes('password') || k.toLowerCase().includes('user') || k.toLowerCase().includes('pass'))
+    if (username && password) {
+      const credentials = {
+        username: username,
+        password: password,
+        formatted: `Usuario: ${username}\nContraseña: ${password}`
+      };
+      studentCredentialsCache[studentId] = credentials;
+      console.log(`[Group Students Info] ✅ Credentials found and cached for student ${studentId}`);
+      return credentials;
+    } else {
+      console.warn(`[Group Students Info] ⚠️ Missing credentials for student ${studentId}:`, {
+        hasUsername: !!username,
+        hasPassword: !!password,
+        dataKeys: Object.keys(data)
       });
-      
-      if (username && password) {
-        const credentials = {
-          username: username,
-          password: password,
-          formatted: `Usuario: ${username}\nContraseña: ${password}`
-        };
-        studentCredentialsCache[studentId] = credentials;
-        console.log(`[Group Students Info] ✅ Credentials found and cached for student ${studentId}`);
-        return credentials;
-      } else {
-        console.warn(`[Group Students Info] ⚠️ Missing credentials for student ${studentId}:`, {
-          hasUsername: !!username,
-          hasPassword: !!password,
-          dataKeys: Object.keys(data)
-        });
-      }
-      
-      // Try other possible structures
-      if (data.credentials) {
-        const creds = typeof data.credentials === 'string' 
-          ? { formatted: data.credentials, username: '', password: '' }
-          : { formatted: data.credentials, ...data.credentials };
-        studentCredentialsCache[studentId] = creds;
-        return creds;
-      }
-      
-      if (data.login_info) {
-        const loginInfo = data.login_info;
-        const username = loginInfo.student_user || loginInfo.username || loginInfo.login || '';
-        const password = loginInfo.student_password || loginInfo.password || loginInfo.pass || '';
-        const creds = {
-          username: username,
-          password: password,
-          formatted: `Usuario: ${username}\nContraseña: ${password}`
-        };
-        studentCredentialsCache[studentId] = creds;
-        return creds;
-      }
+    }
+    
+    // Try other possible structures
+    if (data.credentials) {
+      const creds = typeof data.credentials === 'string' 
+        ? { formatted: data.credentials, username: '', password: '' }
+        : { formatted: data.credentials, ...data.credentials };
+      studentCredentialsCache[studentId] = creds;
+      return creds;
+    }
+    
+    if (data.login_info) {
+      const loginInfo = data.login_info;
+      const username = loginInfo.student_user || loginInfo.username || loginInfo.login || '';
+      const password = loginInfo.student_password || loginInfo.password || loginInfo.pass || '';
+      const creds = {
+        username: username,
+        password: password,
+        formatted: `Usuario: ${username}\nContraseña: ${password}`
+      };
+      studentCredentialsCache[studentId] = creds;
+      return creds;
     }
   } catch (error) {
-    console.error(`[Group Students Info] Error fetching credentials for student ${studentId}:`, error);
+    console.error(`[Group Students Info] Error extracting credentials for student ${studentId}:`, error);
   }
   
   // If credentials not found, return null to trigger fallback
@@ -3119,200 +2091,14 @@ async function getStudentCredentials(studentId) {
 
 // Function to generate the "student didn't connect to class" message.
 // Personalized with the student's name, the tutor's name (from settings),
-// and the course name. The wording itself comes from the editable template
-// in settings (Arabic by default), so `language` only affects the fallback
-// tutor name.
-function getDefaultAbsenceTemplate(language = getMessageLanguage()) {
-  const resolvedLanguage = normalizeMessageLanguage(language);
-  const templates = {
-    ar: `مرحباً {{studentName}} 👋، أنا {{tutorName}}، معلّمك في دورة {{courseName}} على منصة Kodland.
-لقد بدأنا حصة اليوم ولاحظت أنك لم تنضم إلينا بعد. هل ستحضر الحصة؟ 🕒
-إذا واجهت أي مشكلة تقنية في الدخول إلى المنصة، فأخبرني فوراً لأساعدك. وتذكّر أنك إن لم تتمكّن من الحضور المباشر، فمن المهم جداً أن تشاهد تسجيل الحصة من لوحة الطالب حتى لا تتأخر عن المشروع الذي نعمل عليه.
-بانتظارك في القاعة! 😊`,
-    es: `Hola {{studentName}} 👋, soy {{tutorName}}, tu profesor/a del curso {{courseName}} en Kodland.
-Hoy comenzamos la clase y noté que aún no te uniste a nosotros. ¿Vendrás a la clase? 🕒
-Si tienes algún problema técnico para entrar a la plataforma, avísame de inmediato y te ayudaré. Y recuerda que si no puedes asistir en vivo, es muy importante que veas la grabación de la clase desde el panel del estudiante para no atrasarte en el proyecto.
-¡Te esperamos en la clase! 😊`,
-    en: `Hello {{studentName}} 👋, I am {{tutorName}}, your tutor for the {{courseName}} course on Kodland.
-We started class today and I noticed you have not joined us yet. Will you be attending? 🕒
-If you have any technical issues accessing the platform, let me know right away and I will help you. Also remember that if you cannot attend live, it is very important to watch the class recording from the student panel so you do not fall behind on the project.
-We look forward to seeing you in class! 😊`,
-    ru: `Привет {{studentName}} 👋, я {{tutorName}}, твой преподаватель курса {{courseName}} на Kodland.
-Сегодня начался урок, и я заметил, что ты ещё не присоединился к нам. Ты придёшь на занятие? 🕒
-Если у тебя возникнут технические проблемы с доступом к платформе, сразу напиши мне, и я помогу. Также помни, что если ты не сможешь присутствовать в прямом эфире, важно посмотреть запись урока в панели ученика, чтобы не отставать от проекта.
-Ждём тебя на занятии! 😊`,
-    fr: `Bonjour {{studentName}} 👋, je suis {{tutorName}}, ton professeur du cours {{courseName}} sur Kodland.
-Le cours a commencé aujourd'hui et j'ai remarqué que tu n'as pas encore rejoint la classe. Vas-tu venir ? 🕒
-Si tu rencontres un problème technique pour accéder à la plateforme, informe-moi tout de suite et je t'aiderai. Et rappelle-toi que si tu ne peux pas participer en direct, il est très important de regarder l'enregistrement du cours depuis le tableau de bord de l'élève pour ne pas être en retard sur le projet.
-Nous t'attendons en classe ! 😊`,
-    tr: `Merhaba {{studentName}} 👋, ben {{tutorName}}, Kodland'daki {{courseName}} dersinin öğretmeniyim.
-Bugün dersimiz başladı ve senin henüz katılmadığını fark ettim. Derse katılacak mısın? 🕒
-Platforma erişmede teknik bir sorun yaşarsan hemen bana haber ver, sana yardım ederim. Ayrıca canlı derse gelemiyorsan, projede geride kalmamak için öğrenci panelinden ders kaydını izlemek çok önemlidir.
-Seni derste bekliyoruz! 😊`,
-    id: `Halo {{studentName}} 👋, saya {{tutorName}}, tutor Anda untuk kursus {{courseName}} di Kodland.
-Kelas hari ini sudah dimulai dan saya melihat Anda belum bergabung. Apakah Anda akan hadir? 🕒
-Jika Anda mengalami masalah teknis untuk mengakses platform, segera beri tahu saya agar saya dapat membantu. Dan ingat, jika Anda tidak bisa hadir secara langsung, sangat penting untuk menonton rekaman kelas dari panel siswa agar tidak tertinggal dalam proyek.
-Kami menantikan Anda di kelas! 😊`,
-    it: `Ciao {{studentName}} 👋, sono {{tutorName}}, il tuo tutor del corso {{courseName}} su Kodland.
-La lezione di oggi è iniziata e ho notato che non ti sei ancora unito a noi. Verrai a lezione? 🕒
-Se hai problemi tecnici per accedere alla piattaforma, avvisami subito e ti aiuterò. E ricorda che se non puoi partecipare dal vivo, è molto importante guardare la registrazione della lezione dal pannello studente per non rimanere indietro con il progetto.
-Ti aspettiamo in classe! 😊`,
-    pl: `Cześć {{studentName}} 👋, jestem {{tutorName}}, twoim nauczycielem kursu {{courseName}} na Kodland.
-Dziś rozpoczęła się lekcja i zauważyłem, że jeszcze do nas nie dołączyłeś. Czy przyjdziesz na zajęcia? 🕒
-Jeśli masz jakieś problemy techniczne z dostępem do platformy, napisz do mnie od razu, a pomogę. Pamiętaj też, że jeśli nie możesz uczestniczyć na żywo, bardzo ważne jest, aby obejrzeć nagranie z lekcji z panelu ucznia, aby nie zostać w tyle w projekcie.
-Czekamy na Ciebie na zajęciach! 😊`,
-    pt: `Olá {{studentName}} 👋, eu sou {{tutorName}}, seu tutor do curso {{courseName}} na Kodland.
-A aula começou hoje e percebi que você ainda não entrou na sala. Você vai participar? 🕒
-Se você tiver qualquer problema técnico para acessar a plataforma, me avise imediatamente e eu ajudarei. E lembre-se de que, se não puder participar ao vivo, é muito importante assistir à gravação da aula no painel do aluno para não ficar para trás no projeto.
-Te esperamos na aula! 😊`
-  };
-
-  return templates[resolvedLanguage] || templates.ar;
-}
-
-function getDefaultWelcomeTemplate(language = getMessageLanguage()) {
-  const resolvedLanguage = normalizeMessageLanguage(language);
-  const templates = {
-    ar: `مرحباً {{studentName}} 👋
-تحية طيبة. اسمي {{tutorName}} وسأكون معلّمك في دورة {{courseName}}، {{scheduleLine}}. يسعدنا انضمامك إلى هذه التجربة في Kodland. ولنكون جاهزين لحصتنا الأولى، يُرجى اتّباع الخطوات التالية:
-🔹 انضم إلى مجموعة واتساب الرسمية، حيث سنشارك رابط الحصة على Zoom وكل المعلومات المهمة: 👈{{waGroupLink}}
-🔹 وهذا رابط دخولك الخاص إلى منصة Kodland:
-• رابط الدخول المباشر: {{wonderLoginUrl}}
-اسم المستخدم: {{username}}
-كلمة المرور: {{password}}
-أنا هنا لمساعدتك في كل ما تحتاجه. نراك قريباً!
-مع خالص التحية،
-{{tutorName}}
-معلّم دورة {{courseName}}`,
-    es: `¡Hola {{studentName}} 👋!
-Saludos. Soy {{tutorName}} y seré tu tutor/a en el curso {{courseName}}, {{scheduleLine}}. Nos alegra que te unas a esta experiencia en Kodland. Para estar listos para nuestra primera clase, por favor sigue estos pasos:
-🔹 Únete al grupo oficial de WhatsApp, donde compartiremos el enlace de la clase en Zoom y toda la información importante: 👈{{waGroupLink}}
-🔹 Y este es tu enlace directo de acceso a la plataforma de Kodland:
-• Enlace directo: {{wonderLoginUrl}}
-Usuario: {{username}}
-Contraseña: {{password}}
-Estoy aquí para ayudarte en todo lo que necesites. ¡Te vemos pronto!
-Con cariño,
-{{tutorName}}
-Tutor/a del curso {{courseName}}`,
-    en: `Hello {{studentName}} 👋
-Greetings. My name is {{tutorName}} and I will be your tutor for the {{courseName}} course, {{scheduleLine}}. We are glad you joined this experience at Kodland. To get ready for our first class, please follow these steps:
-🔹 Join the official WhatsApp group, where we will share the class link on Zoom and all important information: 👈{{waGroupLink}}
-🔹 And this is your direct access link to the Kodland platform:
-• Direct login link: {{wonderLoginUrl}}
-Username: {{username}}
-Password: {{password}}
-I am here to help you with anything you need. See you soon!
-Sincerely,
-{{tutorName}}
-Tutor for the {{courseName}} course`,
-    ru: `Привет {{studentName}} 👋
-Здравствуйте. Меня зовут {{tutorName}}, и я буду твоим преподавателем курса {{courseName}}, {{scheduleLine}}. Мы рады, что ты присоединился к этому опыту в Kodland. Чтобы подготовиться к нашему первому уроку, пожалуйста, выполни следующие шаги:
-🔹 Присоединяйся к официальной группе WhatsApp, где мы будем делиться ссылкой на занятия в Zoom и всей важной информацией: 👈{{waGroupLink}}
-🔹 А это твоя прямая ссылка для входа на платформу Kodland:
-• Прямая ссылка для входа: {{wonderLoginUrl}}
-Имя пользователя: {{username}}
-Пароль: {{password}}
-Я здесь, чтобы помочь тебе во всём, что тебе понадобится. До скорой встречи!
-С уважением,
-{{tutorName}}
-Преподаватель курса {{courseName}}`,
-    fr: `Bonjour {{studentName}} 👋
-Salutations. Je m'appelle {{tutorName}} et je serai ton professeur pour le cours {{courseName}}, {{scheduleLine}}. Nous sommes heureux que tu rejoignes cette expérience chez Kodland. Pour nous préparer à notre première leçon, merci de suivre ces étapes :
-🔹 Rejoins le groupe officiel WhatsApp, où nous partagerons le lien du cours sur Zoom et toutes les informations importantes : 👈{{waGroupLink}}
-🔹 Et voici ton lien d'accès direct à la plateforme Kodland :
-• Lien d'accès direct : {{wonderLoginUrl}}
-Nom d'utilisateur : {{username}}
-Mot de passe : {{password}}
-Je suis là pour t'aider dans tout ce dont tu as besoin. À bientôt !
-Cordialement,
-{{tutorName}}
-Professeur du cours {{courseName}}`,
-    tr: `Merhaba {{studentName}} 👋
-Selamlar. Ben {{tutorName}} ve {{courseName}} dersinin öğretmeni olacağım, {{scheduleLine}}. Kodland deneyimine katıldığın için mutluyuz. İlk dersimize hazırlanmak için lütfen şu adımları takip et:
-🔹 Resmî WhatsApp grubuna katıl; burada dersin Zoom bağlantısını ve tüm önemli bilgileri paylaşacağız: 👈{{waGroupLink}}
-🔹 Ve bu da Kodland platformuna doğrudan giriş bağlantın:
-• Doğrudan giriş bağlantısı: {{wonderLoginUrl}}
-Kullanıcı adı: {{username}}
-Şifre: {{password}}
-İhtiyacın olan her konuda sana yardımcı olmak için buradayım. Yakında görüşürüz!
-Saygılarımla,
-{{tutorName}}
-{{courseName}} dersi öğretmeni`,
-    id: `Halo {{studentName}} 👋
-Salam hangat. Nama saya {{tutorName}} dan saya akan menjadi tutor Anda untuk kursus {{courseName}}, {{scheduleLine}}. Kami senang Anda bergabung dengan pengalaman ini di Kodland. Agar siap untuk kelas pertama kami, silakan ikuti langkah-langkah berikut:
-🔹 Bergabunglah ke grup WhatsApp resmi, tempat kami akan membagikan tautan kelas di Zoom dan semua informasi penting: 👈{{waGroupLink}}
-🔹 Dan ini adalah tautan akses langsung Anda ke platform Kodland:
-• Tautan masuk langsung: {{wonderLoginUrl}}
-Nama pengguna: {{username}}
-Kata sandi: {{password}}
-Saya di sini untuk membantu Anda dalam segala hal yang Anda butuhkan. Sampai jumpa segera!
-Salam hangat,
-{{tutorName}}
-Tutor kursus {{courseName}}`,
-    it: `Ciao {{studentName}} 👋
-Saluti. Mi chiamo {{tutorName}} e sarò il tuo tutor del corso {{courseName}}, {{scheduleLine}}. Siamo felici che tu abbia deciso di unirti a questa esperienza su Kodland. Per prepararci alla nostra prima lezione, ti invitiamo a seguire questi passaggi:
-🔹 Unisciti al gruppo ufficiale di WhatsApp, dove condivideremo il link della lezione su Zoom e tutte le informazioni importanti: 👈{{waGroupLink}}
-🔹 E questo è il tuo link di accesso diretto alla piattaforma Kodland:
-• Link di accesso diretto: {{wonderLoginUrl}}
-Nome utente: {{username}}
-Password: {{password}}
-Sono qui per aiutarti in tutto ciò di cui hai bisogno. A presto!
-Cordiali saluti,
-{{tutorName}}
-Tutor del corso {{courseName}}`,
-    pl: `Cześć {{studentName}} 👋
-Pozdrawiamy. Nazywam się {{tutorName}} i będę twoim nauczycielem kursu {{courseName}}, {{scheduleLine}}. Cieszymy się, że dołączasz do tej przygody w Kodland. Aby przygotować się do naszej pierwszej lekcji, wykonaj następujące kroki:
-🔹 Dołącz do oficjalnej grupy WhatsApp, gdzie będziemy udostępniać link do zajęć na Zoom i wszystkie ważne informacje: 👈{{waGroupLink}}
-🔹 A to jest twój bezpośredni link do platformy Kodland:
-• Link do logowania: {{wonderLoginUrl}}
-Nazwa użytkownika: {{username}}
-Hasło: {{password}}
-Jestem tutaj, aby pomóc Ci we wszystkim, czego potrzebujesz. Do zobaczenia wkrótce!
-Z poważaniem,
-{{tutorName}}
-Nauczyciel kursu {{courseName}}`,
-    pt: `Olá {{studentName}} 👋
-Saudações. Meu nome é {{tutorName}} e serei seu tutor do curso {{courseName}}, {{scheduleLine}}. Ficamos felizes que você tenha se juntado a esta experiência na Kodland. Para nos prepararmos para nossa primeira aula, siga os passos abaixo:
-🔹 Entre no grupo oficial do WhatsApp, onde compartilharemos o link da aula no Zoom e todas as informações importantes: 👈{{waGroupLink}}
-🔹 E este é o seu link direto de acesso à plataforma Kodland:
-• Link de acesso direto: {{wonderLoginUrl}}
-Nome de usuário: {{username}}
-Senha: {{password}}
-Estou aqui para te ajudar com tudo o que você precisar. Até logo!
-Atenciosamente,
-{{tutorName}}
-Tutor do curso {{courseName}}`
-  };
-
-  return templates[resolvedLanguage] || templates.ar;
-}
-
-function getResolvedWelcomeTemplate(language = getMessageLanguage(), settings = getExtensionSettings()) {
-  const template = settings.welcomeTemplate || DEFAULT_WELCOME_TEMPLATE;
-  const defaultTemplate = getDefaultWelcomeTemplate(language);
-  const defaultArabic = DEFAULT_WELCOME_TEMPLATE;
-  if (!template || template === DEFAULT_WELCOME_TEMPLATE || template === defaultArabic) {
-    return defaultTemplate;
-  }
-  return template;
-}
-
-function getResolvedAbsenceTemplate(language = getMessageLanguage(), settings = getExtensionSettings()) {
-  const template = settings.absenceTemplate || DEFAULT_ABSENCE_TEMPLATE;
-  const defaultTemplate = getDefaultAbsenceTemplate(language);
-  const defaultArabic = DEFAULT_ABSENCE_TEMPLATE;
-  if (!template || template === DEFAULT_ABSENCE_TEMPLATE || template === defaultArabic) {
-    return defaultTemplate;
-  }
-  return template;
-}
-
-function generateAbsenceMessage(language = getMessageLanguage(), { studentName, tutorName, courseName } = {}) {
+// and the course name. Currently only Spanish text is provided; falls back
+// to Spanish for any other detected page language.
+function generateAbsenceMessage(language = 'es', { studentName, tutorName, courseName } = {}) {
   const settings = getExtensionSettings();
-  const resolvedTutorName = tutorName || settings.tutorName || uiText('tutorNamePlaceholder');
-  const template = getResolvedAbsenceTemplate(language, settings);
+  const resolvedTutorName = tutorName || settings.tutorName || 'tu tutor';
+  const template = settings.absenceTemplate || DEFAULT_ABSENCE_TEMPLATE;
 
+  // Only Spanish is supported today; other languages fall back to Spanish.
   return renderTemplate(template, {
     studentName: studentName || '',
     tutorName: resolvedTutorName,
@@ -3356,7 +2142,21 @@ function findCourseName() {
   } catch (error) {
     console.warn('[Group Students Info] Error finding course name:', error);
   }
-  
+
+  // Fallback: the XPath is brittle (breaks with layout changes). If it
+  // didn't find anything but we already have the group's general info
+  // cached (fetched on group page load), use course.title from there -
+  // same "[id] Name [year]..." format, so we reuse the same regex.
+  const groupId = extractGroupId();
+  const cachedInfo = groupId ? getCachedGroupGeneralInfo(groupId) : null;
+  const apiCourseTitle = cachedInfo?.course?.title;
+  if (apiCourseTitle) {
+    const match = apiCourseTitle.match(/\]\s*(.+?)\s*\[/);
+    const courseName = match && match[1] ? match[1].trim() : apiCourseTitle;
+    console.log('[Group Students Info] Course name from API fallback:', courseName);
+    return courseName;
+  }
+
   return '';
 }
 
@@ -3379,30 +2179,23 @@ function detectPageLanguage() {
         'Indonesian': 'id',
         'Italian': 'it',
         'Polish': 'pl',
-        'Portuguese': 'pt',
-        'Arabic': 'ar',
-        'العربية': 'ar'
+        'Portuguese': 'pt'
       };
-
-      return normalizeMessageLanguage(langMap[langText] || document.documentElement.lang || DEFAULT_MESSAGE_LANGUAGE);
+      
+      return langMap[langText] || 'es'; // Default to Spanish
     }
   } catch (error) {
     console.warn('[Group Students Info] Error detecting language:', error);
   }
-
+  
   // Fallback: check document language
-  const htmlLang = document.documentElement.lang || DEFAULT_MESSAGE_LANGUAGE;
-  return normalizeMessageLanguage(htmlLang);
+  const htmlLang = document.documentElement.lang || 'es';
+  return htmlLang.substring(0, 2).toLowerCase();
 }
 
 // Function to get button tooltips based on language
-function getButtonTooltips(language = getMessageLanguage()) {
+function getButtonTooltips(language = 'es') {
   const tooltips = {
-    'ar': {
-      openWA: 'فتح واتساب',
-      welcomeMessage: 'رسالة الترحيب',
-      modulesProgress: 'تقدّم الوحدات'
-    },
     'es': {
       openWA: 'Abrir WhatsApp',
       welcomeMessage: 'Mensaje de Bienvenida',
@@ -3450,22 +2243,22 @@ function getButtonTooltips(language = getMessageLanguage()) {
     }
   };
   
-  return tooltips[language] || tooltips['ar'];
+  return tooltips[language] || tooltips['es'];
 }
 
 // Function to create welcome message with credentials
-function createWelcomeMessage(studentName, credentials, courseName = '', language = getMessageLanguage()) {
+function createWelcomeMessage(studentName, credentials, courseName = '', language = 'es') {
   // credentials can be an object with username/password or a formatted string
-  const credentialLabels = {
-    ar: (c) => `اسم المستخدم: ${c.username}\nكلمة المرور: ${c.password}`,
-    es: (c) => `Usuario: ${c.username}\nContraseña: ${c.password}`,
-    en: (c) => `Username: ${c.username}\nPassword: ${c.password}`,
-    ru: (c) => `Пользователь: ${c.username}\nПароль: ${c.password}`
-  };
-  const credsText = typeof credentials === 'object' && credentials.formatted
-    ? credentials.formatted
+  const credsText = typeof credentials === 'object' && credentials.formatted 
+    ? credentials.formatted 
     : (typeof credentials === 'object' && credentials.username && credentials.password
-      ? (credentialLabels[language] || credentialLabels.ar)(credentials)
+      ? (language === 'es' 
+        ? `Usuario: ${credentials.username}\nContraseña: ${credentials.password}`
+        : language === 'en'
+        ? `Username: ${credentials.username}\nPassword: ${credentials.password}`
+        : language === 'ru'
+        ? `Пользователь: ${credentials.username}\nПароль: ${credentials.password}`
+        : `Usuario: ${credentials.username}\nContraseña: ${credentials.password}`)
       : credentials);
   
   // Use emojis as Unicode code points to ensure proper encoding
@@ -3476,15 +2269,6 @@ function createWelcomeMessage(studentName, credentials, courseName = '', languag
   
   // Messages in different languages
   const messages = {
-    'ar': {
-      greeting: 'مرحباً!',
-      welcome: courseName
-        ? `أهلاً بك يا ${studentName} في دورة ${courseName} على منصة Kodland!`
-        : `أهلاً بك يا ${studentName} في دورتك على منصة Kodland!`,
-      credentials: 'إليك بيانات الدخول الخاصة بك:',
-      loginLink: 'أدخل بياناتك عبر الرابط التالي:',
-      closing: 'نتمنى لك تجربة تعلّم ممتعة معنا!'
-    },
     'es': {
       greeting: '¡Hola!',
       welcome: courseName 
@@ -3568,11 +2352,25 @@ function createWelcomeMessage(studentName, credentials, courseName = '', languag
     }
   };
   
-  // No locale segment - learn.kodland.org serves these paths directly.
-  const loginUrl = 'https://learn.kodland.org/auth';
-
-  // Get message for current language, fallback to Arabic
-  const msg = messages[language] || messages['ar'];
+  // Map language codes to URL paths
+  const langUrlMap = {
+    'es': 'es',
+    'en': 'en',
+    'ru': 'ru',
+    'fr': 'fr',
+    'tr': 'tr',
+    'id': 'id',
+    'it': 'it',
+    'pl': 'pl',
+    'pt': 'pt'
+  };
+  
+  // Get URL path for current language, default to Spanish
+  const langPath = langUrlMap[language] || 'es';
+  const loginUrl = `https://learn.kodland.org/${langPath}/auth`;
+  
+  // Get message for current language, fallback to Spanish
+  const msg = messages[language] || messages['es'];
   
   // Return plain text with emojis (will be encoded by encodeMessageForWhatsApp)
   return `${msg.greeting} ${waveEmoji}
@@ -3592,11 +2390,11 @@ ${msg.closing} ${rocketEmoji}`;
 // "[XX]" country-code badge that's prepended inside the same <h3>.
 function extractStudentName(container) {
   const h3 = container?.querySelector('h3');
-  if (!h3) return uiText('studentFallback');
+  if (!h3) return 'Estudiante';
   const clone = h3.cloneNode(true);
   const countrySpan = clone.querySelector('.kodland-country-initials');
   if (countrySpan) countrySpan.remove();
-  return clone.textContent.trim() || uiText('studentFallback');
+  return clone.textContent.trim() || 'Estudiante';
 }
 
 // Function to find the nearest lesson from schedule data
@@ -3645,6 +2443,175 @@ function findFirstLesson(scheduleData) {
   return withTime.reduce((earliest, lesson) =>
     new Date(lesson.timetable_time) < new Date(earliest.timetable_time) ? lesson : earliest
   );
+}
+
+// Find the very LAST lesson (the final class, often graduation day) from
+// schedule data - the latest by date. Used to suggest a default date/time
+// for the graduation broadcast message.
+function findLastLesson(scheduleData) {
+  if (!scheduleData || !Array.isArray(scheduleData) || scheduleData.length === 0) {
+    return null;
+  }
+
+  const withTime = scheduleData.filter(lesson => lesson.timetable_time);
+  if (withTime.length === 0) return null;
+
+  return withTime.reduce((latest, lesson) =>
+    new Date(lesson.timetable_time) > new Date(latest.timetable_time) ? lesson : latest
+  );
+}
+
+// Find the most recent lesson that has ALREADY happened (as opposed to
+// findLastLesson, which finds the last lesson of the whole course by date,
+// even if that's still in the future). This is what "grabación de la
+// última clase" actually means.
+function findMostRecentPastLesson(scheduleData) {
+  if (!scheduleData || !Array.isArray(scheduleData) || scheduleData.length === 0) {
+    return null;
+  }
+
+  const now = Date.now();
+  const pastLessons = scheduleData.filter(lesson =>
+    lesson.timetable_time && new Date(lesson.timetable_time).getTime() <= now
+  );
+  if (pastLessons.length === 0) return null;
+
+  return pastLessons.reduce((latest, lesson) =>
+    new Date(lesson.timetable_time) > new Date(latest.timetable_time) ? lesson : latest
+  );
+}
+
+async function fetchLastPastLessonForGroup(groupId) {
+  try {
+    const apiUrl = `https://backoffice.kodland.org/api/v2/student_groups/${groupId}/schedule_view/`;
+    const headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+    const response = await fetch(apiUrl, { method: 'GET', credentials: 'include', headers });
+    if (!response.ok) return null;
+
+    const scheduleData = await response.json();
+    return findMostRecentPastLesson(scheduleData);
+  } catch (error) {
+    console.error(`[Schedule] Error fetching last past lesson for group ${groupId}:`, error);
+    return null;
+  }
+}
+
+// The recording link isn't part of the schedule_view API response - it
+// lives in the "Horario" tab's UI (?tab=2 on the group page). Each
+// completed lesson row has a "Grabaciones de la clase" toggle
+// (.zoom-records-cell a) that expands a card showing either an
+// "Enlace - S3" link or a "No hay grabaciones disponibles" message.
+//
+// If that tab happens to already be rendered in the page (the tutor
+// visited it earlier this session and Vue kept it mounted), we can read
+// it directly instead of making the tutor go find it by hand.
+async function scrapeRecordingLinkFromScheduleDOM() {
+  const rows = Array.from(document.querySelectorAll('.schedule-slot'));
+  if (rows.length === 0) return null; // schedule tab isn't rendered right now
+
+  // Completed lessons only, most recent first (rows are in chronological
+  // order in the DOM, so reversing gives us newest-first).
+  const completedRows = rows.filter(row => {
+    const statusBtn = row.querySelector('.classroom-cell button');
+    return statusBtn && /completado/i.test(statusBtn.textContent || '');
+  }).reverse();
+
+  for (const row of completedRows) {
+    const recordsToggle = row.querySelector('.zoom-records-cell a');
+    const expansionCard = row.nextElementSibling;
+    if (!recordsToggle || !expansionCard) continue;
+
+    const isCollapsed = () =>
+      expansionCard.style.display === 'none' || getComputedStyle(expansionCard).display === 'none';
+
+    if (isCollapsed()) {
+      recordsToggle.click();
+      for (let i = 0; i < 15 && isCollapsed(); i++) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
+
+    // The card can become visible before Vue has actually populated its
+    // contents, so poll briefly for either a real link or the "no
+    // recordings" message before deciding this lesson has nothing.
+    let link = null;
+    let confirmedEmpty = false;
+    for (let i = 0; i < 15; i++) {
+      const anchor = expansionCard.querySelector('.record-list a[href]');
+      if (anchor) { link = anchor.href; break; }
+      if (expansionCard.querySelector('.no-records-message')) { confirmedEmpty = true; break; }
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    if (link) return link;
+    if (confirmedEmpty) continue; // this lesson has none - try the previous one
+  }
+
+  return null;
+}
+
+// Kept as a cheap secondary check in case Kodland ever starts including
+// the recording link directly in the schedule_view API response.
+function extractRecordingLinkFromLesson(lesson) {
+  if (!lesson) return null;
+  const candidates = [
+    lesson.zoom_recording_url,
+    lesson.recording_url,
+    lesson.record_url,
+    lesson.records_url,
+    lesson.video_url,
+    lesson.class_record_url,
+    lesson.lesson_record_url,
+    lesson.zoom_record_url
+  ];
+  const found = candidates.find(v => typeof v === 'string' && v.trim().length > 0);
+  return found ? found.trim() : null;
+}
+
+// Resolves the recording link for the group's last past lesson: first
+// tries reading it straight out of the "Horario" tab's DOM (if it's
+// already rendered), then a couple of long-shot API field names, and
+// finally asks the tutor to paste it - with exact directions to where it
+// lives - so the button still works even when auto-detection fails.
+async function getLastClassRecordingLink(groupId) {
+  let link = await scrapeRecordingLinkFromScheduleDOM().catch(() => null);
+
+  const lastPastLesson = groupId ? await fetchLastPastLessonForGroup(groupId) : null;
+
+  if (!link) {
+    link = extractRecordingLinkFromLesson(lastPastLesson);
+  }
+
+  if (!link) {
+    const tabUrl = groupId ? `https://bo.kodland.org/groups/${groupId}?tab=2` : null;
+    const instructions = 'No pude encontrar el link de la grabación automáticamente.' +
+      (tabUrl
+        ? `\n\n1. Abre esta pestaña: ${tabUrl}\n2. Busca la última clase completada y haz clic en "Grabaciones de la clase".\n3. Copia el link "Enlace - S3" y pégalo aquí:`
+        : '\nPégalo aquí:');
+    const pasted = prompt(instructions);
+    link = pasted ? pasted.trim() : null;
+  }
+
+  return { link: link || null, lesson: lastPastLesson };
+}
+
+async function fetchLastLessonForGroup(groupId) {
+  try {
+    const apiUrl = `https://backoffice.kodland.org/api/v2/student_groups/${groupId}/schedule_view/`;
+    const headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+    const response = await fetch(apiUrl, { method: 'GET', credentials: 'include', headers });
+    if (!response.ok) return null;
+
+    const scheduleData = await response.json();
+    return findLastLesson(scheduleData);
+  } catch (error) {
+    console.error(`[Schedule] Error fetching last lesson for group ${groupId}:`, error);
+    return null;
+  }
 }
 
 // Fetch the first lesson (M1L1) for a group - reuses the same schedule_view
@@ -3721,28 +2688,9 @@ function formatTimeForCountry(dateTimeString, countryCode) {
     'TR': 'Europe/Istanbul',
     'ID': 'Asia/Jakarta',
     'IT': 'Europe/Rome',
-    'PL': 'Europe/Warsaw',
-    // Arabic-speaking countries
-    'EG': 'Africa/Cairo',
-    'SA': 'Asia/Riyadh',
-    'AE': 'Asia/Dubai',
-    'KW': 'Asia/Kuwait',
-    'QA': 'Asia/Qatar',
-    'BH': 'Asia/Bahrain',
-    'OM': 'Asia/Muscat',
-    'JO': 'Asia/Amman',
-    'LB': 'Asia/Beirut',
-    'IQ': 'Asia/Baghdad',
-    'SY': 'Asia/Damascus',
-    'YE': 'Asia/Aden',
-    'PS': 'Asia/Hebron',
-    'SD': 'Africa/Khartoum',
-    'LY': 'Africa/Tripoli',
-    'TN': 'Africa/Tunis',
-    'DZ': 'Africa/Algiers',
-    'MA': 'Africa/Casablanca'
+    'PL': 'Europe/Warsaw'
   };
-
+  
   const timezone = timezoneMap[countryCode] || 'UTC';
   
   try {
@@ -3766,7 +2714,7 @@ function formatTimeForCountry(dateTimeString, countryCode) {
 }
 
 // Function to format date according to country
-function formatDateForCountry(dateTimeString, countryCode, language = getMessageLanguage()) {
+function formatDateForCountry(dateTimeString, countryCode, language = 'es') {
   if (!dateTimeString) return '';
   
   const date = new Date(dateTimeString);
@@ -3801,49 +2749,10 @@ function formatDateForCountry(dateTimeString, countryCode, language = getMessage
     'TR': 'tr-TR',
     'ID': 'id-ID',
     'IT': 'it-IT',
-    'PL': 'pl-PL',
-    // Arabic-speaking countries. "-u-nu-latn" keeps Western digits (2026)
-    // instead of Arabic-Indic ones (٢٠٢٦), which read better in WhatsApp.
-    'EG': 'ar-EG-u-nu-latn',
-    'SA': 'ar-SA-u-nu-latn',
-    'AE': 'ar-AE-u-nu-latn',
-    'KW': 'ar-KW-u-nu-latn',
-    'QA': 'ar-QA-u-nu-latn',
-    'BH': 'ar-BH-u-nu-latn',
-    'OM': 'ar-OM-u-nu-latn',
-    'JO': 'ar-JO-u-nu-latn',
-    'LB': 'ar-LB-u-nu-latn',
-    'IQ': 'ar-IQ-u-nu-latn',
-    'SY': 'ar-SY-u-nu-latn',
-    'YE': 'ar-YE-u-nu-latn',
-    'PS': 'ar-PS-u-nu-latn',
-    'SD': 'ar-SD-u-nu-latn',
-    'LY': 'ar-LY-u-nu-latn',
-    'TN': 'ar-TN-u-nu-latn',
-    'DZ': 'ar-DZ-u-nu-latn',
-    'MA': 'ar-MA-u-nu-latn'
+    'PL': 'pl-PL'
   };
-
-  // The message language decides the locale; the parent's country only
-  // picks a regional variant of that same language (e.g. es-CO for a
-  // Colombian number while writing in Spanish, ar-EG for an Egyptian one
-  // while writing in Arabic).
-  const languageLocaleMap = {
-    ar: 'ar-u-nu-latn',
-    es: 'es-ES',
-    en: 'en-US',
-    ru: 'ru-RU',
-    fr: 'fr-FR',
-    tr: 'tr-TR',
-    id: 'id-ID',
-    it: 'it-IT',
-    pl: 'pl-PL',
-    pt: 'pt-PT'
-  };
-  const countryLocale = localeMap[countryCode];
-  const locale = (countryLocale && countryLocale.startsWith(`${language}-`))
-    ? countryLocale
-    : (languageLocaleMap[language] || 'en-US');
+  
+  const locale = localeMap[countryCode] || (language === 'es' ? 'es-ES' : 'en-US');
   
   try {
     const formatter = new Intl.DateTimeFormat(locale, {
@@ -3876,19 +2785,10 @@ function calculateTimeRemaining(lessonTimeMs, nowTime) {
 }
 
 // Function to format time remaining text
-function formatTimeRemaining(timeRemaining, language = getMessageLanguage()) {
+function formatTimeRemaining(timeRemaining, language = 'es') {
   const { minutes, hours } = timeRemaining;
-
+  
   const messages = {
-    ar: {
-      minutes: (m) => arabicCount(m, ARABIC_MINUTE_FORMS),
-      hours: (h) => arabicCount(h, ARABIC_HOUR_FORMS),
-      hoursMinutes: (h, m, msg) => {
-        if (h === 0) return msg.minutes(m);
-        if (m === 0) return msg.hours(h);
-        return `${msg.hours(h)} و${msg.minutes(m)}`;
-      }
-    },
     es: {
       minutes: (m) => m === 1 ? '1 minuto' : `${m} minutos`,
       hours: (h) => h === 1 ? '1 hora' : `${h} horas`,
@@ -3988,8 +2888,8 @@ function formatTimeRemaining(timeRemaining, language = getMessageLanguage()) {
     }
   };
   
-  const msg = messages[language] || messages.ar;
-
+  const msg = messages[language] || messages.es;
+  
   if (hours === 0) {
     return msg.minutes(minutes);
   } else if (minutes < 30) {
@@ -4001,7 +2901,7 @@ function formatTimeRemaining(timeRemaining, language = getMessageLanguage()) {
 }
 
 // Function to generate class reminder message
-function generateClassReminderMessage(parentName, lesson, countryCode, language = getMessageLanguage()) {
+function generateClassReminderMessage(parentName, lesson, countryCode, language = 'es') {
   if (!lesson) {
     return null;
   }
@@ -4030,7 +2930,6 @@ function generateClassReminderMessage(parentName, lesson, countryCode, language 
   if (hasStarted) {
     // Class just started
     const messages = {
-      ar: `مرحباً ${parentName}، نذكّرك بأن حصتنا رقم ${lessonNumber} قد بدأت بالفعل.`,
       es: `Hola ${parentName}, te recordamos que nuestra clase número ${lessonNumber} ya empezó.`,
       en: `Hello ${parentName}, we remind you that our class number ${lessonNumber} has already started.`,
       ru: `Привет ${parentName}, напоминаем, что наш урок номер ${lessonNumber} уже начался.`,
@@ -4042,14 +2941,9 @@ function generateClassReminderMessage(parentName, lesson, countryCode, language 
       pt: `Olá ${parentName}, lembramos que nossa aula número ${lessonNumber} já começou.`
     };
     
-    let message = messages[language] || messages.ar;
+    let message = messages[language] || messages.es;
     if (zoomLink) {
-      const joinLabels = {
-        ar: 'انضم عبر الرابط التالي:',
-        es: 'Únete por el siguiente enlace:',
-        en: 'Join via the following link:'
-      };
-      message += `\n\n${joinLabels[language] || joinLabels.en}\n${zoomLink}`;
+      message += `\n\n${language === 'es' ? 'Únete por el siguiente enlace:' : 'Join via the following link:'}\n${zoomLink}`;
     }
     return message;
   }
@@ -4060,7 +2954,6 @@ function generateClassReminderMessage(parentName, lesson, countryCode, language 
     const timeText = formatTimeRemaining(timeRemaining, language);
     
     const messages = {
-      ar: `مرحباً ${parentName}، نراك بعد ${timeText}.`,
       es: `Hola ${parentName}, nos vemos en ${timeText}.`,
       en: `Hello ${parentName}, see you in ${timeText}.`,
       ru: `Привет ${parentName}, увидимся через ${timeText}.`,
@@ -4072,14 +2965,9 @@ function generateClassReminderMessage(parentName, lesson, countryCode, language 
       pt: `Olá ${parentName}, nos vemos em ${timeText}.`
     };
     
-    let message = messages[language] || messages.ar;
+    let message = messages[language] || messages.es;
     if (zoomLink) {
-      const viaLabels = {
-        ar: 'عبر الرابط التالي:',
-        es: 'Por el siguiente enlace:',
-        en: 'Via the following link:'
-      };
-      message += `\n\n${viaLabels[language] || viaLabels.en}\n${zoomLink}`;
+      message += `\n\n${language === 'es' ? 'Por el siguiente enlace:' : 'Via the following link:'}\n${zoomLink}`;
     }
     return message;
   }
@@ -4088,10 +2976,6 @@ function generateClassReminderMessage(parentName, lesson, countryCode, language 
   const formattedDate = formatDateForCountry(lesson.timetable_time, countryCode, language);
   
   const messages = {
-    ar: {
-      tomorrow: `مرحباً ${parentName}، نذكّرك بأن حصتنا رقم ${lessonNumber + 1} ستكون غداً. لا تنسَ مراجعة أنشطتك، وإن كان لديك أي استفسار فيمكنك مراسلتي.`,
-      later: `مرحباً ${parentName}، نذكّرك بأن حصتنا رقم ${lessonNumber + 1} ستكون يوم ${formattedDate}. لا تنسَ مراجعة أنشطتك، وإن كان لديك أي استفسار فيمكنك مراسلتي.`
-    },
     es: {
       tomorrow: `Hola ${parentName}, te recordamos que mañana tenemos nuestra clase número ${lessonNumber + 1}. No olvides revisar tus actividades y si tienes dudas me puedes escribir.`,
       later: `Hola ${parentName}, te recordamos que el ${formattedDate} tenemos nuestra clase número ${lessonNumber + 1}. No olvides revisar tus actividades y si tienes dudas me puedes escribir.`
@@ -4130,7 +3014,7 @@ function generateClassReminderMessage(parentName, lesson, countryCode, language 
     }
   };
   
-  const msg = messages[language] || messages.ar;
+  const msg = messages[language] || messages.es;
   return isTomorrow ? msg.tomorrow : msg.later;
 }
 
@@ -4201,66 +3085,42 @@ async function fetchNearestLessonForGroup(groupId) {
   }
 }
 
-// Format a lesson's date/time in the message language and the timezone set
-// in settings, e.g. for Arabic:
-// { dayName: 'الجمعة', fullDate: '19 يونيو 2026', time: '16:00' }
+// Format a lesson's date/time in Spanish, Colombia timezone, e.g.
+// { dayName: 'viernes', fullDate: '19 de junio de 2026', time: '16:00' }
 function formatLessonDateForMessage(isoDateStr) {
   try {
     const date = new Date(isoDateStr);
-    const language = getMessageLanguage();
-    const timeZone = getExtensionSettings().timezone || DEFAULT_KODLAND_SETTINGS.timezone;
 
-    // "-u-nu-latn" keeps Western digits in Arabic, which read better in
-    // WhatsApp than Arabic-Indic ones.
-    const dateLocaleMap = {
-      ar: 'ar-u-nu-latn',
-      es: 'es-CO',
-      en: 'en-GB',
-      ru: 'ru-RU',
-      fr: 'fr-FR',
-      tr: 'tr-TR',
-      id: 'id-ID',
-      it: 'it-IT',
-      pl: 'pl-PL',
-      pt: 'pt-PT'
+    const dayName = new Intl.DateTimeFormat('es-CO', { weekday: 'long', timeZone: 'America/Bogota' }).format(date);
+    const dayNum = new Intl.DateTimeFormat('es-CO', { day: 'numeric', timeZone: 'America/Bogota' }).format(date);
+    const month = new Intl.DateTimeFormat('es-CO', { month: 'long', timeZone: 'America/Bogota' }).format(date);
+    const year = new Intl.DateTimeFormat('es-CO', { year: 'numeric', timeZone: 'America/Bogota' }).format(date);
+    const time = new Intl.DateTimeFormat('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Bogota' }).format(date);
+
+    return {
+      dayName,
+      fullDate: `${dayNum} de ${month} de ${year}`,
+      time
     };
-    const locale = dateLocaleMap[language] || 'en-GB';
-
-    const part = (options) => new Intl.DateTimeFormat(locale, { ...options, timeZone }).format(date);
-
-    const dayName = part({ weekday: 'long' });
-    const dayNum = part({ day: 'numeric' });
-    const month = part({ month: 'long' });
-    const year = part({ year: 'numeric' });
-    const time = part({ hour: '2-digit', minute: '2-digit', hour12: false });
-
-    // Spanish spells the date out with connectors; Arabic and the rest
-    // just juxtapose the parts.
-    const fullDate = language === 'es'
-      ? `${dayNum} de ${month} de ${year}`
-      : `${dayNum} ${month} ${year}`;
-
-    return { dayName, fullDate, time };
   } catch (error) {
     console.warn('[formatLessonDateForMessage] Error formatting date:', error);
     return null;
   }
 }
 
-// Build the full welcome message from the editable template in settings.
-// The tutor name, timezone and template text all come from ⚙️ Settings.
+// Build the full welcome message using the tutor's exact script.
+// NOTE: edit `tutorName` below if a different tutor uses this extension.
 function createFullWelcomeMessage({ studentName, courseName, waGroupLink, wonderLoginUrl, username, password, lessonDateInfo }) {
   const settings = getExtensionSettings();
-  const tutorName = settings.tutorName || uiText('tutorNamePlaceholder');
-  const timezoneLabel = settings.timezoneLabel || DEFAULT_KODLAND_SETTINGS.timezoneLabel;
+  const tutorName = settings.tutorName || 'Gehiner Sierra';
 
   const scheduleLine = lessonDateInfo
-    ? uiText('scheduleLine', { ...lessonDateInfo, timezoneLabel })
-    : uiText('scheduleLineSoon');
+    ? `que comenzará este ${lessonDateInfo.dayName} ${lessonDateInfo.fullDate} a las ${lessonDateInfo.time} horas (hora Colombia)`
+    : 'que comenzará muy pronto';
 
-  const waLine = waGroupLink || uiText('waGroupLinkMissing');
+  const waLine = waGroupLink || '[Aún no se detectó el link del grupo de WhatsApp - haz clic en el botón de chat de la página del curso]';
 
-  const template = getResolvedWelcomeTemplate(getMessageLanguage(), settings);
+  const template = settings.welcomeTemplate || DEFAULT_WELCOME_TEMPLATE;
 
   return renderTemplate(template, {
     studentName,
@@ -4347,7 +3207,7 @@ async function fetchStudentTaskAlerts(studentId) {
         fetchClassTasksProgress(studentId, lessonId),
         fetchHomeworkTasksProgress(studentId, lessonId)
       ]);
-      const label = lessonLabelMap[String(lessonId)] || uiText('lessonNumberLabel', i + batchIndex + 1);
+      const label = lessonLabelMap[String(lessonId)] || `Lección ${i + batchIndex + 1}`;
       return { classTasks, homeworkTasks, label };
     }));
 
@@ -4431,21 +3291,24 @@ function showGroupGradingReportModal(report) {
   const totalPending = report.reduce((sum, r) => sum + r.pendingGradingCount, 0);
   const withPending = report.filter(r => r.pendingGradingCount > 0);
 
-  // Same URL pattern used by the per-student tasks modal (no locale segment)
+  // Same URL pattern used by the per-student tasks modal
+  const langUrlMap = { es: 'es', en: 'en', ru: 'ru', fr: 'fr', tr: 'tr', id: 'id', it: 'it', pl: 'pl', pt: 'pt' };
+  const langPath = langUrlMap[detectPageLanguage()] || 'es';
+
   const rowsHtml = withPending.length === 0
-    ? `<p class="kodland-no-tasks">${escapeHtml(uiText('gradingNobodyPending'))}</p>`
+    ? `<p class="kodland-no-tasks">🎉 Nadie tiene tareas pendientes de calificar.</p>`
     : withPending.map(r => {
         const tasksList = r.pendingGradingTasks
           .map(t => {
             const link = t.taskId
-              ? `<a class="kodland-task-link" href="https://learn.kodland.org/task/${t.taskId}/check/${r.studentId}" target="_blank" rel="noopener noreferrer">${escapeHtml(uiText('gradeTaskLink'))}</a>`
+              ? `<a class="kodland-task-link" href="https://learn.kodland.org/${langPath}/task/${t.taskId}/check/${r.studentId}" target="_blank" rel="noopener noreferrer">↗ Calificar</a>`
               : '';
-            return `<div class="kodland-task-item"><div class="kodland-task-info"><span class="kodland-task-name">${escapeHtml(t.label)}: ${escapeHtml(t.name)}</span>${link}</div></div>`;
+            return `<div class="kodland-task-item"><div class="kodland-task-info"><span class="kodland-task-name">${t.label}: ${t.name}</span>${link}</div></div>`;
           })
           .join('');
         return `
           <div class="kodland-lesson-card">
-            <div class="kodland-lesson-header">${escapeHtml(uiText('gradingStudentRow', r.name, r.pendingGradingCount))}</div>
+            <div class="kodland-lesson-header">${r.name} — ${r.pendingGradingCount} tarea(s) por calificar</div>
             <div class="kodland-tasks-list">${tasksList}</div>
           </div>
         `;
@@ -4454,11 +3317,10 @@ function showGroupGradingReportModal(report) {
   const modal = document.createElement('div');
   modal.id = 'kodland-grading-report-modal';
   modal.className = 'kodland-modal';
-  applyLanguageDirection(modal);
   modal.innerHTML = `
     <div class="kodland-modal-content">
       <div class="kodland-modal-header">
-        <h2>${escapeHtml(uiText('gradingReportTitle', totalPending))}</h2>
+        <h2>📊 Reporte de calificación del grupo (${totalPending} pendientes en total)</h2>
         <button class="kodland-modal-close">&times;</button>
       </div>
       <div class="kodland-modal-body">
@@ -4472,6 +3334,43 @@ function showGroupGradingReportModal(report) {
   modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
 }
 
+// All floating action buttons (broadcast + settings + export + grading
+// report + WA link + attendance) now live together in this single toolbar
+// fixed to the top of the page, instead of being scattered as separate
+// stacked pill buttons. Every inject*Button() function below fetches (or
+// creates, if it's the first one to run) this shared wrapper and appends
+// its button to it.
+function getOrCreateToolbar() {
+  let wrapper = document.getElementById('kodland-broadcast-buttons');
+  if (!wrapper) {
+    wrapper = document.createElement('div');
+    wrapper.id = 'kodland-broadcast-buttons';
+    wrapper.className = 'kodland-broadcast-buttons';
+    document.body.appendChild(wrapper);
+
+    // The toolbar is `position: fixed`, so it floats ON TOP of the page
+    // instead of pushing it down. With only a handful of buttons that was
+    // barely noticeable, but now that it can hold up to 9 buttons (and
+    // wrap into 2-3 rows on smaller screens) it was tall enough to cover
+    // the first row of students on the group page. Keep body padding in
+    // sync with the toolbar's real rendered height so nothing ends up
+    // hidden underneath it.
+    const adjustBodyPadding = () => {
+      const height = wrapper.offsetHeight;
+      document.body.style.paddingTop = height > 0 ? `${height + 16}px` : '';
+    };
+    adjustBodyPadding();
+    // Re-measure whenever the toolbar's own size changes (buttons
+    // shown/hidden via settings, or it wraps to more/fewer rows on resize).
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(adjustBodyPadding).observe(wrapper);
+    } else {
+      window.addEventListener('resize', adjustBodyPadding);
+    }
+  }
+  return wrapper;
+}
+
 // Inject the floating "Group grading report" button
 function injectGroupGradingReportButton() {
   if (!isGroupPage()) return;
@@ -4480,10 +3379,9 @@ function injectGroupGradingReportButton() {
 
   const button = document.createElement('button');
   button.id = 'kodland-grading-report-button';
-  button.className = 'kodland-export-contacts-btn kodland-grading-report-btn';
-  button.innerHTML = escapeHtml(uiText('gradingReportButton'));
-  button.setAttribute('title', uiText('gradingReportTooltip'));
-  applyLanguageDirection(button);
+  button.className = 'kodland-toolbar-btn kodland-grading-report-btn';
+  button.innerHTML = `📊 Reporte calificación`;
+  button.setAttribute('title', 'Revisar cuántas tareas le faltan calificar a cada estudiante del grupo');
 
   button.addEventListener('click', async (e) => {
     e.preventDefault();
@@ -4499,15 +3397,15 @@ function injectGroupGradingReportButton() {
       showGroupGradingReportModal(report);
     } catch (error) {
       console.error('[Group Grading Report] Error:', error);
-      alert(uiText('gradingReportError'));
+      alert('Ocurrió un error armando el reporte. Revisa la consola.');
     } finally {
       button.disabled = false;
       button.innerHTML = originalHtml;
     }
   });
 
-  document.body.appendChild(button);
-  console.log('[Group Students Info] ✅ "Grading report" button injected');
+  getOrCreateToolbar().appendChild(button);
+  console.log('[Group Students Info] ✅ Botón "Reporte calificación" inyectado');
 }
 
 // Function to display student info with buttons
@@ -4522,16 +3420,16 @@ function displayStudentInfo(container, studentData, studentId) {
     const loadingElement = document.createElement('div');
     loadingElement.className = 'kodland-student-buttons';
     loadingElement.style.cssText = 'margin-top: 8px; padding: 8px; color: #999; font-size: 11px;';
-    loadingElement.innerHTML = escapeHtml(uiText('loading'));
+    loadingElement.innerHTML = '⏳ Loading...';
     container.appendChild(loadingElement);
     return;
   }
   
   // Extract parent information
-  const parentName = studentData.parent_name ||
-                     studentData.parent?.name ||
+  const parentName = studentData.parent_name || 
+                     studentData.parent?.name || 
                      studentData.parent_name_full ||
-                     uiText('parentFallback');
+                     'Parent';
   
   const parentPhone = studentData.parent_phone || 
                       studentData.parent?.phone || 
@@ -4569,7 +3467,7 @@ function displayStudentInfo(container, studentData, studentId) {
   }
   
   // Get language for tooltips
-  const language = getMessageLanguage();
+  const language = detectPageLanguage();
   const tooltips = getButtonTooltips(language);
   
   // Find the student name h3 element using XPath (inside the <a> tag)
@@ -4662,7 +3560,6 @@ function displayStudentInfo(container, studentData, studentId) {
   // Create buttons container (outside the <a> tag)
   const buttonsContainer = document.createElement('span');
   buttonsContainer.className = 'kodland-student-buttons';
-  applyLanguageDirection(buttonsContainer, language);
   
   // No need for container click handler since buttons are outside the link
   // Each button has its own handler with preventDefault and stopPropagation
@@ -4688,7 +3585,7 @@ function displayStudentInfo(container, studentData, studentId) {
     
     if (!formattedPhone) {
       console.error('[Group Students Info] No formatted phone available');
-      alert(uiText('noPhoneAvailable'));
+      alert('No phone number available');
       return;
     }
     
@@ -4741,13 +3638,13 @@ function displayStudentInfo(container, studentData, studentId) {
       // Get the personalized direct-access link (wonder login)
       const wonderLoginUrl = await fetchWonderLoginLink(studentId);
       if (!wonderLoginUrl) {
-        console.warn(`[Group Students Info] ⚠️ Could not get the personalized access link for ${studentId}`);
+        console.warn(`[Group Students Info] ⚠️ No se pudo obtener el link de acceso personalizado para ${studentId}`);
       }
       
       // Get the cached WhatsApp group link for this course
       const waGroupLink = getGroupWhatsAppLink();
       if (!waGroupLink) {
-        console.warn('[Group Students Info] ⚠️ No WhatsApp group link saved yet');
+        console.warn('[Group Students Info] ⚠️ No hay link de WhatsApp del grupo guardado todavía');
       }
       
       // Get the FIRST lesson (M1L1) to fill in the course's start day/time
@@ -4761,7 +3658,7 @@ function displayStudentInfo(container, studentData, studentId) {
         studentName,
         courseName,
         waGroupLink,
-        wonderLoginUrl: wonderLoginUrl || uiText('loginLinkMissing'),
+        wonderLoginUrl: wonderLoginUrl || '[No se pudo generar el link de acceso, revisa el perfil del estudiante]',
         username: credentials.username || '',
         password: credentials.password || '',
         lessonDateInfo
@@ -4836,7 +3733,7 @@ function displayStudentInfo(container, studentData, studentId) {
       const groupId = extractGroupId();
       if (!groupId) {
         console.error('[Group Students Info] Could not extract group ID from URL');
-        alert(uiText('groupIdNotFound'));
+        alert('Could not find group ID. Please make sure you are on a group page.');
         return;
       }
       
@@ -4959,9 +3856,8 @@ function displayStudentInfo(container, studentData, studentId) {
   // Button 4: Class Reminder (icon only)
   const scheduleButton = document.createElement('button');
   scheduleButton.className = 'kodland-wa-btn kodland-schedule-btn';
-  scheduleButton.setAttribute('data-kodland-ui-key', 'classReminderTooltip');
-  scheduleButton.setAttribute('title', uiText('classReminderTooltip'));
-  scheduleButton.setAttribute('aria-label', uiText('classReminderTooltip'));
+  scheduleButton.setAttribute('title', 'Enviar advertencia de la clase');
+  scheduleButton.setAttribute('aria-label', 'Enviar advertencia de la clase');
   scheduleButton.innerHTML = `
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM5 7V6h14v1H5zm2 4h10v-2H7v2zm0 4h7v-2H7v2z" fill="currentColor"/>
@@ -4976,7 +3872,7 @@ function displayStudentInfo(container, studentData, studentId) {
       const groupId = extractGroupId();
       if (!groupId) {
         console.error('[Group Students Info] Could not extract group ID from URL');
-        alert(uiText('noGroupId'));
+        alert('No se pudo obtener el ID del grupo');
         return;
       }
       
@@ -4999,7 +3895,7 @@ function displayStudentInfo(container, studentData, studentId) {
       
       if (!response.ok) {
         console.error(`[Group Students Info] HTTP error! status: ${response.status}`);
-        alert(uiText('scheduleFetchError', response.status));
+        alert(`Error al obtener el horario: ${response.status}`);
         return;
       }
       
@@ -5009,19 +3905,19 @@ function displayStudentInfo(container, studentData, studentId) {
       const nearestLesson = findNearestLesson(scheduleData);
       
       if (!nearestLesson) {
-        alert(uiText('noUpcomingLesson'));
+        alert('No se encontró una clase próxima');
         return;
       }
-
+      
       // Get country code from parent phone
       const countryCode = getCountryInitialsFromPhone(parentPhone);
-      const language = getMessageLanguage();
-
+      const language = detectPageLanguage();
+      
       // Generate message
       const message = generateClassReminderMessage(parentName, nearestLesson, countryCode, language);
-
+      
       if (!message) {
-        alert(uiText('messageGenerationError'));
+        alert('Error al generar el mensaje');
         return;
       }
       
@@ -5038,7 +3934,7 @@ function displayStudentInfo(container, studentData, studentId) {
       
     } catch (err) {
       console.error('[Group Students Info] Error sending class reminder:', err);
-      alert(uiText('classReminderError'));
+      alert('Error al enviar la advertencia de clase');
     }
   });
   
@@ -5049,9 +3945,8 @@ function displayStudentInfo(container, studentData, studentId) {
   if (getExtensionSettings().showAbsenceButton) {
     const absenceButton = document.createElement('button');
     absenceButton.className = 'kodland-wa-btn kodland-absence-btn';
-    absenceButton.setAttribute('data-kodland-ui-key', 'absenceTooltip');
-    absenceButton.setAttribute('title', uiText('absenceTooltip'));
-    absenceButton.setAttribute('aria-label', uiText('absenceTooltip'));
+    absenceButton.setAttribute('title', 'Enviar aviso de falta a clase');
+    absenceButton.setAttribute('aria-label', 'Enviar aviso de falta a clase');
     absenceButton.innerHTML = `
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
@@ -5066,11 +3961,11 @@ function displayStudentInfo(container, studentData, studentId) {
       
       if (!formattedPhone) {
         console.error('[Group Students Info] No formatted phone available');
-        alert(uiText('noPhoneForStudent'));
+        alert('No hay teléfono disponible para este estudiante');
         return;
       }
-
-      const language = getMessageLanguage();
+      
+      const language = detectPageLanguage();
       const studentName = extractStudentName(container);
       const courseName = findCourseName();
       const tutorName = getExtensionSettings().tutorName;
@@ -5091,8 +3986,7 @@ function displayStudentInfo(container, studentData, studentId) {
   if (getExtensionSettings().showTaskReportButton) {
     const taskReportButton = document.createElement('button');
     taskReportButton.className = 'kodland-wa-btn kodland-task-report-btn';
-    taskReportButton.setAttribute('data-kodland-ui-key', 'taskReportTooltip');
-    taskReportButton.setAttribute('title', uiText('taskReportTooltip'));
+    taskReportButton.setAttribute('title', 'Enviar por WhatsApp un reporte de tareas sin enviar');
     taskReportButton.innerHTML = `📤`;
 
     taskReportButton.addEventListener('click', async (e) => {
@@ -5100,7 +3994,7 @@ function displayStudentInfo(container, studentData, studentId) {
       e.stopPropagation();
 
       if (!formattedPhone) {
-        alert(uiText('noPhoneForStudent'));
+        alert('No hay teléfono disponible para este estudiante');
         return;
       }
 
@@ -5115,12 +4009,12 @@ function displayStudentInfo(container, studentData, studentId) {
         }
 
         if (!alerts) {
-          alert(uiText('taskInfoError'));
+          alert('No se pudo obtener la información de tareas. Revisa la consola.');
           return;
         }
 
         if (alerts.notSubmittedTasks.length === 0) {
-          alert(uiText('noPendingTasks'));
+          alert('Este estudiante no tiene tareas pendientes de enviar. 🎉');
           return;
         }
 
@@ -5142,14 +4036,7 @@ function displayStudentInfo(container, studentData, studentId) {
           .map(([label, names]) => `${label}:\n` + names.map(name => `• ${name}`).join('\n'))
           .join('\n\n');
 
-        const message = uiText('taskReportMessage', {
-          studentName,
-          tutorName,
-          courseName,
-          taskListText,
-          waveEmoji,
-          smileEmoji
-        });
+        const message = `Hola ${studentName} ${waveEmoji}, soy ${tutorName}, tu tutor${courseName ? ` de ${courseName}` : ''} en Kodland.\nQuería recordarte que tienes pendientes de enviar las siguientes tareas:\n${taskListText}\nPor favor súbelas a la plataforma cuando puedas, para que no te atrases con el curso. ¡Cualquier duda, aquí estoy! ${smileEmoji}`;
 
         const encodedMessage = encodeMessageForWhatsApp(message);
         const phoneForUrl = formattedPhone.replace(/^\+/, '');
@@ -5162,6 +4049,63 @@ function displayStudentInfo(container, studentData, studentId) {
     });
 
     buttonsContainer.appendChild(taskReportButton);
+  }
+
+  // Button: send the recording link of the last (already happened) class
+  // straight to this student's parent via WhatsApp.
+  if (getExtensionSettings().showRecordingButton) {
+    const recordingButton = document.createElement('button');
+    recordingButton.className = 'kodland-wa-btn kodland-recording-btn';
+    recordingButton.setAttribute('title', 'Enviar link de la grabación de la última clase');
+    recordingButton.setAttribute('aria-label', 'Enviar link de la grabación de la última clase');
+    recordingButton.innerHTML = `🎥`;
+
+    recordingButton.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+
+      if (!formattedPhone) {
+        alert('No hay teléfono disponible para este estudiante');
+        return;
+      }
+
+      recordingButton.disabled = true;
+      const originalHtml = recordingButton.innerHTML;
+      recordingButton.innerHTML = `⏳`;
+
+      try {
+        const groupId = extractGroupId();
+        const { link: recordingLink } = await getLastClassRecordingLink(groupId);
+
+        if (!recordingLink) {
+          alert('No se envió nada: no se indicó el link de la grabación.');
+          return;
+        }
+
+        const studentName = extractStudentName(container);
+        const courseName = findCourseName() || 'tu curso';
+        const settings = getExtensionSettings();
+
+        const message = renderTemplate(settings.recordingStudentTemplate || DEFAULT_RECORDING_STUDENT_TEMPLATE, {
+          studentName,
+          courseName,
+          tutorName: settings.tutorName,
+          recordingLink
+        });
+
+        const encodedMessage = encodeMessageForWhatsApp(message);
+        const phoneForUrl = formattedPhone.replace(/^\+/, '');
+        const whatsappUrl = `https://api.whatsapp.com/send?phone=${phoneForUrl}&text=${encodedMessage}`;
+        console.log(`[Group Students Info] Enviando link de grabación a: ${formattedPhone}`);
+        window.open(whatsappUrl, '_blank');
+      } finally {
+        recordingButton.disabled = false;
+        recordingButton.innerHTML = originalHtml;
+      }
+    });
+
+    buttonsContainer.appendChild(recordingButton);
   }
   
   // Add data attribute to identify which student these buttons belong to
@@ -5359,24 +4303,94 @@ async function processAllStudents() {
 // ---------------------------------------------------------------------
 // Extension settings (persisted in localStorage, per browser profile)
 // ---------------------------------------------------------------------
-// Default message templates, in Arabic. The tutor can rewrite them (in any
-// language) from the ⚙️ settings modal; "Reset" restores these.
-const DEFAULT_WELCOME_TEMPLATE = `مرحباً {{studentName}} 👋
-تحية طيبة. اسمي {{tutorName}} وسأكون معلّمك في دورة {{courseName}}، {{scheduleLine}}. يسعدنا انضمامك إلى هذه التجربة في Kodland. ولنكون جاهزين لحصتنا الأولى، يُرجى اتّباع الخطوات التالية:
-🔹 انضم إلى مجموعة واتساب الرسمية، حيث سنشارك رابط الحصة على Zoom وكل المعلومات المهمة: 👈{{waGroupLink}}
-🔹 وهذا رابط دخولك الخاص إلى منصة Kodland:
-• رابط الدخول المباشر: {{wonderLoginUrl}}
-اسم المستخدم: {{username}}
-كلمة المرور: {{password}}
-أنا هنا لمساعدتك في كل ما تحتاجه. نراك قريباً!
-مع خالص التحية،
+const DEFAULT_WELCOME_TEMPLATE = `Hola {{studentName}} 👋
+Un cordial saludo. Mi nombre es {{tutorName}} y seré tu tutor en la clase de {{courseName}}, {{scheduleLine}}. Estamos muy contentos de que formes parte de esta experiencia en Kodland. Para estar listos para nuestra primera clase, por favor sigue estos pasos:
+🔹 Únete al grupo oficial de WhatsApp, donde compartiremos el enlace de la clase por Zoom y toda la información importante: 👉{{waGroupLink}}
+🔹 Aquí tienes tu acceso personalizado a la plataforma Kodland:
+• Enlace de acceso directo: {{wonderLoginUrl}}
+Inicio de sesión: {{username}}
+Contraseña: {{password}}
+Estoy aquí para ayudarte en todo lo que necesites. ¡Nos vemos pronto!
+Un saludo,
 {{tutorName}}
-معلّم دورة {{courseName}}`;
+Tutor de {{courseName}}`;
 
-const DEFAULT_ABSENCE_TEMPLATE = `مرحباً {{studentName}} 👋، أنا {{tutorName}}، معلّمك في دورة {{courseName}} على منصة Kodland.
-لقد بدأنا حصة اليوم ولاحظت أنك لم تنضم إلينا بعد. هل ستحضر الحصة؟ 🕒
-إذا واجهت أي مشكلة تقنية في الدخول إلى المنصة، فأخبرني فوراً لأساعدك. وتذكّر أنك إن لم تتمكّن من الحضور المباشر، فمن المهم جداً أن تشاهد تسجيل الحصة من لوحة الطالب حتى لا تتأخر عن المشروع الذي نعمل عليه.
-بانتظارك في القاعة! 😊`;
+const DEFAULT_ABSENCE_TEMPLATE = `Hola {{studentName}} 👋, soy {{tutorName}}, tu tutor de {{courseName}} en Kodland.
+Ya estamos iniciando nuestra clase de hoy y he notado que aún no te has conectado. ¿Vas a asistir a la sesión? 🕒
+Si tienes algún inconveniente técnico para ingresar a la plataforma, por favor avísame de inmediato para ayudarte. Recuerda que si no logras conectarte en vivo, es muy importante que revises la grabación de la clase en tu panel de estudiante para que no te quedes atrás con el proyecto que estamos trabajando.
+¡Te esperamos en la sala! 😊`;
+
+// Broadcast messages, meant to be sent to the WHATSAPP GROUP (not to a
+// single student), copied to clipboard and opened via the group chat link.
+
+const DEFAULT_CLASS_STARTING_TEMPLATE = `¡Hola a todos! 👋
+Hoy nos espera una nueva clase de {{courseName}} a las {{time}} (hora Colombia).
+🚀 Nos vemos directo en la Plataforma de Kodland, como siempre. ¡Entren con toda la energía! 💻
+Si alguien tiene algún detalle con su entrada, escríbanme por aquí rápido. 🔑
+¡Nos vemos en un rato! 🔥
+{{tutorName}}`;
+
+const DEFAULT_IN_CLASS_TEMPLATE = `¡Hola a todos! 😊
+¡Ya estoy listo en nuestra aula dentro de la Plataforma de Kodland para empezar nuestra clase de {{courseName}}! 🚀
+Entren ahora mismo para que podamos comenzar. Si alguien tiene algún inconveniente con sus accesos, escríbeme por privado y lo solucionamos de inmediato. 🔑
+¡Los espero con muchas ganas de crear y aprender juntos! 🎉
+{{tutorName}}`;
+
+const DEFAULT_GRADUATION_TEMPLATE = `🎉 ¡Hola, queridos padres y alumnos!
+Estamos llegando al final de nuestro camino en el curso de {{courseName}} y nos preparamos para nuestra gran Lección de Graduación.
+📅 Fecha: {{gradDate}}
+⏰ Hora: {{gradTime}} (Hora Colombia)
+✨ Invitación: Todos los padres y familiares están cordialmente invitados a celebrar el esfuerzo de los chicos.
+🌟 ¿Qué haremos en la graduación?
+• Resultados del curso: un resumen de los temas y objetivos alcanzados durante el curso.
+• Presentación de proyectos: cada estudiante compartirá su creación final. ¡Han hecho un trabajo increíble!
+• Orientación personalizada: comentarios sobre el desempeño de cada alumno y consejos para seguir aprendiendo.
+🧑‍💻 Preparativos importantes para los estudiantes:
+• Revisar y completar las últimas actividades pendientes en la plataforma antes de la clase.
+• Preparar su fondo virtual de graduación para la videollamada: https://drive.google.com/drive/folders/1bu8VJJdUXnG9fzqPYXvBYvEQeYq3hXTV
+• Elegir qué proyecto van a presentar (su mejor trabajo o portafolio del curso).
+⏱ Cada estudiante tendrá unos minutos para su presentación.
+🕒 La clase será en el horario habitual, con este enfoque especial de celebración. La asistencia de todos es muy importante, ya que es el espacio donde los alumnos cierran su ciclo y validan lo aprendido.
+Si por algún motivo de fuerza mayor no pueden asistir, por favor házmelo saber con antelación.
+¡Nos vemos en clase para celebrar su talento! 💙
+Equipo Kodland
+Tutor: {{tutorName}}`;
+
+const DEFAULT_GROUP_WELCOME_TEMPLATE = `👋✨ ¡Hola a todos!
+Bienvenidos al curso de {{courseName}}. Estoy muy emocionado de comenzar este viaje con ustedes, donde aprenderemos y construiremos proyectos que combinan creatividad, funcionalidad y estilo.
+En este espacio, la imaginación y las ganas de aprender serán nuestras herramientas principales. Exploraremos nuevos temas, experimentaremos con ideas y daremos vida a proyectos únicos que reflejen su talento.
+🚀 Estoy seguro de que será el inicio de una gran experiencia, donde podrán desarrollar habilidades útiles y divertirse aprendiendo.
+📩 Por favor, revisen su correo electrónico, allí encontrarán sus credenciales de acceso para iniciar sesión en la plataforma de Kodland.
+💻✨ ¡Prepárense para aprender, crear y dejar su huella!
+{{tutorName}}`;
+
+const DEFAULT_FIRST_CLASS_TEMPLATE = `🎉 ¡Bienvenidos a su primera clase de {{courseName}} en Kodland! 🎉
+¡Hola chicos y chicas! Estoy muy emocionado de darles la bienvenida oficial a este nuevo curso, donde aprenderemos cosas increíbles combinando creatividad, tecnología y mucho entusiasmo. 🌐✨
+Hoy comienza una aventura en la que ustedes serán los protagonistas. En cada clase exploraremos nuevas herramientas y formas de expresión para dar vida a sus ideas. No se preocupen si es su primera vez en este tipo de curso, ¡vamos a aprender paso a paso y a disfrutar el proceso! 🚀
+🚨 Recordatorio Importante: Nos vemos en la plataforma 🚨
+Les recuerdo que para nuestra clase de HOY a las {{time}} (hora Colombia), nos conectaremos directamente a través de la plataforma de Kodland.
+Esta es nuestra primera clase juntos, así que no se preocupen si tienen dudas de cómo nos manejamos en el aula virtual… ¡estamos aquí para disfrutar y crecer juntos paso a paso!
+🛠️ Antes de que empiece la clase, asegúrate de esto:
+✅ ¿Ya probaste entrar? Inicia sesión en la plataforma con las credenciales que recibieron por correo electrónico. Hazlo un momento antes para confirmar que todo esté en orden y no perder valiosos minutos de clase.
+📖 ¿Dudas de cómo ingresar? Aquí tienes el instructivo a la mano por si necesitas refrescar los pasos: https://docs.google.com/document/d/1HtCjckqbetfsSX0YWzuEHYAt53BgrPbdDNZwg4G4Jno/edit?tab=t.0#heading=h.ta5cgks4cr63
+🔑 ¿Problemas con tus datos? Si has revisado tu bandeja de entrada y aun así no has podido ingresar con tus credenciales, escríbeme YA MISMO por privado para ayudarte a solucionarlo.
+⚠️ Requisito clave: Para que todas las herramientas funcionen a la perfección, asegúrense de entrar usando el navegador Google Chrome. 🌐
+✨ No olviden traer su creatividad, curiosidad y entusiasmo. ¡Estoy muy feliz de ser su profe y acompañarlos en este viaje de aprendizaje!
+¡Nos vemos en un rato dentro de la plataforma! 🔥🙌
+💡 ¡Vamos a construir cosas increíbles juntos! 🌐🚀
+{{tutorName}}`;
+
+const DEFAULT_RECORDING_STUDENT_TEMPLATE = `🎥 ¡Hola {{studentName}}!
+Te comparto la grabación de nuestra última clase de {{courseName}}, por si quieres repasar algo o no pudiste conectarte en vivo:
+🔗 {{recordingLink}}
+Cualquier duda que te quede, aquí estoy para ayudarte. ¡Sigamos avanzando! 🚀
+{{tutorName}}`;
+
+const DEFAULT_RECORDING_GROUP_TEMPLATE = `🎥 ¡Hola a todos!
+Les comparto la grabación de nuestra última clase de {{courseName}}, por si quieren repasar algo o alguien no pudo conectarse en vivo:
+🔗 {{recordingLink}}
+Cualquier duda, aquí estoy para ayudarles. ¡Sigamos aprendiendo! 🚀
+{{tutorName}}`;
 
 // Fill in a template string, replacing {{placeholder}} tokens with values
 // from `vars`. Unknown placeholders are left as-is (so a typo doesn't
@@ -5394,17 +4408,19 @@ const DEFAULT_KODLAND_SETTINGS = {
   showAttendance: true,
   showAbsenceButton: true,
   showTaskReportButton: true,
+  showRecordingButton: true,
   showGroupGradingReport: true,
-  tutorName: '',
-  // Interface and message language. 'auto' follows Kodland's own language
-  // selector; any code in SUPPORTED_MESSAGE_LANGUAGES pins that language.
-  messageLanguage: 'auto',
-  // Timezone the class times in the welcome message are expressed in, and
-  // the name used for it in the message text.
-  timezone: 'Africa/Cairo',
-  timezoneLabel: 'القاهرة',
+  showBroadcastButtons: true,
+  tutorName: 'Gehiner Sierra',
   welcomeTemplate: DEFAULT_WELCOME_TEMPLATE,
-  absenceTemplate: DEFAULT_ABSENCE_TEMPLATE
+  absenceTemplate: DEFAULT_ABSENCE_TEMPLATE,
+  classStartingTemplate: DEFAULT_CLASS_STARTING_TEMPLATE,
+  inClassTemplate: DEFAULT_IN_CLASS_TEMPLATE,
+  graduationTemplate: DEFAULT_GRADUATION_TEMPLATE,
+  groupWelcomeTemplate: DEFAULT_GROUP_WELCOME_TEMPLATE,
+  firstClassTemplate: DEFAULT_FIRST_CLASS_TEMPLATE,
+  recordingStudentTemplate: DEFAULT_RECORDING_STUDENT_TEMPLATE,
+  recordingGroupTemplate: DEFAULT_RECORDING_GROUP_TEMPLATE
 };
 
 function getExtensionSettings() {
@@ -5430,10 +4446,9 @@ function injectSettingsButton() {
 
   const button = document.createElement('button');
   button.id = 'kodland-settings-button';
-  button.className = 'kodland-export-contacts-btn kodland-settings-btn';
+  button.className = 'kodland-toolbar-btn kodland-settings-btn';
   button.innerHTML = '⚙️';
-  button.setAttribute('data-kodland-ui-key', 'settingsTooltip');
-  button.setAttribute('title', uiText('settingsTooltip'));
+  button.setAttribute('title', 'Configuración de la extensión (mostrar/ocultar botones, nombre del tutor)');
 
   button.addEventListener('click', (e) => {
     e.preventDefault();
@@ -5441,7 +4456,7 @@ function injectSettingsButton() {
     openSettingsModal();
   });
 
-  document.body.appendChild(button);
+  getOrCreateToolbar().appendChild(button);
 }
 
 function escapeHtml(str) {
@@ -5455,85 +4470,125 @@ function openSettingsModal() {
   if (document.getElementById('kodland-settings-modal')) return;
   const settings = getExtensionSettings();
 
-  // Language options for the picker, labelled in their own language.
-  const languageOptions = Object.entries(LANGUAGE_LABELS).map(([code, label]) => [code, label]);
-  const languageOptionsHtml = languageOptions
-    .map(([code, label]) =>
-      `<option value="${code}" ${settings.messageLanguage === code ? 'selected' : ''}>${escapeHtml(label)}</option>`)
-    .join('');
-
-  const fieldStyle = 'width:100%; box-sizing:border-box; padding:8px; border-radius:6px; border:1px solid #444; background:#1e1e1e; color:#fff; margin-bottom:20px;';
-  const labelStyle = 'display:block; margin-bottom:8px; font-size:13px; color:#bbb;';
-  const checkboxRow = 'display:flex; align-items:center; gap:8px; margin-bottom:14px; cursor:pointer;';
-
   const modal = document.createElement('div');
   modal.id = 'kodland-settings-modal';
   modal.className = 'kodland-modal';
-  applyLanguageDirection(modal);
   modal.innerHTML = `
     <div class="kodland-modal-content" style="max-width: 560px;">
       <div class="kodland-modal-header">
-        <h2>${escapeHtml(uiText('settingsTitle'))}</h2>
+        <h2>⚙️ Configuración</h2>
         <button class="kodland-modal-close">&times;</button>
       </div>
       <div class="kodland-modal-body">
-        <label style="${checkboxRow}">
+        <label style="display:flex; align-items:center; gap:8px; margin-bottom:14px; cursor:pointer;">
           <input type="checkbox" id="kodland-setting-export" ${settings.showExportContacts ? 'checked' : ''}/>
-          <span id="kodland-setting-export-label">${escapeHtml(uiText('settingShowExport'))}</span>
+          <span>📇 Mostrar botón "Exportar contactos"</span>
         </label>
-        <label style="${checkboxRow}">
+        <label style="display:flex; align-items:center; gap:8px; margin-bottom:14px; cursor:pointer;">
           <input type="checkbox" id="kodland-setting-walink" ${settings.showWaGroupLink ? 'checked' : ''}/>
-          <span id="kodland-setting-walink-label">${escapeHtml(uiText('settingShowWaLink'))}</span>
+          <span>💬 Mostrar botón "Link WA grupo"</span>
         </label>
-        <label style="${checkboxRow}">
+        <label style="display:flex; align-items:center; gap:8px; margin-bottom:14px; cursor:pointer;">
           <input type="checkbox" id="kodland-setting-attendance" ${settings.showAttendance ? 'checked' : ''}/>
-          <span id="kodland-setting-attendance-label">${escapeHtml(uiText('settingShowAttendance'))}</span>
+          <span>✅ Mostrar botón "Tomar asistencia"</span>
         </label>
-        <label style="${checkboxRow}">
+        <label style="display:flex; align-items:center; gap:8px; margin-bottom:14px; cursor:pointer;">
           <input type="checkbox" id="kodland-setting-absence" ${settings.showAbsenceButton ? 'checked' : ''}/>
-          <span id="kodland-setting-absence-label">${escapeHtml(uiText('settingShowAbsence'))}</span>
+          <span>⏰ Mostrar botón "Falta a clase" (por estudiante)</span>
         </label>
-        <label style="${checkboxRow}">
+        <label style="display:flex; align-items:center; gap:8px; margin-bottom:14px; cursor:pointer;">
           <input type="checkbox" id="kodland-setting-taskreport" ${settings.showTaskReportButton ? 'checked' : ''}/>
-          <span id="kodland-setting-taskreport-label">${escapeHtml(uiText('settingShowTaskReport'))}</span>
+          <span>📤 Mostrar botón "Reporte de tareas" (por estudiante)</span>
         </label>
-        <label style="${checkboxRow} margin-bottom:20px;">
+        <label style="display:flex; align-items:center; gap:8px; margin-bottom:14px; cursor:pointer;">
+          <input type="checkbox" id="kodland-setting-recording" ${settings.showRecordingButton ? 'checked' : ''}/>
+          <span>🎥 Mostrar botón "Grabación última clase" (por estudiante)</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; margin-bottom:14px; cursor:pointer;">
           <input type="checkbox" id="kodland-setting-gradingreport" ${settings.showGroupGradingReport ? 'checked' : ''}/>
-          <span id="kodland-setting-gradingreport-label">${escapeHtml(uiText('settingShowGradingReport'))}</span>
+          <span>📊 Mostrar botón "Reporte calificación" (grupo completo)</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; margin-bottom:20px; cursor:pointer;">
+          <input type="checkbox" id="kodland-setting-broadcast" ${settings.showBroadcastButtons ? 'checked' : ''}/>
+          <span>📢 Mostrar botones de aviso al grupo (clase, en clase, graduación, bienvenida, grabación)</span>
         </label>
 
-        <label id="kodland-setting-language-label" style="${labelStyle}">${escapeHtml(uiText('settingLanguage'))}</label>
-        <select id="kodland-setting-language" style="${fieldStyle}">${languageOptionsHtml}</select>
-
-        <label id="kodland-setting-tutorname-label" style="${labelStyle}">${escapeHtml(uiText('settingTutorName'))}</label>
-        <input type="text" id="kodland-setting-tutorname" value="${escapeHtml(settings.tutorName)}" style="${fieldStyle}"/>
-
-        <label id="kodland-setting-timezone-label" style="${labelStyle}">${escapeHtml(uiText('settingTimezone'))}</label>
-        <input type="text" id="kodland-setting-timezone" value="${escapeHtml(settings.timezone)}" style="${fieldStyle}"/>
-
-        <label id="kodland-setting-timezone-name-label" style="${labelStyle}">${escapeHtml(uiText('settingTimezoneLabel'))}</label>
-        <input type="text" id="kodland-setting-timezone-name" value="${escapeHtml(settings.timezoneLabel)}" style="${fieldStyle}"/>
+        <label style="display:block; margin-bottom:8px; font-size:13px; color:#bbb;">Nombre del tutor:</label>
+        <input type="text" id="kodland-setting-tutorname" value="${escapeHtml(settings.tutorName)}"
+          style="width:100%; box-sizing:border-box; padding:8px; border-radius:6px; border:1px solid #444; background:#1e1e1e; color:#fff; margin-bottom:20px;"/>
 
         <hr style="border-color:#333; margin: 16px 0;"/>
-        <p id="kodland-instructions-text" style="font-size:12px; color:#999; margin-bottom:16px;">
-          ${escapeHtml(uiText('settingsTemplatesHelp'))}
+        <p style="font-size:12px; color:#999; margin-bottom:16px;">
+          Plantillas de mensajes: usa <code>{{studentName}}</code>, <code>{{tutorName}}</code>, <code>{{courseName}}</code>,
+          <code>{{time}}</code>, <code>{{gradDate}}</code>, <code>{{gradTime}}</code>, <code>{{recordingLink}}</code>
+          y (solo en bienvenida individual) <code>{{scheduleLine}}</code>, <code>{{waGroupLink}}</code>, <code>{{wonderLoginUrl}}</code>,
+          <code>{{username}}</code>, <code>{{password}}</code>. Esos textos se rellenan solos al enviar el mensaje.
         </p>
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-          <label id="kodland-setting-welcome-template-label" style="font-size:13px; color:#bbb;">${escapeHtml(uiText('settingWelcomeTemplate'))}</label>
-          <button id="kodland-reset-welcome" type="button" style="background:none; border:none; color:#25D366; font-size:12px; cursor:pointer; text-decoration:underline;">${escapeHtml(uiText('settingsReset'))}</button>
+          <label style="font-size:13px; color:#bbb;">Mensaje de bienvenida (individual, por estudiante):</label>
+          <button id="kodland-reset-welcome" type="button" style="background:none; border:none; color:#25D366; font-size:12px; cursor:pointer; text-decoration:underline;">Restablecer</button>
         </div>
         <textarea id="kodland-setting-welcome-template" rows="8"
-          style="${fieldStyle} font-family:monospace; font-size:12px;">${escapeHtml(settings.welcomeTemplate)}</textarea>
+          style="width:100%; box-sizing:border-box; padding:8px; border-radius:6px; border:1px solid #444; background:#1e1e1e; color:#fff; margin-bottom:20px; font-family:monospace; font-size:12px;">${escapeHtml(settings.welcomeTemplate)}</textarea>
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-          <label id="kodland-setting-absence-template-label" style="font-size:13px; color:#bbb;">${escapeHtml(uiText('settingAbsenceTemplate'))}</label>
-          <button id="kodland-reset-absence" type="button" style="background:none; border:none; color:#25D366; font-size:12px; cursor:pointer; text-decoration:underline;">${escapeHtml(uiText('settingsReset'))}</button>
+          <label style="font-size:13px; color:#bbb;">Mensaje de falta a clase (individual, por estudiante):</label>
+          <button id="kodland-reset-absence" type="button" style="background:none; border:none; color:#25D366; font-size:12px; cursor:pointer; text-decoration:underline;">Restablecer</button>
         </div>
         <textarea id="kodland-setting-absence-template" rows="6"
-          style="${fieldStyle} font-family:monospace; font-size:12px;">${escapeHtml(settings.absenceTemplate)}</textarea>
+          style="width:100%; box-sizing:border-box; padding:8px; border-radius:6px; border:1px solid #444; background:#1e1e1e; color:#fff; margin-bottom:20px; font-family:monospace; font-size:12px;">${escapeHtml(settings.absenceTemplate)}</textarea>
 
-        <button id="kodland-settings-save" class="kodland-wa-btn" style="width:100%; justify-content:center;">${escapeHtml(uiText('settingsSave'))}</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label style="font-size:13px; color:#bbb;">📢 Aviso de clase (al grupo de WhatsApp):</label>
+          <button id="kodland-reset-classstarting" type="button" style="background:none; border:none; color:#25D366; font-size:12px; cursor:pointer; text-decoration:underline;">Restablecer</button>
+        </div>
+        <textarea id="kodland-setting-classstarting-template" rows="6"
+          style="width:100%; box-sizing:border-box; padding:8px; border-radius:6px; border:1px solid #444; background:#1e1e1e; color:#fff; margin-bottom:20px; font-family:monospace; font-size:12px;">${escapeHtml(settings.classStartingTemplate)}</textarea>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label style="font-size:13px; color:#bbb;">▶️ Estamos en clase (al grupo de WhatsApp):</label>
+          <button id="kodland-reset-inclass" type="button" style="background:none; border:none; color:#25D366; font-size:12px; cursor:pointer; text-decoration:underline;">Restablecer</button>
+        </div>
+        <textarea id="kodland-setting-inclass-template" rows="6"
+          style="width:100%; box-sizing:border-box; padding:8px; border-radius:6px; border:1px solid #444; background:#1e1e1e; color:#fff; margin-bottom:20px; font-family:monospace; font-size:12px;">${escapeHtml(settings.inClassTemplate)}</textarea>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label style="font-size:13px; color:#bbb;">🎓 Graduación (al grupo de WhatsApp):</label>
+          <button id="kodland-reset-graduation" type="button" style="background:none; border:none; color:#25D366; font-size:12px; cursor:pointer; text-decoration:underline;">Restablecer</button>
+        </div>
+        <textarea id="kodland-setting-graduation-template" rows="10"
+          style="width:100%; box-sizing:border-box; padding:8px; border-radius:6px; border:1px solid #444; background:#1e1e1e; color:#fff; margin-bottom:20px; font-family:monospace; font-size:12px;">${escapeHtml(settings.graduationTemplate)}</textarea>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label style="font-size:13px; color:#bbb;">🎉 Bienvenida al grupo (al grupo de WhatsApp):</label>
+          <button id="kodland-reset-groupwelcome" type="button" style="background:none; border:none; color:#25D366; font-size:12px; cursor:pointer; text-decoration:underline;">Restablecer</button>
+        </div>
+        <textarea id="kodland-setting-groupwelcome-template" rows="5"
+          style="width:100%; box-sizing:border-box; padding:8px; border-radius:6px; border:1px solid #444; background:#1e1e1e; color:#fff; margin-bottom:20px; font-family:monospace; font-size:12px;">${escapeHtml(settings.groupWelcomeTemplate)}</textarea>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label style="font-size:13px; color:#bbb;">🎉 Primera clase (al grupo de WhatsApp):</label>
+          <button id="kodland-reset-firstclass" type="button" style="background:none; border:none; color:#25D366; font-size:12px; cursor:pointer; text-decoration:underline;">Restablecer</button>
+        </div>
+        <textarea id="kodland-setting-firstclass-template" rows="10"
+          style="width:100%; box-sizing:border-box; padding:8px; border-radius:6px; border:1px solid #444; background:#1e1e1e; color:#fff; margin-bottom:20px; font-family:monospace; font-size:12px;">${escapeHtml(settings.firstClassTemplate)}</textarea>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label style="font-size:13px; color:#bbb;">🎥 Grabación última clase (individual, por estudiante):</label>
+          <button id="kodland-reset-recording-student" type="button" style="background:none; border:none; color:#25D366; font-size:12px; cursor:pointer; text-decoration:underline;">Restablecer</button>
+        </div>
+        <textarea id="kodland-setting-recording-student-template" rows="6"
+          style="width:100%; box-sizing:border-box; padding:8px; border-radius:6px; border:1px solid #444; background:#1e1e1e; color:#fff; margin-bottom:20px; font-family:monospace; font-size:12px;">${escapeHtml(settings.recordingStudentTemplate)}</textarea>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label style="font-size:13px; color:#bbb;">🎥 Grabación última clase (al grupo de WhatsApp):</label>
+          <button id="kodland-reset-recording-group" type="button" style="background:none; border:none; color:#25D366; font-size:12px; cursor:pointer; text-decoration:underline;">Restablecer</button>
+        </div>
+        <textarea id="kodland-setting-recording-group-template" rows="6"
+          style="width:100%; box-sizing:border-box; padding:8px; border-radius:6px; border:1px solid #444; background:#1e1e1e; color:#fff; margin-bottom:20px; font-family:monospace; font-size:12px;">${escapeHtml(settings.recordingGroupTemplate)}</textarea>
+
+        <button id="kodland-settings-save" class="kodland-wa-btn" style="width:100%; justify-content:center;">Guardar</button>
       </div>
     </div>
   `;
@@ -5545,90 +4600,58 @@ function openSettingsModal() {
     if (e.target === modal) modal.remove();
   });
 
-  const languageSelect = modal.querySelector('#kodland-setting-language');
-
-  const syncSettingsModalText = () => {
-    const selectedLanguage = normalizeMessageLanguage(languageSelect.value || getMessageLanguage());
-    const previewLanguage = selectedLanguage === 'auto' ? detectPageLanguage() : selectedLanguage;
-
-    modal.querySelector('.kodland-modal-header h2').textContent = uiTextForLanguage('settingsTitle', previewLanguage);
-    modal.querySelectorAll('[data-ui-key]').forEach((node) => {
-      const key = node.getAttribute('data-ui-key');
-      if (!key) return;
-      node.textContent = uiTextForLanguage(key, previewLanguage);
-    });
-
-    modal.querySelector('#kodland-setting-language-label').textContent = uiTextForLanguage('settingLanguage', previewLanguage);
-    modal.querySelector('#kodland-setting-tutorname-label').textContent = uiTextForLanguage('settingTutorName', previewLanguage);
-    modal.querySelector('#kodland-setting-timezone-label').textContent = uiTextForLanguage('settingTimezone', previewLanguage);
-    modal.querySelector('#kodland-setting-timezone-name-label').textContent = uiTextForLanguage('settingTimezoneLabel', previewLanguage);
-    modal.querySelector('#kodland-setting-welcome-template-label').textContent = uiTextForLanguage('settingWelcomeTemplate', previewLanguage);
-    modal.querySelector('#kodland-setting-absence-template-label').textContent = uiTextForLanguage('settingAbsenceTemplate', previewLanguage);
-    modal.querySelector('#kodland-reset-welcome').textContent = uiTextForLanguage('settingsReset', previewLanguage);
-    modal.querySelector('#kodland-reset-absence').textContent = uiTextForLanguage('settingsReset', previewLanguage);
-    modal.querySelector('#kodland-settings-save').textContent = uiTextForLanguage('settingsSave', previewLanguage);
-    modal.querySelector('#kodland-instructions-text').textContent = uiTextForLanguage('settingsTemplatesHelp', previewLanguage);
-  };
-
   modal.querySelector('#kodland-reset-welcome').addEventListener('click', () => {
-    const resetLanguage = normalizeMessageLanguage(modal.querySelector('#kodland-setting-language').value || getMessageLanguage());
-    const templateLanguage = resetLanguage === 'auto' ? detectPageLanguage() : resetLanguage;
-    modal.querySelector('#kodland-setting-welcome-template').value = getDefaultWelcomeTemplate(templateLanguage);
+    modal.querySelector('#kodland-setting-welcome-template').value = DEFAULT_WELCOME_TEMPLATE;
   });
   modal.querySelector('#kodland-reset-absence').addEventListener('click', () => {
-    const resetLanguage = normalizeMessageLanguage(modal.querySelector('#kodland-setting-language').value || getMessageLanguage());
-    const templateLanguage = resetLanguage === 'auto' ? detectPageLanguage() : resetLanguage;
-    modal.querySelector('#kodland-setting-absence-template').value = getDefaultAbsenceTemplate(templateLanguage);
+    modal.querySelector('#kodland-setting-absence-template').value = DEFAULT_ABSENCE_TEMPLATE;
   });
-
-  languageSelect.addEventListener('change', () => {
-    const selectedLanguage = normalizeMessageLanguage(languageSelect.value || getMessageLanguage());
-    const templateLanguage = selectedLanguage === 'auto' ? detectPageLanguage() : selectedLanguage;
-    modal.querySelector('#kodland-setting-welcome-template').value = getDefaultWelcomeTemplate(templateLanguage);
-    modal.querySelector('#kodland-setting-absence-template').value = getDefaultAbsenceTemplate(templateLanguage);
-    syncSettingsModalText();
+  modal.querySelector('#kodland-reset-classstarting').addEventListener('click', () => {
+    modal.querySelector('#kodland-setting-classstarting-template').value = DEFAULT_CLASS_STARTING_TEMPLATE;
   });
-
-  const addDataUiKey = (element, key) => {
-    element.setAttribute('data-ui-key', key);
-    return element;
-  };
-
-  addDataUiKey(modal.querySelector('#kodland-setting-export-label'), 'settingShowExport');
-  addDataUiKey(modal.querySelector('#kodland-setting-walink-label'), 'settingShowWaLink');
-  addDataUiKey(modal.querySelector('#kodland-setting-attendance-label'), 'settingShowAttendance');
-  addDataUiKey(modal.querySelector('#kodland-setting-absence-label'), 'settingShowAbsence');
-  addDataUiKey(modal.querySelector('#kodland-setting-taskreport-label'), 'settingShowTaskReport');
-  addDataUiKey(modal.querySelector('#kodland-setting-gradingreport-label'), 'settingShowGradingReport');
-
-  syncSettingsModalText();
+  modal.querySelector('#kodland-reset-inclass').addEventListener('click', () => {
+    modal.querySelector('#kodland-setting-inclass-template').value = DEFAULT_IN_CLASS_TEMPLATE;
+  });
+  modal.querySelector('#kodland-reset-graduation').addEventListener('click', () => {
+    modal.querySelector('#kodland-setting-graduation-template').value = DEFAULT_GRADUATION_TEMPLATE;
+  });
+  modal.querySelector('#kodland-reset-groupwelcome').addEventListener('click', () => {
+    modal.querySelector('#kodland-setting-groupwelcome-template').value = DEFAULT_GROUP_WELCOME_TEMPLATE;
+  });
+  modal.querySelector('#kodland-reset-firstclass').addEventListener('click', () => {
+    modal.querySelector('#kodland-setting-firstclass-template').value = DEFAULT_FIRST_CLASS_TEMPLATE;
+  });
+  modal.querySelector('#kodland-reset-recording-student').addEventListener('click', () => {
+    modal.querySelector('#kodland-setting-recording-student-template').value = DEFAULT_RECORDING_STUDENT_TEMPLATE;
+  });
+  modal.querySelector('#kodland-reset-recording-group').addEventListener('click', () => {
+    modal.querySelector('#kodland-setting-recording-group-template').value = DEFAULT_RECORDING_GROUP_TEMPLATE;
+  });
 
   modal.querySelector('#kodland-settings-save').addEventListener('click', () => {
-    const rawLanguage = languageSelect.value || DEFAULT_MESSAGE_LANGUAGE;
-
     const newSettings = {
       showExportContacts: modal.querySelector('#kodland-setting-export').checked,
       showWaGroupLink: modal.querySelector('#kodland-setting-walink').checked,
       showAttendance: modal.querySelector('#kodland-setting-attendance').checked,
       showAbsenceButton: modal.querySelector('#kodland-setting-absence').checked,
       showTaskReportButton: modal.querySelector('#kodland-setting-taskreport').checked,
+      showRecordingButton: modal.querySelector('#kodland-setting-recording').checked,
       showGroupGradingReport: modal.querySelector('#kodland-setting-gradingreport').checked,
-      messageLanguage: rawLanguage,
-      tutorName: modal.querySelector('#kodland-setting-tutorname').value.trim(),
-      timezone: modal.querySelector('#kodland-setting-timezone').value.trim() || DEFAULT_KODLAND_SETTINGS.timezone,
-      timezoneLabel: modal.querySelector('#kodland-setting-timezone-name').value.trim() || DEFAULT_KODLAND_SETTINGS.timezoneLabel,
-      welcomeTemplate: modal.querySelector('#kodland-setting-welcome-template').value,
-      absenceTemplate: modal.querySelector('#kodland-setting-absence-template').value
+      showBroadcastButtons: modal.querySelector('#kodland-setting-broadcast').checked,
+      tutorName: modal.querySelector('#kodland-setting-tutorname').value.trim() || DEFAULT_KODLAND_SETTINGS.tutorName,
+      welcomeTemplate: modal.querySelector('#kodland-setting-welcome-template').value.trim() || DEFAULT_WELCOME_TEMPLATE,
+      absenceTemplate: modal.querySelector('#kodland-setting-absence-template').value.trim() || DEFAULT_ABSENCE_TEMPLATE,
+      classStartingTemplate: modal.querySelector('#kodland-setting-classstarting-template').value.trim() || DEFAULT_CLASS_STARTING_TEMPLATE,
+      inClassTemplate: modal.querySelector('#kodland-setting-inclass-template').value.trim() || DEFAULT_IN_CLASS_TEMPLATE,
+      graduationTemplate: modal.querySelector('#kodland-setting-graduation-template').value.trim() || DEFAULT_GRADUATION_TEMPLATE,
+      groupWelcomeTemplate: modal.querySelector('#kodland-setting-groupwelcome-template').value.trim() || DEFAULT_GROUP_WELCOME_TEMPLATE,
+      firstClassTemplate: modal.querySelector('#kodland-setting-firstclass-template').value.trim() || DEFAULT_FIRST_CLASS_TEMPLATE,
+      recordingStudentTemplate: modal.querySelector('#kodland-setting-recording-student-template').value.trim() || DEFAULT_RECORDING_STUDENT_TEMPLATE,
+      recordingGroupTemplate: modal.querySelector('#kodland-setting-recording-group-template').value.trim() || DEFAULT_RECORDING_GROUP_TEMPLATE
     };
     saveExtensionSettings(newSettings);
     modal.remove();
-    setTimeout(() => {
-      try {
-        window.location.reload();
-      } catch (error) {
-        window.location.href = window.location.href;
-      }
-    }, 150);
+    alert('Configuración guardada. Recarga la página para que se aplique.');
   });
 }
 
@@ -5643,13 +4666,13 @@ async function exportContactsCSV() {
   const firstLesson = groupId ? await fetchFirstLessonForGroup(groupId) : null;
   const lessonDateInfo = firstLesson ? formatLessonDateForMessage(firstLesson.timetable_time) : null;
 
-  let lastName = 'Kodland';
+  let apellido = 'Kodland';
   if (lessonDateInfo) {
     const capitalizedDay = lessonDateInfo.dayName.charAt(0).toUpperCase() + lessonDateInfo.dayName.slice(1);
     const hourOnly = lessonDateInfo.time.split(':')[0];
-    lastName = `${capitalizedDay}${hourOnly}-Kodland`;
+    apellido = `${capitalizedDay}${hourOnly}horas-Kodland`;
   } else {
-    console.warn('[Export Contacts] ⚠️ Could not read the first lesson schedule, falling back to "Kodland"');
+    console.warn('[Export Contacts] ⚠️ No se pudo obtener el horario de la primera clase, usando "Kodland" como respaldo');
   }
 
   // Google Contacts import format that's confirmed to work: semicolon-separated,
@@ -5660,12 +4683,12 @@ async function exportContactsCSV() {
     const data = studentGeneralInfoCache[studentId];
     if (!data) return;
 
-    const firstName = (data.student_full_name || data.student_first_name || uiText('studentWithId', studentId)).trim();
+    const nombre = (data.student_full_name || data.student_first_name || `Estudiante ${studentId}`).trim();
     const phoneRaw = data.parent_phone || data.student_phone || '';
     const formattedPhone = formatPhoneForWhatsApp(phoneRaw);
 
     if (!formattedPhone) {
-      console.warn(`[Export Contacts] No valid phone for student ${studentId}, skipping`);
+      console.warn(`[Export Contacts] Sin teléfono válido para estudiante ${studentId}, se omite`);
       return;
     }
 
@@ -5674,11 +4697,11 @@ async function exportContactsCSV() {
     // it first so we always add exactly one, never two.
     const phoneDigitsOnly = String(formattedPhone).replace(/^\+/, '');
 
-    rows.push(['', firstName, lastName, ` +${phoneDigitsOnly}`]);
+    rows.push(['', nombre, apellido, ` +${phoneDigitsOnly}`]);
   });
 
   if (rows.length <= 1) {
-    alert(uiText('noStudentsProcessed'));
+    alert('Todavía no hay estudiantes procesados. Espera unos segundos a que carguen los datos y vuelve a intentar.');
     return;
   }
 
@@ -5694,13 +4717,13 @@ async function exportContactsCSV() {
 
   const link = document.createElement('a');
   link.href = url;
-  link.download = `contacts_${safeCourseName}_${groupId || 'group'}.csv`;
+  link.download = `contactos_${safeCourseName}_${groupId || 'grupo'}.csv`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 
-  console.log(`[Export Contacts] ✅ CSV downloaded with ${rows.length - 1} contacts`);
+  console.log(`[Export Contacts] ✅ CSV descargado con ${rows.length - 1} contactos`);
 }
 
 // Function to inject the floating "Export contacts" button (once per group page)
@@ -5711,18 +4734,16 @@ function injectExportContactsButton() {
 
   const button = document.createElement('button');
   button.id = 'kodland-export-contacts-button';
-  button.className = 'kodland-export-contacts-btn';
-  button.setAttribute('data-kodland-ui-key', 'exportContactsButton');
-  button.setAttribute('title', uiText('exportContactsTooltip'));
-  button.innerHTML = escapeHtml(uiText('exportContactsButton'));
-  applyLanguageDirection(button);
+  button.className = 'kodland-toolbar-btn kodland-export-contacts-btn';
+  button.setAttribute('title', 'Descargar CSV de contactos (Nombre, Día+Hora, Teléfono)');
+  button.innerHTML = `📇 Exportar contactos`;
 
   button.addEventListener('click', async (e) => {
     e.preventDefault();
     e.stopPropagation();
     button.disabled = true;
     const originalLabel = button.innerHTML;
-    button.innerHTML = escapeHtml(uiText('exportingContacts'));
+    button.innerHTML = `⏳ Exportando...`;
     try {
       await exportContactsCSV();
     } finally {
@@ -5731,8 +4752,8 @@ function injectExportContactsButton() {
     }
   });
 
-  document.body.appendChild(button);
-  console.log('[Group Students Info] ✅ "Export contacts" button injected');
+  getOrCreateToolbar().appendChild(button);
+  console.log('[Group Students Info] ✅ Botón "Exportar contactos" inyectado');
 }
 
 // Function to inject the floating "WhatsApp group link" status button.
@@ -5743,28 +4764,34 @@ function injectWhatsAppGroupLinkButton() {
   if (!getExtensionSettings().showWaGroupLink) return;
   if (document.getElementById('kodland-wa-group-link-button')) return;
 
+  const groupId = extractGroupId();
+
   const button = document.createElement('button');
   button.id = 'kodland-wa-group-link-button';
-  button.className = 'kodland-export-contacts-btn kodland-wa-group-link-btn';
-
-  applyLanguageDirection(button);
+  button.className = 'kodland-toolbar-btn kodland-wa-group-link-btn';
 
   const refreshLabel = () => {
-    const link = getGroupWhatsAppLink();
-    button.innerHTML = escapeHtml(link ? uiText('waGroupLinkSaved') : uiText('waGroupLinkPaste'));
+    const link = getGroupWhatsAppLink(groupId);
+    const cachedChatLink = groupId ? getCachedGroupGeneralInfo(groupId)?.chat_link : null;
+    const isAuto = !!(link && cachedChatLink && cachedChatLink === link);
+
+    if (link) {
+      button.innerHTML = isAuto ? '✅ Link WA grupo' : '✏️ Link WA grupo (manual)';
+    } else {
+      button.innerHTML = '📋 Pegar link WA grupo';
+    }
     button.setAttribute('title', link
-      ? uiText('waGroupLinkSavedTooltip', link)
-      : uiText('waGroupLinkPasteTooltip'));
+      ? `Link ${isAuto ? 'detectado automáticamente' : 'guardado manualmente'}: ${link}\nClic para verlo o corregirlo.`
+      : 'No se pudo detectar el link automáticamente todavía. Clic para pegarlo manualmente.');
   };
 
   button.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    const groupId = extractGroupId();
     if (!groupId) return;
 
-    const current = getGroupWhatsAppLink() || '';
-    const input = prompt(uiText('waGroupLinkPrompt'), current);
+    const current = getGroupWhatsAppLink(groupId) || '';
+    const input = prompt('Pega o corrige el link del grupo de WhatsApp de este curso:', current);
     if (input === null) return; // cancelled
     if (input.trim() === '') {
       localStorage.removeItem(`kodland_wa_group_link_${groupId}`);
@@ -5775,8 +4802,14 @@ function injectWhatsAppGroupLinkButton() {
   });
 
   refreshLabel();
-  document.body.appendChild(button);
-  console.log('[Group Students Info] ✅ WhatsApp group link button injected');
+  getOrCreateToolbar().appendChild(button);
+  console.log('[Group Students Info] ✅ Botón de link de WhatsApp del grupo inyectado');
+
+  // Try to auto-detect the link (and cache the rest of the group info)
+  // in the background; update the button label once we know either way.
+  if (groupId) {
+    fetchGroupGeneralInfo(groupId).then(() => refreshLabel());
+  }
 }
 
 // ---------------------------------------------------------------------
@@ -5901,10 +4934,10 @@ async function markAttendanceForAllStudents(statusClass) {
   // student row, all in the same "current lesson" column).
   const highlightedChips = Array.from(document.querySelectorAll('.v-chip.highlight'));
 
-  console.log(`[Attendance] ${students.length} students found, ${highlightedChips.length} highlighted chips found`);
+  console.log(`[Attendance] ${students.length} estudiantes encontrados, ${highlightedChips.length} chips resaltados encontrados`);
 
   if (highlightedChips.length === 0) {
-    alert(uiText('attendanceNoChips'));
+    alert('No se encontró ningún chip resaltado (lección actual) en la página. Revisa la consola.');
     return { ok: [], failed: [], skipped: [] };
   }
 
@@ -5918,7 +4951,7 @@ async function markAttendanceForAllStudents(statusClass) {
   const sortedChips = [...highlightedChips].sort((a, b) => getY(a) - getY(b));
 
   if (sortedStudents.length !== sortedChips.length) {
-    console.warn(`[Attendance] ⚠️ Student count (${sortedStudents.length}) doesn't match chip count (${sortedChips.length}). Rows may be misaligned - check the results carefully.`);
+    console.warn(`[Attendance] ⚠️ La cantidad de estudiantes (${sortedStudents.length}) no coincide con la cantidad de chips (${sortedChips.length}). Puede haber desalineación - revisa los resultados con cuidado.`);
   }
 
   const results = { ok: [], failed: [], skipped: [] };
@@ -5927,14 +4960,14 @@ async function markAttendanceForAllStudents(statusClass) {
     const student = sortedStudents[i];
 
     if (!isStudentEnrolled(student.container)) {
-      console.log(`[Attendance] ⏭️ ${student.name} is not enrolled, skipping`);
+      console.log(`[Attendance] ⏭️ ${student.name} no está inscrito, se omite`);
       results.skipped.push(student.name);
       continue;
     }
 
     const chip = sortedChips[i];
     if (!chip) {
-      console.warn(`[Attendance] ⚠️ No chip paired with ${student.name} (row ${i})`);
+      console.warn(`[Attendance] ⚠️ No hay chip emparejado para ${student.name} (fila ${i})`);
       results.failed.push(student.name);
       continue;
     }
@@ -5955,10 +4988,10 @@ async function markAttendanceForAllStudents(statusClass) {
     const clicked = await clickAttendanceOption(statusClass);
 
     if (clicked) {
-      console.log(`[Attendance] ✅ ${student.name} marked`);
+      console.log(`[Attendance] ✅ ${student.name} marcado`);
       results.ok.push(student.name);
     } else {
-      console.warn(`[Attendance] ⚠️ Could not mark ${student.name} (menu did not appear)`);
+      console.warn(`[Attendance] ⚠️ No se pudo marcar a ${student.name} (no apareció el menú)`);
       results.failed.push(student.name);
     }
 
@@ -5977,40 +5010,469 @@ function injectTakeAttendanceButton() {
 
   const button = document.createElement('button');
   button.id = 'kodland-attendance-button';
-  button.className = 'kodland-export-contacts-btn kodland-attendance-btn';
-  button.innerHTML = escapeHtml(uiText('attendanceButton'));
-  button.setAttribute('title', uiText('attendanceTooltip'));
-  applyLanguageDirection(button);
+  button.className = 'kodland-toolbar-btn kodland-attendance-btn';
+  button.innerHTML = `✅ Tomar asistencia`;
+  button.setAttribute('title', 'Marca a TODOS los estudiantes como "Asistió". Luego puedes ajustar a mano los que faltaron.');
 
   button.addEventListener('click', async (e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const confirmed = confirm(uiText('attendanceConfirm'));
+    const confirmed = confirm(
+      '¿Marcar a TODOS los estudiantes visibles como "Asistió"?\n\n' +
+      'Después puedes cambiar manualmente (clic derecho sobre el número de la lección) a los que hayan faltado.'
+    );
     if (!confirmed) return;
 
     button.disabled = true;
-    button.innerHTML = escapeHtml(uiText('attendanceMarking'));
+    button.innerHTML = `⏳ Marcando...`;
 
     const results = await markAttendanceForAllStudents('btn-green');
 
     button.disabled = false;
-    button.innerHTML = escapeHtml(uiText('attendanceButton'));
+    button.innerHTML = `✅ Tomar asistencia`;
 
-    const summary = uiText('attendanceSummary', {
-      ok: results.ok.length,
-      skipped: results.skipped,
-      failed: results.failed
-    });
+    const summary = `Asistencia marcada: ${results.ok.length} ok` +
+      (results.skipped.length > 0 ? `, ${results.skipped.length} omitidos (no inscritos)` : '') +
+      (results.failed.length > 0 ? `, ${results.failed.length} fallaron (revisa la consola): ${results.failed.join(', ')}` : '');
     console.log(`[Attendance] ${summary}`);
     alert(summary);
   });
 
-  document.body.appendChild(button);
-  console.log('[Group Students Info] ✅ "Take attendance" button injected');
+  getOrCreateToolbar().appendChild(button);
+  console.log('[Group Students Info] ✅ Botón "Tomar asistencia" inyectado');
 }
 
 // Function to initialize the module
+// ---------------------------------------------------------------------
+// Broadcast messages to the WhatsApp GROUP (class starting, in class,
+// graduation, group welcome). Since a WhatsApp group link can't carry a
+// pre-filled message, we copy the text to the clipboard and open the
+// group chat so the tutor just has to paste and send.
+// ---------------------------------------------------------------------
+
+// Opens (or reuses) the WhatsApp tab for a group. IMPORTANT: call this
+// synchronously, as the very first thing in a click handler - before any
+// `await` - otherwise the delay from fetching lesson times etc. can push
+// window.open() outside the click's "user gesture" window and Chrome's
+// popup blocker silently swallows it (no tab, no error, looks like the
+// button "just doesn't work").
+function openGroupWhatsApp(groupIdOverride = null) {
+  const groupId = groupIdOverride || extractGroupId();
+  const cachedLink = getGroupWhatsAppLink(groupId);
+
+  // Open the tab synchronously no matter what, so it stays inside the
+  // click's "user gesture" window and Chrome doesn't block it. If we
+  // already have the link, great - open straight to the group's chat.
+  const waWindow = window.open(cachedLink || 'https://web.whatsapp.com/', '_blank');
+
+  if (cachedLink || !groupId) return waWindow;
+
+  // We didn't have the link cached yet (common right when the schedule
+  // modal opens on a page other than the group page itself, or if this
+  // fires before the group page's initial fetch finished). Fetch it now
+  // and redirect the tab we already opened once it resolves, instead of
+  // silently leaving the tutor on generic WhatsApp Web with no chat open
+  // (which is also why the queued message never gets pasted anywhere).
+  fetchGroupGeneralInfo(groupId).then(() => {
+    const link = getGroupWhatsAppLink(groupId);
+    if (link && waWindow && !waWindow.closed) {
+      waWindow.location = link;
+    }
+  });
+
+  return waWindow;
+}
+
+// Copies the message and queues it for the WhatsApp Web autopaste script.
+// Does NOT open any window - call openGroupWhatsApp() separately (and
+// first) for that.
+async function queueGroupBroadcastMessage(message) {
+  // Always copy to clipboard too, as a fallback in case the auto-paste
+  // script can't find WhatsApp Web's compose box (Ctrl+V still works then).
+  try {
+    await navigator.clipboard.writeText(message);
+  } catch (error) {
+    console.warn('[Broadcast] No se pudo copiar al portapapeles:', error);
+  }
+
+  // Queue the message so the WhatsApp Web autopaste script picks it up
+  // and drops it into the compose box automatically.
+  try {
+    await chrome.storage.local.set({
+      kodland_pending_wa_message: { message, timestamp: Date.now() }
+    });
+  } catch (error) {
+    console.warn('[Broadcast] No se pudo guardar el mensaje pendiente para autopegado:', error);
+  }
+}
+
+async function sendClassStartingBroadcast() {
+  const groupId = extractGroupId();
+  const courseName = findCourseName() || 'tu curso';
+  const settings = getExtensionSettings();
+
+  const nearestLesson = groupId ? await fetchNearestLessonForGroup(groupId) : null;
+  const lessonDateInfo = nearestLesson ? formatLessonDateForMessage(nearestLesson.timetable_time) : null;
+  const time = lessonDateInfo ? lessonDateInfo.time : (prompt('No pude detectar la hora automáticamente. ¿A qué hora es la clase? (ej: 6:00 p.m.)') || '');
+
+  const message = renderTemplate(settings.classStartingTemplate || DEFAULT_CLASS_STARTING_TEMPLATE, {
+    courseName,
+    time,
+    tutorName: settings.tutorName
+  });
+
+  await queueGroupBroadcastMessage(message);
+}
+
+async function sendFirstClassBroadcast() {
+  const groupId = extractGroupId();
+  const courseName = findCourseName() || 'tu curso';
+  const settings = getExtensionSettings();
+
+  const nearestLesson = groupId ? await fetchNearestLessonForGroup(groupId) : null;
+  const lessonDateInfo = nearestLesson ? formatLessonDateForMessage(nearestLesson.timetable_time) : null;
+  const time = lessonDateInfo ? lessonDateInfo.time : (prompt('No pude detectar la hora automáticamente. ¿A qué hora es la clase? (ej: 7:00 p.m.)') || '');
+
+  const message = renderTemplate(settings.firstClassTemplate || DEFAULT_FIRST_CLASS_TEMPLATE, {
+    courseName,
+    time,
+    tutorName: settings.tutorName
+  });
+
+  await queueGroupBroadcastMessage(message);
+}
+
+async function sendRecordingBroadcast() {
+  const groupId = extractGroupId();
+  const courseName = findCourseName() || 'tu curso';
+  const settings = getExtensionSettings();
+
+  const { link: recordingLink } = await getLastClassRecordingLink(groupId);
+  if (!recordingLink) {
+    alert('No se envió nada: no se indicó el link de la grabación.');
+    return;
+  }
+
+  const message = renderTemplate(settings.recordingGroupTemplate || DEFAULT_RECORDING_GROUP_TEMPLATE, {
+    courseName,
+    tutorName: settings.tutorName,
+    recordingLink
+  });
+
+  await queueGroupBroadcastMessage(message);
+}
+
+async function sendInClassBroadcast() {
+  const courseName = findCourseName() || 'tu curso';
+  const settings = getExtensionSettings();
+
+  const message = renderTemplate(settings.inClassTemplate || DEFAULT_IN_CLASS_TEMPLATE, {
+    courseName,
+    tutorName: settings.tutorName
+  });
+
+  await queueGroupBroadcastMessage(message);
+}
+
+async function sendGraduationBroadcast() {
+  const groupId = extractGroupId();
+  const courseName = findCourseName() || 'tu curso';
+  const settings = getExtensionSettings();
+
+  const lastLesson = groupId ? await fetchLastLessonForGroup(groupId) : null;
+  const lastLessonInfo = lastLesson ? formatLessonDateForMessage(lastLesson.timetable_time) : null;
+  const suggestedDate = lastLessonInfo ? `${lastLessonInfo.dayName} ${lastLessonInfo.fullDate}` : '';
+  const suggestedTime = lastLessonInfo ? lastLessonInfo.time : '';
+
+  const gradDate = prompt('Fecha de la graduación:', suggestedDate);
+  if (gradDate === null) return; // cancelled
+  const gradTime = prompt('Hora de la graduación (hora Colombia):', suggestedTime);
+  if (gradTime === null) return; // cancelled
+
+  const message = renderTemplate(settings.graduationTemplate || DEFAULT_GRADUATION_TEMPLATE, {
+    courseName,
+    gradDate,
+    gradTime,
+    tutorName: settings.tutorName
+  });
+
+  await queueGroupBroadcastMessage(message);
+}
+
+// Pluralize a Spanish weekday name for recurring-schedule phrasing
+// ("domingo" -> "domingos", "sábado" -> "sábados", the rest stay the same:
+// "los lunes", "los martes", etc.)
+function pluralizeSpanishDay(dayName) {
+  const lower = (dayName || '').toLowerCase();
+  if (lower === 'sábado' || lower === 'sabado') return 'sábados';
+  if (lower === 'domingo') return 'domingos';
+  return lower;
+}
+
+// Build a natural-language recurring schedule line from a lesson's ISO
+// date, e.g. "Domingos a las 8:00 a.m. (hora Colombia)"
+function buildScheduleLine(isoDateStr) {
+  if (!isoDateStr) return null;
+  try {
+    const date = new Date(isoDateStr);
+    const dayNameRaw = new Intl.DateTimeFormat('es-CO', { weekday: 'long', timeZone: 'America/Bogota' }).format(date);
+    const pluralDay = pluralizeSpanishDay(dayNameRaw);
+    const capitalizedDay = pluralDay.charAt(0).toUpperCase() + pluralDay.slice(1);
+    const time12hRaw = new Intl.DateTimeFormat('es-CO', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' }).format(date);
+    // Spanish Intl output is "8:00 a. m." - collapse to "8:00 a.m."
+    const time12h = time12hRaw.replace(/\s*([ap])\.?\s*m\.?/i, (m, ap) => ` ${ap.toLowerCase()}.m.`);
+    return `${capitalizedDay} a las ${time12h} (hora Colombia)`;
+  } catch (error) {
+    console.warn('[buildScheduleLine] Error formatting date:', error);
+    return null;
+  }
+}
+
+async function sendGroupWelcomeBroadcast() {
+  const courseName = findCourseName() || 'tu curso';
+  const settings = getExtensionSettings();
+
+  const message = renderTemplate(settings.groupWelcomeTemplate || DEFAULT_GROUP_WELCOME_TEMPLATE, {
+    courseName,
+    tutorName: settings.tutorName
+  });
+
+  await queueGroupBroadcastMessage(message);
+}
+
+// This runs on every bo.kodland.org page load, independent of group pages.
+// Start listening for the auth token immediately, so it's ready by the
+// time the tutor lands on a group page.
+captureAuthToken();
+
+// ---------------------------------------------------------------------
+// Schedule modal buttons ("Información de la clase" popup, shown from the
+// teacher's schedule/calendar tab: bo.kodland.org/teachers/{id}?tab=2).
+// Unlike the group page, this modal can appear on any bo.kodland.org page,
+// so we watch for it globally instead of gating on isGroupPage().
+// ---------------------------------------------------------------------
+
+function extractScheduleModalInfo(modalCard) {
+  const groupLink = modalCard.querySelector('a[href^="/groups/"]');
+  const courseLink = modalCard.querySelector('a[href^="/courses/"]');
+
+  let groupId = null;
+  if (groupLink) {
+    const match = groupLink.getAttribute('href').match(/\/groups\/(\d+)/);
+    if (match) groupId = match[1];
+  }
+
+  let courseName = null;
+  if (courseLink) {
+    const fullText = courseLink.textContent.trim();
+    const match = fullText.match(/\]\s*(.+?)\s*\[/);
+    courseName = match ? match[1].trim() : fullText;
+  }
+
+  // The "Hora de la clase:" row contains a span like "10:00 - 11:00", but
+  // relying on "the first <span> in the row" is fragile - if the label
+  // itself is also wrapped in a <span> (common with Vuetify), that grabs
+  // "Hora de la clase:" instead of the actual time. Strip the known label
+  // text out of the row's full text instead, so it doesn't matter which
+  // element holds the value.
+  let time = null;
+  modalCard.querySelectorAll('.v-row').forEach(row => {
+    const rowText = row.textContent || '';
+    if (rowText.includes('Hora de la clase')) {
+      const cleaned = rowText.replace(/Hora de la clase\s*:?/i, '').trim();
+      if (cleaned) time = cleaned;
+    }
+  });
+
+  return { groupId, courseName, time };
+}
+
+function injectScheduleModalButtons(modalCard) {
+  if (modalCard.querySelector('.kodland-schedule-modal-buttons')) return;
+  if (!getExtensionSettings().showBroadcastButtons) return;
+
+  const actionsRow = modalCard.querySelector('.v-card-actions');
+  if (!actionsRow) return;
+
+  const info = extractScheduleModalInfo(modalCard);
+  if (!info.groupId) return; // nothing we can do without knowing the group
+
+  // This modal can appear on pages other than the group page itself (see
+  // watchForScheduleModal below), where the group-page init never ran - so
+  // the WhatsApp link might not be auto-detected yet. Kick it off here too
+  // (cheap no-op if already cached).
+  fetchGroupGeneralInfo(info.groupId);
+
+  const settings = getExtensionSettings();
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'kodland-schedule-modal-buttons';
+
+  const classStartingBtn = document.createElement('button');
+  classStartingBtn.className = 'kodland-wa-btn';
+  classStartingBtn.innerHTML = '📢 Aviso de clase';
+  classStartingBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openGroupWhatsApp(info.groupId);
+
+    let timeOnly = (info.time || '').split('-')[0].trim();
+    if (!timeOnly) {
+      // Same fallback the toolbar's "Aviso de clase" button uses: try the
+      // schedule API first, then just ask the tutor directly, instead of
+      // silently sending a message with a missing time.
+      const nearestLesson = await fetchNearestLessonForGroup(info.groupId);
+      const lessonDateInfo = nearestLesson ? formatLessonDateForMessage(nearestLesson.timetable_time) : null;
+      timeOnly = lessonDateInfo
+        ? lessonDateInfo.time
+        : (prompt('No pude detectar la hora automáticamente. ¿A qué hora es la clase? (ej: 6:00 p.m.)') || '');
+    }
+
+    const message = renderTemplate(settings.classStartingTemplate || DEFAULT_CLASS_STARTING_TEMPLATE, {
+      courseName: info.courseName || 'tu curso',
+      time: timeOnly,
+      tutorName: settings.tutorName
+    });
+    await queueGroupBroadcastMessage(message);
+  });
+
+  const inClassBtn = document.createElement('button');
+  inClassBtn.className = 'kodland-wa-btn kodland-open-btn';
+  inClassBtn.innerHTML = '▶️ Estamos en clase';
+  inClassBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openGroupWhatsApp(info.groupId);
+    const message = renderTemplate(settings.inClassTemplate || DEFAULT_IN_CLASS_TEMPLATE, {
+      courseName: info.courseName || 'tu curso',
+      tutorName: settings.tutorName
+    });
+    await queueGroupBroadcastMessage(message);
+  });
+
+  wrapper.appendChild(classStartingBtn);
+  wrapper.appendChild(inClassBtn);
+
+  // Put the buttons right above the "Cerrar / Completado" actions row
+  actionsRow.parentElement.insertBefore(wrapper, actionsRow);
+}
+
+// ---------------------------------------------------------------------
+// Shared DOM watcher
+// ---------------------------------------------------------------------
+// Two different features used to each run their own MutationObserver on
+// the whole document.body (the schedule-modal watcher below, and the
+// student-row processor further down) - both reacting to literally every
+// mutation on the page, with no debounce. On a page with a lot of Vue
+// re-rendering (like the student list), that's two full callback passes
+// per tick, most of which find nothing new. This keeps ONE observer,
+// debounced so a burst of mutations from a single re-render only triggers
+// one pass, and fans out to whichever features are currently registered.
+const domWatchCallbacks = new Set();
+let sharedDomObserver = null;
+let sharedDomDebounceId = null;
+
+function runDomWatchCallbacks() {
+  for (const callback of Array.from(domWatchCallbacks)) {
+    try {
+      callback();
+    } catch (error) {
+      console.error('[DOM Watcher] Error in a registered check:', error);
+    }
+  }
+}
+
+function registerDomWatcher(callback) {
+  domWatchCallbacks.add(callback);
+
+  if (!sharedDomObserver) {
+    sharedDomObserver = new MutationObserver(() => {
+      clearTimeout(sharedDomDebounceId);
+      sharedDomDebounceId = setTimeout(runDomWatchCallbacks, 200);
+    });
+    sharedDomObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
+  // Run once immediately too, in case the relevant DOM is already there.
+  try {
+    callback();
+  } catch (error) {
+    console.error('[DOM Watcher] Error in initial check:', error);
+  }
+}
+
+function unregisterDomWatcher(callback) {
+  domWatchCallbacks.delete(callback);
+  if (domWatchCallbacks.size === 0 && sharedDomObserver) {
+    sharedDomObserver.disconnect();
+    sharedDomObserver = null;
+  }
+}
+
+function watchForScheduleModal() {
+  const check = () => {
+    document.querySelectorAll('.v-card-title').forEach(title => {
+      if (title.textContent.includes('Información de la clase')) {
+        const card = title.closest('.v-card');
+        if (card) injectScheduleModalButtons(card);
+      }
+    });
+  };
+
+  registerDomWatcher(check); // also runs `check` once immediately
+}
+
+// This runs on every bo.kodland.org page load, independent of group pages
+watchForScheduleModal();
+
+function injectBroadcastButtons() {
+  if (!isGroupPage()) return;
+  if (!getExtensionSettings().showBroadcastButtons) return;
+  if (document.getElementById('kodland-broadcast-class-starting')) return;
+
+  const wrapper = getOrCreateToolbar();
+
+  const buttonsConfig = [
+    { id: 'kodland-broadcast-first-class', label: '🎉 Primera clase', title: 'Copiar y abrir WhatsApp: bienvenida especial para la primera clase del curso', handler: sendFirstClassBroadcast },
+    { id: 'kodland-broadcast-class-starting', label: '📢 Aviso de clase', title: 'Copiar y abrir WhatsApp: aviso de que la clase va a empezar', handler: sendClassStartingBroadcast },
+    { id: 'kodland-broadcast-in-class', label: '▶️ Estamos en clase', title: 'Copiar y abrir WhatsApp: aviso de que ya empezó la clase', handler: sendInClassBroadcast },
+    { id: 'kodland-broadcast-graduation', label: '🎓 Graduación', title: 'Copiar y abrir WhatsApp: aviso de graduación', handler: sendGraduationBroadcast },
+    { id: 'kodland-broadcast-group-welcome', label: '🎉 Bienvenida al grupo', title: 'Copiar y abrir WhatsApp: bienvenida al grupo del curso', handler: sendGroupWelcomeBroadcast },
+    { id: 'kodland-broadcast-recording', label: '🎥 Grabación al grupo', title: 'Copiar y abrir WhatsApp: enviar el link de la grabación de la última clase al grupo', handler: sendRecordingBroadcast }
+  ];
+
+  buttonsConfig.forEach(cfg => {
+    const button = document.createElement('button');
+    button.id = cfg.id;
+    button.className = 'kodland-broadcast-btn';
+    button.innerHTML = cfg.label;
+    button.setAttribute('title', cfg.title);
+
+    button.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      // Open the WhatsApp tab first, synchronously, so the popup blocker
+      // still counts this as a direct result of the click - the message
+      // gets queued for autopaste a moment later, once it's ready.
+      openGroupWhatsApp();
+      button.disabled = true;
+      try {
+        await cfg.handler();
+      } catch (error) {
+        console.error(`[Broadcast] Error en ${cfg.id}:`, error);
+        alert('Ocurrió un error armando el mensaje. Revisa la consola.');
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    wrapper.appendChild(button);
+  });
+
+  console.log('[Group Students Info] ✅ Botones de difusión al grupo inyectados');
+}
+
 function initGroupStudentsInfo() {
   // Only run on group pages
   if (!isGroupPage()) {
@@ -6020,23 +5482,49 @@ function initGroupStudentsInfo() {
   
   console.log('[Group Students Info] Initializing on group page');
   
-  // Capture authentication token
-  captureAuthToken();
+  // (Auth token capture already started globally when the script loaded -
+  // no need to call captureAuthToken() again here.)
+
+  // Kick off the group general info fetch as early as possible - it's what
+  // auto-detects the WhatsApp chat_link, and backs up the course name and
+  // other data used further down. Buttons that need it (WA link button,
+  // schedule modal) just re-read the cache once this resolves.
+  const initialGroupId = extractGroupId();
+  if (initialGroupId) {
+    fetchGroupGeneralInfo(initialGroupId);
+  }
   
-  // Inject the floating "Export contacts" button
-  injectExportContactsButton();
-  
-  // Inject the floating "WhatsApp group link" status button
-  injectWhatsAppGroupLinkButton();
-  
-  // Inject the floating "Take attendance" button
-  injectTakeAttendanceButton();
-  
-  // Inject the floating "Group grading report" button
-  injectGroupGradingReportButton();
-  
-  // Inject the floating "Settings" button (always visible)
-  injectSettingsButton();
+  // All of the following share one toolbar (#kodland-broadcast-buttons)
+  // fixed at the top of the page. Order here = left-to-right order there.
+  // Each one is wrapped separately so that if one throws, it doesn't take
+  // down the rest of init (which previously meant one bad button could
+  // silently cancel every button after it - AND the student-row
+  // processing scheduled below, since that never got to run either).
+  const safeInject = (label, fn) => {
+    try {
+      fn();
+    } catch (error) {
+      console.error(`[Group Students Info] Error inyectando "${label}":`, error);
+    }
+  };
+
+  // Broadcast buttons first (class starting, in class, graduation, group welcome)
+  safeInject('broadcast', injectBroadcastButtons);
+
+  // Settings button (always visible, so the tutor can re-enable hidden buttons)
+  safeInject('settings', injectSettingsButton);
+
+  // Export contacts
+  safeInject('export contacts', injectExportContactsButton);
+
+  // Group grading report
+  safeInject('grading report', injectGroupGradingReportButton);
+
+  // WhatsApp group link status/paste button
+  safeInject('wa group link', injectWhatsAppGroupLinkButton);
+
+  // Take attendance
+  safeInject('attendance', injectTakeAttendanceButton);
   
   // Wait for DOM to be ready
   if (document.readyState === 'loading') {
@@ -6047,11 +5535,11 @@ function initGroupStudentsInfo() {
     setTimeout(processAllStudents, 1000);
   }
   
-  // Use MutationObserver to detect when new students are added dynamically
-  let observer = null;
+  // Use the shared DOM watcher to detect when new students are added
+  // dynamically (see registerDomWatcher above)
   let intervalId = null;
-  
-  observer = new MutationObserver(function(mutations) {
+
+  const studentWatchCheck = () => {
     // Only process if not already processing
     if (isProcessingStudents) {
       return;
@@ -6075,12 +5563,9 @@ function initGroupStudentsInfo() {
         }
       }, 500);
     }
-  });
-  
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true
-  });
+  };
+
+  registerDomWatcher(studentWatchCheck);
   
   // Also try processing periodically for the first 30 seconds, but only if there are unprocessed students
   let attempts = 0;
@@ -6088,7 +5573,7 @@ function initGroupStudentsInfo() {
   intervalId = setInterval(() => {
     if (!isGroupPage()) {
       clearInterval(intervalId);
-      if (observer) observer.disconnect();
+      unregisterDomWatcher(studentWatchCheck);
       return;
     }
     
@@ -6120,7 +5605,7 @@ function initGroupStudentsInfo() {
     if ((students.length > 0 && unprocessedCount === 0) || attempts >= maxAttempts) {
       console.log('[Group Students Info] Stopping periodic check (all processed or max attempts reached)');
       clearInterval(intervalId);
-      if (observer) observer.disconnect();
+      unregisterDomWatcher(studentWatchCheck);
     }
   }, 2000);
 }
