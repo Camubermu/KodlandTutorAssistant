@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Kodland Tutor Assistant",
   "version": "1.1.0",
-  "description": "Automated Wpp tool for tutors to send messages to parents. Built by LatAm/GCC tutors with love for the other regions. Regards, TL Camilo Bermudez",
+  "description": "Automated Wpp tool for tutors to send messages to parents. By LatAm/GCC with love for the other regions. TL Camilo Bermudez",
   "permissions": [
     "storage"
   ],
