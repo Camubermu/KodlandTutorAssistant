@@ -4315,7 +4315,7 @@ function formatLessonDateForMessage(isoDateStr) {
 // NOTE: edit `tutorName` below if a different tutor uses this extension.
 function createFullWelcomeMessage({ studentName, courseName, waGroupLink, wonderLoginUrl, username, password, lessonDateInfo }) {
   const settings = getExtensionSettings();
-  const tutorName = settings.tutorName || 'Gehiner Sierra';
+  const tutorName = settings.tutorName || 'TL Camilo Bermudez';
   const language = getMessageLanguage();
 
   const scheduleLine = lessonDateInfo
@@ -6416,7 +6416,7 @@ const DEFAULT_KODLAND_SETTINGS = {
   showRecordingButton: true,
   showGroupGradingReport: true,
   showBroadcastButtons: true,
-  tutorName: 'Gehiner Sierra',
+  tutorName: 'TL Camilo Bermudez',
   // Interface and message language. 'auto' follows Kodland's own language
   // selector; any code in SUPPORTED_MESSAGE_LANGUAGES pins that language.
   messageLanguage: 'auto',
