@@ -1,126 +1,125 @@
-# 📦 Guía de Instalación - Cargar Extensión sin Empaquetar
+# 📦 Installation Guide - Load Unpacked Extension
 
-## Paso a Paso Detallado
+## Detailed Step-by-Step Guide
 
-### Paso 1: Preparar los archivos
-Asegúrate de que todos los archivos estén en la misma carpeta:
+### Step 1: Prepare the files
+Make sure all files are in the same folder:
 - ✅ `manifest.json`
 - ✅ `content.js`
 - ✅ `styles.css`
 
-### Paso 2: Abrir Chrome Extensions
+### Step 2: Open Chrome Extensions
 
-**Opción A - Desde la barra de direcciones:**
-1. Abre Google Chrome
-2. En la barra de direcciones, escribe: `chrome://extensions/`
-3. Presiona Enter
+**Option A - From the address bar:**
+1. Open Google Chrome
+2. In the address bar, type: `chrome://extensions/`
+3. Press Enter
 
-**Opción B - Desde el menú:**
-1. Abre Google Chrome
-2. Haz clic en los **tres puntos** (⋮) en la esquina superior derecha
-3. Selecciona **"Más herramientas"**
-4. Haz clic en **"Extensiones"**
+**Option B - From the menu:**
+1. Open Google Chrome
+2. Click the **three dots** (⋮) in the top-right corner
+3. Select **"More tools"**
+4. Click **"Extensions"**
 
-### Paso 3: Activar el Modo de Desarrollador
+### Step 3: Enable Developer Mode
 
-1. En la página de extensiones (`chrome://extensions/`), busca el interruptor **"Modo de desarrollador"** en la esquina superior derecha
-2. **Actívalo** (el interruptor debe estar en color azul/activado)
+1. On the extensions page (`chrome://extensions/`), find the **"Developer mode"** toggle in the top-right corner
+2. **Turn it on** (the toggle should be blue/enabled)
 
-### Paso 4: Cargar la Extensión
+### Step 4: Load the Extension
 
-1. Una vez activado el Modo de Desarrollador, verás nuevos botones en la parte superior
-2. Haz clic en el botón **"Cargar extensión sin empaquetar"** o **"Load unpacked"** (en inglés)
-3. Se abrirá una ventana de explorador de archivos
-4. Navega hasta la carpeta donde está tu proyecto: `C:\Users\Juan Garay\Desktop\KodlandFaster`
-5. **Selecciona la carpeta** `KodlandFaster` (NO entres dentro, selecciona la carpeta misma)
-6. Haz clic en **"Seleccionar carpeta"** o **"Select Folder"**
+1. Once Developer mode is enabled, you'll see new buttons at the top
+2. Click the **"Load unpacked"** button
+3. A file browser window will open
+4. Navigate to the folder where your project is located: `C:\Users\Juan Garay\Desktop\KodlandFaster`
+5. **Select the folder** `KodlandFaster` (do NOT go inside it, select the folder itself)
+6. Click **"Select Folder"**
 
-### Paso 5: Verificar la Instalación
+### Step 5: Verify the Installation
 
-1. Deberías ver tu extensión aparecer en la lista de extensiones
-2. Verifica que el nombre sea: **"Kodland WhatsApp Welcome"**
-3. Verifica que el estado sea **"Activada"** (si no lo está, activa el interruptor)
+1. You should see your extension appear in the extensions list
+2. Verify the name is: **"Kodland WhatsApp Welcome"**
+3. Verify the status is **"Enabled"** (if not, turn on the toggle)
 
-### Paso 6: Probar la Extensión
+### Step 6: Test the Extension
 
-1. Abre una nueva pestaña
-2. Ve a: `https://bo.kodland.org/`
-3. Inicia sesión si es necesario
-4. El botón **"Enviar bienvenida a WA"** debería aparecer en la ubicación especificada
+1. Open a new tab
+2. Go to: `https://bo.kodland.org/`
+3. Log in if necessary
+4. The **"Send WhatsApp welcome"** button should appear in the specified location
 
 ---
 
-## 🖼️ Visualización de los Pasos Clave
+## 🖼️ Visualizing the Key Steps
 
-### Interfaz de Chrome Extensions:
+### Chrome Extensions Interface:
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  Extensiones                           [Modo de     │
-│                                        Desarrollador]│
+│  Extensions                             [Developer  │
+│                                              mode]   │
 │  ┌─────────────────────────────────────────────┐   │
-│  │  [Activar]  Kodland WhatsApp Welcome        │   │
+│  │  [Enabled]  Kodland WhatsApp Welcome        │   │
 │  │            v1.0.0                           │   │
 │  └─────────────────────────────────────────────┘   │
 │                                                     │
-│  [+ Cargar extensión sin empaquetar] ← HAZ CLIC    │
-│  [Empaquetar extensión]                            │
-│  [Actualizar]                                       │
+│  [+ Load unpacked] ← CLICK HERE                    │
+│  [Pack extension]                                  │
+│  [Update]                                          │
 └─────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## ❓ Solución de Problemas
+## ❓ Troubleshooting
 
-### Error: "No se puede cargar la extensión"
-- ✅ Verifica que todos los archivos estén en la misma carpeta
-- ✅ Asegúrate de que `manifest.json` no tenga errores de sintaxis
-- ✅ Verifica que la carpeta seleccionada contenga `manifest.json`
+### Error: "Could not load extension"
+- ✅ Verify all files are in the same folder
+- ✅ Make sure `manifest.json` has no syntax errors
+- ✅ Verify the selected folder contains `manifest.json`
 
 ### Error: "Manifest file is missing or unreadable"
-- ✅ Asegúrate de seleccionar la carpeta correcta (donde está `manifest.json`)
-- ✅ Verifica que el archivo `manifest.json` exista y no esté corrupto
+- ✅ Make sure you select the correct folder (where `manifest.json` is located)
+- ✅ Verify that the `manifest.json` file exists and is not corrupted
 
-### El botón no aparece en la página
-- ✅ Verifica que estés en la URL correcta: `https://bo.kodland.org/`
-- ✅ Recarga la página (F5 o Ctrl+R)
-- ✅ Abre la consola del navegador (F12) y revisa si hay errores
-- ✅ Verifica que la extensión esté activada en `chrome://extensions/`
+### The button doesn't appear on the page
+- ✅ Verify you're on the correct URL: `https://bo.kodland.org/`
+- ✅ Reload the page (F5 or Ctrl+R)
+- ✅ Open the browser console (F12) and check for errors
+- ✅ Verify the extension is enabled at `chrome://extensions/`
 
-### La extensión no se carga
-- ✅ Verifica que el Modo de Desarrollador esté activado
-- ✅ Intenta actualizar la extensión haciendo clic en el icono de recarga (🔄)
-- ✅ Cierra y vuelve a abrir Chrome
-
----
-
-## 🔄 Actualizar la Extensión Después de Cambios
-
-Si haces cambios en los archivos de la extensión:
-
-1. Ve a `chrome://extensions/`
-2. Encuentra tu extensión "Kodland WhatsApp Welcome"
-3. Haz clic en el **icono de recarga** (🔄) debajo de la extensión
-4. Recarga la página de Kodland para ver los cambios
+### The extension doesn't load
+- ✅ Verify Developer mode is enabled
+- ✅ Try reloading the extension by clicking the reload icon (🔄)
+- ✅ Close and reopen Chrome
 
 ---
 
-## 📝 Notas Importantes
+## 🔄 Updating the Extension After Changes
 
-- ⚠️ **NO elimines** la carpeta `KodlandFaster` mientras uses la extensión
-- ⚠️ Si mueves la carpeta, deberás volver a cargar la extensión
-- ⚠️ La extensión solo funciona en `https://bo.kodland.org/*`
-- ✅ Puedes desactivar la extensión sin eliminarla usando el interruptor
-- ✅ Para eliminarla completamente, haz clic en "Eliminar"
+If you make changes to the extension files:
+
+1. Go to `chrome://extensions/`
+2. Find your extension "Kodland WhatsApp Welcome"
+3. Click the **reload icon** (🔄) below the extension
+4. Reload the Kodland page to see the changes
 
 ---
 
-## 🎯 Resumen Rápido
+## 📝 Important Notes
 
-1. Abre `chrome://extensions/`
-2. Activa **"Modo de desarrollador"**
-3. Clic en **"Cargar extensión sin empaquetar"**
-4. Selecciona la carpeta `KodlandFaster`
-5. ¡Listo! 🎉
+- ⚠️ **Do NOT delete** the `KodlandFaster` folder while using the extension
+- ⚠️ If you move the folder, you'll need to reload the extension
+- ⚠️ The extension only works on `https://bo.kodland.org/*`
+- ✅ You can disable the extension without deleting it using the toggle
+- ✅ To remove it completely, click "Remove"
 
+---
+
+## 🎯 Quick Summary
+
+1. Open `chrome://extensions/`
+2. Enable **"Developer mode"**
+3. Click **"Load unpacked"**
+4. Select the `KodlandFaster` folder
+5. Done! 🎉

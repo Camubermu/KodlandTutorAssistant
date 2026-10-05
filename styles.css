@@ -35,7 +35,7 @@
   flex-shrink: 0;
 }
 
-/* Botón Open WA - más minimalista */
+
 .kodland-open-btn {
   background: linear-gradient(135deg, #128C7E 0%, #075E54 100%);
   box-shadow: 0 2px 8px rgba(18, 140, 126, 0.25);
@@ -46,7 +46,7 @@
   box-shadow: 0 4px 12px rgba(18, 140, 126, 0.35);
 }
 
-/* Botón Falta a clase - color de alerta */
+
 .kodland-absence-btn {
   background: linear-gradient(135deg, #ff5722 0%, #d84315 100%);
   box-shadow: 0 2px 8px rgba(255, 87, 34, 0.25);
@@ -57,10 +57,7 @@
   box-shadow: 0 4px 12px rgba(255, 87, 34, 0.35);
 }
 
-/* Botones que viven dentro de la barra superior compartida
-   (#kodland-broadcast-buttons), junto a "Aviso de clase" y el resto de
-   botones de difusión: configuración, exportar contactos, reporte de
-   calificación, link de WhatsApp del grupo y tomar asistencia. */
+
 .kodland-toolbar-btn {
   display: inline-flex;
   align-items: center;
@@ -90,7 +87,7 @@
   cursor: wait;
 }
 
-/* Exportar contactos */
+
 .kodland-export-contacts-btn {
   background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
 }
@@ -99,7 +96,7 @@
   background: linear-gradient(135deg, #1976D2 0%, #0d47a1 100%);
 }
 
-/* Link de WhatsApp del grupo */
+
 .kodland-wa-group-link-btn {
   background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
 }
@@ -108,7 +105,7 @@
   background: linear-gradient(135deg, #20bd5a 0%, #0f7a6e 100%);
 }
 
-/* Tomar asistencia */
+
 .kodland-attendance-btn {
   background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
 }
@@ -117,7 +114,7 @@
   background: linear-gradient(135deg, #43a047 0%, #1b5e20 100%);
 }
 
-/* Reporte de calificación grupal */
+
 .kodland-grading-report-btn {
   background: linear-gradient(135deg, #7e57c2 0%, #4527a0 100%);
 }
@@ -126,7 +123,7 @@
   background: linear-gradient(135deg, #6a45b5 0%, #38208a 100%);
 }
 
-/* Configuración (siempre visible) */
+
 .kodland-settings-btn {
   background: linear-gradient(135deg, #616161 0%, #424242 100%);
   padding: 8px 10px;
@@ -137,7 +134,7 @@
   background: linear-gradient(135deg, #757575 0%, #545454 100%);
 }
 
-/* Botón Reporte de tareas sin enviar */
+
 .kodland-task-report-btn {
   background: linear-gradient(135deg, #00acc1 0%, #00838f 100%);
   box-shadow: 0 2px 8px rgba(0, 172, 193, 0.25);
@@ -147,7 +144,7 @@
   background: linear-gradient(135deg, #0097a7 0%, #006d75 100%);
 }
 
-/* Botón Grabación de la última clase (por estudiante) */
+
 .kodland-recording-btn {
   background: linear-gradient(135deg, #ec407a 0%, #ad1457 100%);
   box-shadow: 0 2px 8px rgba(236, 64, 122, 0.25);
@@ -157,7 +154,7 @@
   background: linear-gradient(135deg, #d81b60 0%, #880e4f 100%);
 }
 
-/* Botones dentro del modal de "Información de la clase" (pestaña Horario) */
+
 .kodland-schedule-modal-buttons {
   display: flex;
   gap: 8px;
@@ -169,7 +166,7 @@
   margin: 0;
 }
 
-/* Contenedor de botones de difusión al grupo (fila fija arriba de la página) */
+
 .kodland-broadcast-buttons {
   position: fixed;
   top: 16px;
@@ -210,7 +207,7 @@
   cursor: wait;
 }
 
-/* Botón Send Credential - más minimalista */
+
 .kodland-send-btn {
   background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
   box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);
@@ -221,7 +218,7 @@
   box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35);
 }
 
-/* Contenedor de botones */
+
 #kodland-buttons-container {
   display: flex;
   gap: 10px;
@@ -229,7 +226,7 @@
   margin: 10px 0;
 }
 
-/* Botón de API para listado de estudiantes */
+
 .kodland-api-btn {
   display: inline-flex;
   align-items: center;
@@ -272,7 +269,7 @@
   flex-shrink: 0;
 }
 
-/* Botones pequeños junto al nombre del estudiante */
+
 .kodland-student-buttons {
   display: inline-flex;
   align-items: center;
@@ -280,7 +277,7 @@
   margin-left: 8px;
   vertical-align: middle;
   position: relative;
-  overflow: visible !important; /* allow tooltips to escape clipped parents */
+  overflow: visible !important;
   z-index: 1000000;
 }
 
@@ -323,7 +320,7 @@
   flex-shrink: 0;
 }
 
-/* Tooltip styles for buttons */
+
 .kodland-student-buttons button[title] {
   position: relative;
 }
@@ -332,7 +329,7 @@
   content: attr(title);
   position: absolute;
   bottom: 100%;
-  left: 50%; /* start of tooltip anchored at center of button */
+  left: 50%;
   transform: translateX(0);
   margin-bottom: 5px;
   padding: 4px 8px;
@@ -342,7 +339,7 @@
   white-space: nowrap;
   border-radius: 4px;
   pointer-events: none;
-  z-index: 2147483647; /* ensure tooltip renders above all */
+  z-index: 2147483647;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
@@ -359,7 +356,7 @@
   z-index: 2147483647;
 }
 
-/* Modal styles */
+
 .kodland-modal {
   position: fixed;
   top: 0;
@@ -619,7 +616,7 @@
   margin: 8px 0;
 }
 
-/* Scrollbar styling for modal */
+
 .kodland-modal-body::-webkit-scrollbar {
   width: 8px;
 }
@@ -637,7 +634,7 @@
   background: #94a3b8;
 }
 
-/* Filter bar styles */
+
 .kodland-filter-bar {
   padding: 16px 24px;
   border-bottom: 1px solid #e5e7eb;
@@ -692,7 +689,7 @@
   color: #ffffff;
 }
 
-/* Task status styles */
+
 .kodland-task-status.submitted {
   background-color: #2196F3;
   color: #ffffff;
@@ -720,7 +717,7 @@
   margin-left: 4px;
 }
 
-/* Task link */
+
 .kodland-task-link {
   color: #25D366;
   font-size: 14px;
@@ -737,15 +734,7 @@
   background: rgba(37, 211, 102, 0.08);
 }
 
-/* ---------------------------------------------------------------------
-   Settings modal & grading report modal: back to their original dark
-   theme. These two reuse the general .kodland-modal-content styling
-   (now light, see above), but the settings modal in particular builds
-   its inputs/textareas with dark colors written directly inline
-   (background:#1e1e1e; color:#fff), so lightening the shell around them
-   left dark boxes floating in a white modal. Scoped by ID so the rest
-   of the app (e.g. the per-student lessons/tasks modal) stays light.
---------------------------------------------------------------------- */
+
 #kodland-settings-modal,
 #kodland-grading-report-modal {
   background-color: rgba(0, 0, 0, 0.7);
@@ -816,5 +805,132 @@
 #kodland-settings-modal .kodland-modal-body::-webkit-scrollbar-thumb:hover,
 #kodland-grading-report-modal .kodland-modal-body::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* --- Ported from KodlandTutorAssistant: Python PDF report button/modal --- */
+.kodland-student-buttons .kodland-report-btn {
+  width: 32px;
+  border: 1px solid #a7c93d;
+  background: linear-gradient(145deg, #e2fa8a, #b9df45);
+  color: #263414;
+  font-size: 9px;
+  font-weight: 800;
+  box-shadow: 0 1px 4px rgba(116, 148, 34, 0.28);
+}
+
+.kodland-student-buttons .kodland-report-btn:hover {
+  background: linear-gradient(145deg, #d8f36d, #a9d532);
+  box-shadow: 0 2px 8px rgba(116, 148, 34, 0.38);
+}
+
+#kodland-student-report-modal .kodland-modal-content {
+  max-width: 560px;
+  max-height: 80vh;
+}
+
+#kodland-student-report-modal .kodland-modal-header h2 {
+  font-size: 17px;
+}
+
+.kodland-report-status {
+  min-height: 22px;
+  margin: 0 0 16px;
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.kodland-report-controls[hidden] {
+  display: none;
+}
+
+.kodland-report-controls {
+  display: grid;
+  gap: 10px;
+}
+
+.kodland-report-python-general,
+.kodland-report-python-module {
+  min-height: 38px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border-color: #a7c93d;
+  background: linear-gradient(145deg, #e2fa8a, #b9df45);
+  color: #263414;
+  box-shadow: 0 2px 6px rgba(116, 148, 34, 0.2);
+}
+
+.kodland-report-python-general:hover:not(:disabled),
+.kodland-report-python-module:hover:not(:disabled) {
+  filter: brightness(0.96);
+  box-shadow: 0 3px 9px rgba(19, 126, 103, 0.28);
+}
+
+.kodland-report-python-general:disabled,
+.kodland-report-python-module:disabled,
+.kodland-report-module-row select:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.kodland-report-module-label {
+  margin-top: 8px;
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.kodland-report-module-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.kodland-report-module-row select {
+  min-width: 0;
+  min-height: 38px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 7px 9px;
+  background: #fff;
+  color: #1f2937;
+  font-size: 13px;
+}
+
+@media (max-width: 560px) {
+  .kodland-report-module-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Botón Send ME Credential (Minecraft Education) - verde/marrón distinto
+   al de Send Credential normal, para no confundirlos de un vistazo */
+.kodland-send-me-btn {
+  background: linear-gradient(135deg, #4CAF50 0%, #33691E 100%);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.25);
+}
+
+.kodland-send-me-btn:hover {
+  background: linear-gradient(135deg, #43A047 0%, #2b5a17 100%);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.35);
+}
+
+/* Botón "Calificar" (dispara el calificador de Python vía Native Messaging),
+   tanto dentro del modal de reporte de calificación como en la página de
+   profesor (teacher-page-buttons.js) */
+.kodland-modal-content .kodland-modal-header #kodland-calificar-todo-btn,
+.kodland-toolbar-btn-calificar {
+  background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
+}
+
+.kodland-modal-content .kodland-modal-header #kodland-calificar-todo-btn:hover,
+.kodland-toolbar-btn-calificar:hover {
+  background: linear-gradient(90deg, #d53369 0%, #daae51 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(252, 70, 107, 0.35);
 }
 

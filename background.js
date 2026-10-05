@@ -1,19 +1,19 @@
-// Generates and applies a blue icon with a bold white "K" for the extension.
+
 
 function createIcon(size, bgColor = '#0d6efd', textColor = '#ffffff') {
   const canvas = new OffscreenCanvas(size, size);
   const ctx = canvas.getContext('2d');
 
-  // Background
+
   ctx.fillStyle = bgColor;
   ctx.fillRect(0, 0, size, size);
 
-  // Text
+
   ctx.fillStyle = textColor;
   ctx.font = `bold ${Math.floor(size * 0.6)}px "Inter", "Segoe UI", system-ui, -apple-system, sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  // Slight vertical tweak so optical center looks balanced
+
   ctx.fillText('K', size / 2, size / 2 + size * 0.04);
 
   return ctx.getImageData(0, 0, size, size);
@@ -37,4 +37,35 @@ function applyIcons() {
 
 chrome.runtime.onInstalled.addListener(applyIcons);
 chrome.runtime.onStartup.addListener(applyIcons);
+
+// --- Puente con el calificador de Python (Native Messaging) ---
+// Los content scripts no pueden hablar directamente con un host nativo, así que
+// nos envían la etiqueta de acción y nosotros la reenviamos al puente local.
+const NOMBRE_PUENTE = 'com.kodland.puente';
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (!msg || msg.tipo !== 'calificador') return;  // no es para nosotros
+  try {
+    const nativeMessage = { action: msg.action };
+    if (msg.action === 'generar_reporte_python') {
+      const senderUrl = new URL(sender.url || '');
+      if (senderUrl.origin !== 'https://bo.kodland.org' || !senderUrl.pathname.startsWith('/groups/')) {
+        sendResponse({ ok: false, error: 'El reporte Python solo se puede solicitar desde un grupo de Kodland.' });
+        return false;
+      }
+      nativeMessage.payload = msg.payload;
+    }
+
+    chrome.runtime.sendNativeMessage(NOMBRE_PUENTE, nativeMessage, (respuesta) => {
+      if (chrome.runtime.lastError) {
+        sendResponse({ ok: false, error: chrome.runtime.lastError.message });
+      } else {
+        sendResponse(respuesta || { ok: false, error: 'El puente no respondió.' });
+      }
+    });
+  } catch (e) {
+    sendResponse({ ok: false, error: String(e) });
+  }
+  return true;  // la respuesta llega de forma asíncrona
+});
 

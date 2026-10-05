@@ -1,88 +1,98 @@
-# Kodland WhatsApp Welcome - Extensión de Chrome
+# Kodland WhatsApp Welcome - Chrome Extension
 
-Extensión de Chrome que agrega un botón para enviar un mensaje de bienvenida a WhatsApp desde la plataforma Kodland.
+Chrome extension that adds a button to send a welcome message to WhatsApp from the Kodland platform.
 
-## Características
+## Features
 
-- ✅ Botón integrado en la interfaz de Kodland
-- ✅ Mensaje de bienvenida predefinido
-- ✅ Abre WhatsApp Web automáticamente
-- ✅ Diseño moderno y responsive
+- ✅ Button integrated into the Kodland interface
+- ✅ Predefined welcome message
+- ✅ Opens WhatsApp Web automatically
+- ✅ Modern, responsive design
 
-## Instalación
+## Installation
 
-> 📖 **¿Necesitas ayuda detallada?** Consulta el archivo [INSTALACION.md](INSTALACION.md) para una guía paso a paso con capturas y solución de problemas.
+> 📖 **Need detailed help?** See [INSTALACION.md](INSTALACION.md) for a step-by-step guide with screenshots and troubleshooting.
 
-### Instalación Manual (Resumen)
+### Manual Installation (Summary)
 
-1. **Abrir Chrome Extensions**
-   - Abre Chrome y escribe en la barra de direcciones: `chrome://extensions/`
-   - O ve a: Menú (⋮) → Más herramientas → Extensiones
+1. **Open Chrome Extensions**
+   - Open Chrome and type in the address bar: `chrome://extensions/`
+   - Or go to: Menu (⋮) → More tools → Extensions
 
-2. **Activar Modo de Desarrollador**
-   - En la esquina superior derecha, activa el interruptor **"Modo de desarrollador"**
+2. **Enable Developer Mode**
+   - In the top-right corner, turn on the **"Developer mode"** toggle
 
-3. **Cargar la extensión sin empaquetar**
-   - Haz clic en el botón **"Cargar extensión sin empaquetar"** (aparece arriba)
-   - En la ventana que se abre, navega hasta: `C:\Users\Juan Garay\Desktop\KodlandFaster`
-   - **Selecciona la carpeta** `KodlandFaster` (no entres dentro, selecciona la carpeta)
-   - Haz clic en **"Seleccionar carpeta"**
+3. **Load the unpacked extension**
+   - Click **"Load unpacked"** (appears at the top)
+   - In the window that opens, navigate to: `C:\Users\Juan Garay\Desktop\KodlandFaster`
+   - **Select the folder** `KodlandFaster` (don't go inside it, select the folder itself)
+   - Click **"Select Folder"**
 
-4. **Verificar**
-   - La extensión "Kodland WhatsApp Welcome" debería aparecer en la lista
-   - Asegúrate de que esté **Activada** (interruptor azul)
+4. **Verify**
+   - The extension "Kodland WhatsApp Welcome" should appear in the list
+   - Make sure it's **Enabled** (blue toggle)
 
-## Uso
+## Usage
 
-1. Navega a https://bo.kodland.org/
-2. El botón "Enviar bienvenida a WA" aparecerá automáticamente en la ubicación especificada
-3. Haz clic en el botón para abrir WhatsApp Web con el mensaje de bienvenida predefinido
-4. Selecciona el contacto o grupo al que deseas enviar el mensaje y envía
+1. Go to https://bo.kodland.org/
+2. The "Send WhatsApp welcome" button will appear automatically in the specified location
+3. Click the button to open WhatsApp Web with the predefined welcome message
+4. Select the contact or group you want to send the message to, and send it
 
-## Personalización del Mensaje
+## Customizing the Message
 
-Para cambiar el mensaje de bienvenida, edita el archivo `content.js` y modifica la línea:
+To change the welcome message, edit the `content.js` file and modify the line:
 
 ```javascript
 const message = encodeURIComponent('¡Bienvenido/a al curso! 🎉 Estamos muy contentos de tenerte aquí. ¡Comencemos juntos este increíble viaje de aprendizaje!');
 ```
 
-## Estructura del Proyecto
+## Project Structure
 
 ```
 KodlandFaster/
-├── manifest.json       # Configuración de la extensión
-├── content.js          # Script que inyecta el botón
-├── styles.css          # Estilos del botón
-└── README.md          # Este archivo
+├── manifest.json       # Extension configuration
+├── content.js          # Script that injects the button
+├── styles.css          # Button styles
+└── README.md          # This file
 ```
 
-## Iconos (Opcional)
+## Icons (Optional)
 
-Los iconos (`icon16.png`, `icon48.png`, `icon128.png`) son opcionales. Si deseas agregarlos:
-- Crea imágenes PNG con los tamaños especificados
-- Colócalas en la raíz del proyecto
-- O edita el `manifest.json` para remover la sección de iconos
+Icons (`icon16.png`, `icon48.png`, `icon128.png`) are optional. If you want to add them:
+- Create PNG images at the specified sizes
+- Place them in the project root
+- Or edit `manifest.json` to remove the icons section
 
-## Notas
+## Notes
 
-- La extensión funciona solo en `https://bo.kodland.org/*`
-- El botón se inyecta automáticamente cuando se carga la página
-- Si el elemento objetivo no aparece inmediatamente, la extensión intentará encontrarlo durante 30 segundos
+- The extension only works on `https://bo.kodland.org/*`
+- The button is injected automatically when the page loads
+- If the target element doesn't appear immediately, the extension will keep trying to find it for 30 seconds
 
-## Solución de Problemas
+## Troubleshooting
 
-**El botón no aparece:**
-- Verifica que estés en la URL correcta: `https://bo.kodland.org/`
-- Recarga la página
-- Verifica que la extensión esté activada en `chrome://extensions/`
-- Abre la consola del navegador (F12) para ver posibles errores
+**The button doesn't appear:**
+- Verify you're on the correct URL: `https://bo.kodland.org/`
+- Reload the page
+- Verify the extension is enabled at `chrome://extensions/`
+- Open the browser console (F12) to check for possible errors
 
-**El botón aparece pero no funciona:**
-- Verifica que no tengas bloqueadores de pop-ups activos
-- Asegúrate de que WhatsApp Web esté permitido en tu navegador
+**The button appears but doesn't work:**
+- Make sure you don't have any pop-up blockers active
+- Make sure WhatsApp Web is allowed in your browser
 
-## Licencia
+## Additional tools (ported from KodlandTutorAssistant)
 
-Este proyecto es de uso personal/educacional.
+These were merged in from the other team's fork so this project contains every available feature:
 
+- 🎓 **PDF report button** (per student, "PDF" icon next to the WhatsApp buttons): generates a general or per-module PDF progress report via a local Python tool and optionally opens WhatsApp with it attached. Requires the calificador + Native Messaging bridge below to be installed.
+- 🐍 **`calificador/`**: a separate Python + Playwright tool to grade pending tasks, post templated/AI comments, and generate PDF reports and group boletines. It talks to the extension through a Native Messaging bridge (`calificador/puente/`), not through the Chrome APIs — see [`calificador/INSTRUCCIONES.md`](calificador/INSTRUCCIONES.md) and [`calificador/puente/README_PUENTE.md`](calificador/puente/README_PUENTE.md) for setup. The floating "🎓 Calificador" panel (`calificador-buttons.js`) and the "✅ Calificar Todo" button on teacher pages (`teacher-page-buttons.js`) both depend on this bridge being installed locally; without it they'll report "El puente no respondió."
+- 🎮 **Send ME Credential** (student page): same flow as "Send Credential" but for Minecraft Education accounts.
+- 🧪 **`retention-radar/`**: early, in-progress experiment to flag students at risk of not renewing. Currently just fetches a group's schedule and logs it to the console — not a finished feature yet.
+
+⚠️ These files (`calificador/`, `calificador-buttons.js`, `teacher-page-buttons.js`, `send-me-credential-button.js`, `retention-radar/`) came from a different, independently-developed codebase. They're wired into `manifest.json`/`background.js` but haven't been exercised end-to-end in this project yet — test them manually before relying on them with real students.
+
+## License
+
+This project is for personal/educational use.

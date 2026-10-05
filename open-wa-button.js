@@ -1,10 +1,5 @@
-// Module to add "Open WA" button at the specified XPath
-// XPath: //*[@id="app"]/div/div/div/div/div[2]/main/div/div/div[1]/div[2]/div[2]/div/div/div/div[2]/div/div[1]/div/div[2]
 
-// This script runs on student pages and keeps its own small label set
-// (rather than depending on group-students-info.js), but it follows the
-// same language chosen in the ⚙️ settings modal so the whole app stays
-// consistent across languages.
+
 const OPEN_WA_LABELS_BY_LANG = {
   es: { openWhatsApp: 'Abrir WhatsApp', opening: '✓ Abriendo...' },
   en: { openWhatsApp: 'Open WhatsApp', opening: '✓ Opening...' },
@@ -20,26 +15,18 @@ const OPEN_WA_LABELS_BY_LANG = {
 
 const OPEN_WA_RTL_LANGUAGES = ['ar'];
 
-// getMessageLanguage() comes from group-students-info.js, which is
-// guaranteed to have already run (it is injected before this script
-// finishes loading and before any user click), but we still fall back to
-// Spanish defensively in case that ever changes.
+
 function getOpenWaLanguage() {
   try {
     if (typeof getMessageLanguage === 'function') {
       return getMessageLanguage();
     }
   } catch (error) {
-    // Ignore and fall back below
+
   }
   return 'es';
 }
 
-// Locate the target element using document.evaluate() with the XPath
-// above. (There used to be a second, manual `.children[N]` fallback here
-// that duplicated this exact path step by step - it was dead weight: this
-// version already handles the "structure changed" case fine by returning
-// null, and having two ways to fail just doubled the code to maintain.)
 function findElementByXPathDirect() {
   const xpath = '//*[@id="app"]/div/div/div/div/div[2]/main/div/div/div[1]/div[2]/div[2]/div/div/div/div[2]/div/div[1]/div/div[2]';
   
@@ -59,39 +46,37 @@ function findElementByXPathDirect() {
   }
 }
 
-// Function to extract phone number from the container
+
 function extractPhoneNumber(containerElement) {
   if (!containerElement) return null;
   
-  // Get all text content from the container
+
   const textContent = containerElement.textContent || '';
   
-  // Look for phone number patterns
-  // Pattern: +56986183234 or similar formats
   const phonePatterns = [
-    /\+?[0-9]{10,15}/g,  // General phone pattern
-    /\+?[0-9]{1,3}[0-9]{8,12}/g,  // International format
-    /Телефон:\s*([+\d\s\-()]+)/i,  // Russian "Телефон:" label
-    /Phone:\s*([+\d\s\-()]+)/i,  // English "Phone:" label
-    /Teléfono:\s*([+\d\s\-()]+)/i  // Spanish "Teléfono:" label
+    /\+?[0-9]{10,15}/g,
+    /\+?[0-9]{1,3}[0-9]{8,12}/g,
+    /Телефон:\s*([+\d\s\-()]+)/i,
+    /Phone:\s*([+\d\s\-()]+)/i,
+    /Teléfono:\s*([+\d\s\-()]+)/i
   ];
   
   for (const pattern of phonePatterns) {
     const matches = textContent.match(pattern);
     if (matches && matches.length > 0) {
-      // Get the first match and clean it
+
       let phone = matches[0];
       
-      // If pattern has capture group, use that
+
       const matchWithGroup = textContent.match(pattern);
       if (matchWithGroup && matchWithGroup[1]) {
         phone = matchWithGroup[1];
       }
       
-      // Clean the phone number (remove spaces, dashes, parentheses)
+
       phone = phone.replace(/[\s\-()]/g, '').trim();
       
-      // Remove label if present
+
       phone = phone.replace(/^(Телефон|Phone|Teléfono):/i, '').trim();
       
       if (phone && phone.length >= 10) {
@@ -101,7 +86,7 @@ function extractPhoneNumber(containerElement) {
     }
   }
   
-  // Also check parent elements
+
   let parent = containerElement.parentElement;
   let depth = 0;
   while (parent && depth < 3) {
@@ -122,22 +107,22 @@ function extractPhoneNumber(containerElement) {
   return null;
 }
 
-// Function to format phone number for WhatsApp URL
+
 function formatPhoneForWhatsApp(phone) {
   if (!phone) return null;
   
-  // Remove all non-digit characters except +
+
   let cleanPhone = phone.replace(/[^\d+]/g, '');
   
-  // Remove leading + if present (WhatsApp URL doesn't use it)
+
   if (cleanPhone.startsWith('+')) {
     cleanPhone = cleanPhone.substring(1);
   }
   
-  // Remove any remaining non-digit characters
+
   cleanPhone = cleanPhone.replace(/\D/g, '');
   
-  // Ensure minimum length
+
   if (cleanPhone.length < 10) {
     console.warn('Phone number too short:', cleanPhone);
     return null;
@@ -146,7 +131,7 @@ function formatPhoneForWhatsApp(phone) {
   return cleanPhone;
 }
 
-// Function to create the "Open WA" button
+
 function createOpenWAButton(containerElement) {
   const language = getOpenWaLanguage();
   const labels = OPEN_WA_LABELS_BY_LANG[language] || OPEN_WA_LABELS_BY_LANG.es;
@@ -165,20 +150,20 @@ function createOpenWAButton(containerElement) {
   `;
 
   button.addEventListener('click', function() {
-    // Extract phone number from container
+
     const phoneNumber = extractPhoneNumber(containerElement);
 
     if (phoneNumber) {
-      // Format phone number for WhatsApp
+
       const formattedPhone = formatPhoneForWhatsApp(phoneNumber);
 
       if (formattedPhone) {
-        // Open WhatsApp Web with specific phone number (without message)
+
         const whatsappUrl = `https://api.whatsapp.com/send?phone=${formattedPhone}`;
         console.log('Opening WhatsApp for phone:', formattedPhone);
         window.open(whatsappUrl, '_blank');
 
-        // Visual feedback
+
         const originalText = button.innerHTML;
         button.innerHTML = labels.opening;
         button.disabled = true;
@@ -188,12 +173,12 @@ function createOpenWAButton(containerElement) {
         }, 2000);
       } else {
         console.error('Could not format phone number:', phoneNumber);
-        // Fallback: open generic WhatsApp
+
         window.open('https://api.whatsapp.com', '_blank');
       }
     } else {
       console.warn('No phone number found, opening generic WhatsApp');
-      // Fallback: open generic WhatsApp
+
       window.open('https://web.whatsapp.com', '_blank');
     }
   });
@@ -201,26 +186,26 @@ function createOpenWAButton(containerElement) {
   return button;
 }
 
-// Function to check if we're on a student page
+
 function isStudentPage() {
   const url = window.location.href;
-  // Check if URL matches pattern: https://bo.kodland.org/students/{id}
+
   return /https?:\/\/bo\.kodland\.org\/students\/\d+/.test(url);
 }
 
-// Main function to inject the button
+
 function injectOpenWAButton() {
-  // Only run on student pages
+
   if (!isStudentPage()) {
     return;
   }
   
-  // Check if button already exists
+
   if (document.getElementById('kodland-open-wa-button')) {
     return;
   }
   
-  // Find the target element via XPath
+
   const targetElement = findElementByXPathDirect();
   
   if (targetElement) {
@@ -232,22 +217,22 @@ function injectOpenWAButton() {
   }
 }
 
-// Try to inject when DOM is ready
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', injectOpenWAButton);
 } else {
   injectOpenWAButton();
 }
 
-// Use MutationObserver to detect when element loads dynamically
+
 const observer = new MutationObserver(function(mutations) {
-  // Only observe if we're on a student page
+
   if (isStudentPage() && !document.getElementById('kodland-open-wa-button')) {
     injectOpenWAButton();
   }
 });
 
-// Start observation only if on student page
+
 if (isStudentPage()) {
   observer.observe(document.body, {
     childList: true,
@@ -255,7 +240,7 @@ if (isStudentPage()) {
   });
 }
 
-// Try to inject every 2 seconds for the first 30 seconds (only on student pages)
+
 let attempts = 0;
 const maxAttempts = 15;
 const intervalId = setInterval(() => {
@@ -268,12 +253,12 @@ const intervalId = setInterval(() => {
       clearInterval(intervalId);
     }
   } else {
-    // Stop interval if we're not on a student page
+
     clearInterval(intervalId);
   }
 }, 2000);
 
-// Export function for external use
+
 if (typeof window !== 'undefined') {
   window.KodlandOpenWA = {
     injectOpenWAButton,

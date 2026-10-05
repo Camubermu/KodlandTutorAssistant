@@ -4,7 +4,8 @@
   "version": "1.1.0",
   "description": "Automated Wpp tool for tutors to send messages to parents. By LatAm/GCC with love for the other regions. TL Camilo Bermudez",
   "permissions": [
-    "storage"
+    "storage",
+    "nativeMessaging"
   ],
   "host_permissions": [
     "https://bo.kodland.org/*",
@@ -26,7 +27,7 @@
     },
     {
       "matches": ["https://bo.kodland.org/*"],
-      "js": ["open-wa-button.js", "send-credential-button.js", "group-students-info.js", "content.js"],
+      "js": ["open-wa-button.js", "send-credential-button.js", "send-me-credential-button.js", "group-students-info.js", "calificador-buttons.js", "content.js"],
       "css": ["styles.css"],
       "run_at": "document_idle"
     },
@@ -34,6 +35,31 @@
       "matches": ["https://web.whatsapp.com/*"],
       "js": ["whatsapp-autopaste.js"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://bo.kodland.org/teachers/*"],
+      "js": ["teacher-page-buttons.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://bo.kodland.org/groups/*"],
+      "js": ["retention-radar/main.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://bo.kodland.org/groups/*"],
+      "js": ["retention-radar/groupSchedule.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "calificador/reportes/curso_*.json",
+        "calificador/reportes/datos_*.json",
+        "calificador/reportes/img/banner_kodland.png"
+      ],
+      "matches": ["https://bo.kodland.org/*"]
     }
   ]
 }

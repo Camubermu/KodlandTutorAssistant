@@ -1,22 +1,12 @@
-// Module to fetch and display student information on group pages
-// Activates on: https://bo.kodland.org/groups/{id}
 
-// Store authentication token. `var` on purpose - shared with
-// early-auth-capture.js (document_start), which usually captures this
-// before this file even runs. Guard against overwriting a value that
-// script already found.
+
+
 var authToken = (typeof authToken !== 'undefined' && authToken) ? authToken : null;
 
-// ---------------------------------------------------------------------
-// Language
-// ---------------------------------------------------------------------
-// Everything the tutor sees (buttons, modals, alerts) and everything sent
-// to students, parents or the WhatsApp group is written in this language.
-// Spanish is the default; the tutor can pick another one - or "auto",
-// which follows Kodland's own language selector - from the ⚙️ settings.
+
 const DEFAULT_MESSAGE_LANGUAGE = 'auto';
 
-// Languages that have a full set of message/interface translations.
+
 const SUPPORTED_MESSAGE_LANGUAGES = ['es', 'en', 'ar', 'ru', 'fr', 'tr', 'id', 'it', 'pl', 'pt'];
 
 const LANGUAGE_LABELS = {
@@ -33,12 +23,10 @@ const LANGUAGE_LABELS = {
   pt: 'Português'
 };
 
-// Languages written right-to-left, used to flip the injected UI.
+
 const RTL_LANGUAGES = ['ar'];
 
-// Arabic doesn't have a simple singular/plural split: 1 and 2 have their
-// own forms and take no numeral, 3-10 take the plural, and 11 and above
-// go back to the singular. Counted nouns in Arabic messages go through here.
+
 function arabicCount(count, forms) {
   if (count === 1) return forms.one;
   if (count === 2) return forms.two;
@@ -59,7 +47,7 @@ function normalizeMessageLanguage(language) {
   return SUPPORTED_MESSAGE_LANGUAGES.includes(base) ? base : DEFAULT_MESSAGE_LANGUAGE;
 }
 
-// The language for all UI labels and generated messages.
+
 function getMessageLanguage() {
   try {
     const configured = normalizeMessageLanguage(getExtensionSettings().messageLanguage);
@@ -75,8 +63,7 @@ function isRtlLanguage(language = getMessageLanguage()) {
   return RTL_LANGUAGES.includes(language);
 }
 
-// Tag an injected element with the message language and its text
-// direction, so the RTL rules in styles.css apply for Arabic.
+
 function applyLanguageDirection(element, language = getMessageLanguage()) {
   if (!element) return element;
   element.setAttribute('lang', language);
@@ -84,13 +71,7 @@ function applyLanguageDirection(element, language = getMessageLanguage()) {
   return element;
 }
 
-// ---------------------------------------------------------------------
-// UI strings
-// ---------------------------------------------------------------------
-// Labels, tooltips and alerts for the extension's own interface (not the
-// WhatsApp message templates, which live in their own getDefaultXTemplate
-// functions further down). Lookup order is: requested language -> Spanish,
-// so a language missing an entry still gets something readable.
+
 const UI_STRINGS = {
   classReminderTooltip: {
     es: 'Enviar advertencia de la clase',
@@ -300,7 +281,7 @@ const UI_STRINGS = {
     it: ({ dayName, fullDate, time, timezoneLabel }) =>
       `che inizierà ${dayName} ${fullDate} alle ${time} (ora di ${timezoneLabel})`,
     pl: ({ dayName, fullDate, time, timezoneLabel }) =>
-      `który rozpocznie się w ${dayName}, ${fullDate}, o ${time} (czasu ${timezoneLabel})`,
+      `które rozpoczną się w ${dayName}, ${fullDate}, o ${time} (czasu ${timezoneLabel})`,
     pt: ({ dayName, fullDate, time, timezoneLabel }) =>
       `que começará nesta ${dayName}, ${fullDate}, às ${time} (horário de ${timezoneLabel})`
   },
@@ -313,7 +294,7 @@ const UI_STRINGS = {
     tr: 'çok yakında başlayacak',
     id: 'yang akan segera dimulai',
     it: 'che inizierà molto presto',
-    pl: 'który rozpocznie się już wkrótce',
+    pl: 'które rozpoczną się już wkrótce',
     pt: 'que começará muito em breve'
   },
   waGroupLinkMissing: {
@@ -341,7 +322,7 @@ const UI_STRINGS = {
     pt: '[Não foi possível gerar o link de acesso, verifique o perfil do aluno]'
   },
 
-  // --- Tasks modal ---
+
   weeklySummaryTooltip: {
     es: 'Enviar resumen semanal', en: 'Send weekly summary', ar: 'إرسال الملخص الأسبوعي', ru: 'Отправить еженедельную сводку',
     fr: 'Envoyer le résumé hebdomadaire', tr: 'Haftalık özeti gönder', id: 'Kirim ringkasan mingguan', it: 'Invia il riepilogo settimanale',
@@ -414,7 +395,7 @@ const UI_STRINGS = {
     pl: 'Zadanie bez nazwy', pt: 'Tarefa sem título'
   },
 
-  // --- Settings ---
+
   settingsTooltip: {
     es: 'Configuración de la extensión (mostrar/ocultar botones, nombre del tutor)',
     en: 'Extension settings (show/hide buttons, tutor name, language)',
@@ -687,7 +668,7 @@ const UI_STRINGS = {
     id: 'Simpan', it: 'Salva', pl: 'Zapisz', pt: 'Salvar'
   },
 
-  // --- Export contacts ---
+
   exportContactsButton: {
     es: '📇 Exportar contactos', en: '📇 Export contacts', ar: '📇 تصدير جهات الاتصال', ru: '📇 Экспорт контактов',
     fr: '📇 Exporter les contacts', tr: '📇 Kişileri dışa aktar', id: '📇 Ekspor kontak', it: '📇 Esporta contatti',
@@ -723,7 +704,7 @@ const UI_STRINGS = {
     pt: 'Nenhum aluno processado ainda. Aguarde alguns segundos até os dados carregarem e tente novamente.'
   },
 
-  // --- WhatsApp group link (this project auto-detects it, with manual override) ---
+
   waGroupLinkAutoDetected: {
     es: '✅ Link WA grupo', en: '✅ WhatsApp group link', ar: '✅ رابط مجموعة واتساب',
     ru: '✅ Ссылка на группу WhatsApp', fr: '✅ Lien du groupe WhatsApp', tr: '✅ WhatsApp grup bağlantısı',
@@ -791,7 +772,7 @@ const UI_STRINGS = {
     pt: 'Cole ou corrija o link do grupo do WhatsApp deste curso:'
   },
 
-  // --- Attendance ---
+
   attendanceButton: {
     es: '✅ Tomar asistencia', en: '✅ Take attendance', ar: '✅ تسجيل الحضور', ru: '✅ Отметить посещаемость',
     fr: '✅ Prendre les présences', tr: '✅ Yoklama al', id: '✅ Ambil absensi', it: '✅ Registra presenze',
@@ -881,7 +862,7 @@ const UI_STRINGS = {
       (failed.length > 0 ? `, ${failed.length} falharam (verifique o console): ${failed.join(', ')}` : '')
   },
 
-  // --- Grading report ---
+
   gradingReportButton: {
     es: '📊 Reporte calificación', en: '📊 Grading report', ar: '📊 تقرير التصحيح', ru: '📊 Отчёт о проверке',
     fr: '📊 Rapport de correction', tr: '📊 Notlandırma raporu', id: '📊 Laporan penilaian', it: '📊 Report correzioni',
@@ -952,7 +933,144 @@ const UI_STRINGS = {
     tr: '↗ Notlandır', id: '↗ Nilai', it: '↗ Correggi', pl: '↗ Oceń', pt: '↗ Corrigir'
   },
 
-  // --- Broadcast buttons (toolbar) ---
+  calificarTodoButton: {
+    es: '✅ Calificar Todo', en: '✅ Grade All', ar: '✅ تصحيح الكل', ru: '✅ Проверить всё',
+    fr: '✅ Tout corriger', tr: '✅ Tümünü Notlandır', id: '✅ Nilai Semua', it: '✅ Correggi tutto',
+    pl: '✅ Oceń wszystko', pt: '✅ Corrigir tudo'
+  },
+  pdfReportButtonTooltip: {
+    es: 'Generar reporte PDF', en: 'Generate PDF report', ar: 'إنشاء تقرير PDF', ru: 'Создать PDF-отчёт',
+    fr: 'Générer le rapport PDF', tr: 'PDF raporu oluştur', id: 'Buat laporan PDF', it: 'Genera report PDF',
+    pl: 'Wygeneruj raport PDF', pt: 'Gerar relatório em PDF'
+  },
+  pdfReportModalTitle: {
+    es: (name) => `Reporte PDF · ${name}`, en: (name) => `PDF report · ${name}`,
+    ar: (name) => `تقرير PDF · ${name}`, ru: (name) => `PDF-отчёт · ${name}`,
+    fr: (name) => `Rapport PDF · ${name}`, tr: (name) => `PDF raporu · ${name}`,
+    id: (name) => `Laporan PDF · ${name}`, it: (name) => `Report PDF · ${name}`,
+    pl: (name) => `Raport PDF · ${name}`, pt: (name) => `Relatório PDF · ${name}`
+  },
+  pdfReportStatusLoading: {
+    es: 'Consultando el curso y las lecciones realizadas…', en: 'Checking the course and completed lessons…',
+    ar: 'جارٍ مراجعة الدورة والدروس المنجزة…', ru: 'Проверяем курс и пройденные уроки…',
+    fr: 'Vérification du cours et des leçons terminées…', tr: 'Kurs ve tamamlanan dersler kontrol ediliyor…',
+    id: 'Memeriksa kursus dan pelajaran yang telah diselesaikan…', it: 'Controllo del corso e delle lezioni completate…',
+    pl: 'Sprawdzanie kursu i ukończonych lekcji…', pt: 'Consultando o curso e as aulas concluídas…'
+  },
+  pdfReportGeneralButton: {
+    es: 'Generar reporte general', en: 'Generate general report', ar: 'إنشاء تقرير عام', ru: 'Создать общий отчёт',
+    fr: 'Générer le rapport général', tr: 'Genel rapor oluştur', id: 'Buat laporan umum', it: 'Genera report generale',
+    pl: 'Wygeneruj raport ogólny', pt: 'Gerar relatório geral'
+  },
+  pdfReportModuleLabel: {
+    es: 'Módulo', en: 'Module', ar: 'الوحدة', ru: 'Модуль', fr: 'Module', tr: 'Modül',
+    id: 'Modul', it: 'Modulo', pl: 'Moduł', pt: 'Módulo'
+  },
+  pdfReportModuleButton: {
+    es: 'Generar reporte por módulo', en: 'Generate report by module', ar: 'إنشاء تقرير حسب الوحدة',
+    ru: 'Создать отчёт по модулю', fr: 'Générer le rapport par module', tr: 'Modüle göre rapor oluştur',
+    id: 'Buat laporan per modul', it: 'Genera report per modulo', pl: 'Wygeneruj raport dla modułu',
+    pt: 'Gerar relatório por módulo'
+  },
+  pdfReportStatusReady: {
+    es: (count) => `${count} módulo(s) disponible(s) hasta la fecha.`,
+    en: (count) => `${count} module(s) available so far.`,
+    ar: (count) => `الوحدات المتاحة حتى الآن: ${count}.`,
+    ru: (count) => `Доступно модулей: ${count}.`,
+    fr: (count) => `${count} module(s) disponible(s) à ce jour.`,
+    tr: (count) => `Şu ana kadar ${count} modül mevcut.`,
+    id: (count) => `${count} modul tersedia sejauh ini.`,
+    it: (count) => `${count} modulo/i disponibile/i finora.`,
+    pl: (count) => `Dostępnych modułów: ${count}.`,
+    pt: (count) => `${count} módulo(s) disponível(is) até agora.`
+  },
+  pdfReportNoPhoneNote: {
+    es: ' No hay teléfono de acudiente disponible; el PDF se podrá descargar sin abrir WhatsApp.',
+    en: ' No parent phone number available; the PDF can still be downloaded without opening WhatsApp.',
+    ar: ' لا يتوفر رقم هاتف ولي الأمر؛ يمكن تنزيل ملف PDF دون فتح واتساب.',
+    ru: ' Номер телефона родителя недоступен; PDF можно скачать, не открывая WhatsApp.',
+    fr: " Aucun numéro de téléphone du parent disponible ; le PDF pourra être téléchargé sans ouvrir WhatsApp.",
+    tr: ' Veli telefon numarası mevcut değil; PDF, WhatsApp açılmadan da indirilebilir.',
+    id: ' Nomor telepon orang tua tidak tersedia; PDF tetap bisa diunduh tanpa membuka WhatsApp.',
+    it: ' Nessun numero di telefono del genitore disponibile; il PDF potrà comunque essere scaricato senza aprire WhatsApp.',
+    pl: ' Brak numeru telefonu rodzica; PDF będzie można pobrać bez otwierania WhatsApp.',
+    pt: ' Não há telefone do responsável disponível; o PDF poderá ser baixado sem abrir o WhatsApp.'
+  },
+  pdfReportLoadError: {
+    es: 'No se pudieron cargar los datos del reporte.', en: "Couldn't load the report data.",
+    ar: 'تعذّر تحميل بيانات التقرير.', ru: 'Не удалось загрузить данные отчёта.',
+    fr: 'Impossible de charger les données du rapport.', tr: 'Rapor verileri yüklenemedi.',
+    id: 'Gagal memuat data laporan.', it: 'Impossibile caricare i dati del report.',
+    pl: 'Nie udało się wczytać danych raportu.', pt: 'Não foi possível carregar os dados do relatório.'
+  },
+  pdfReportGenerating: {
+    es: 'Python está generando el PDF…', en: 'Python is generating the PDF…',
+    ar: 'بايثون يقوم بإنشاء ملف PDF…', ru: 'Python создаёт PDF…',
+    fr: 'Python génère le PDF…', tr: 'Python PDF oluşturuyor…',
+    id: 'Python sedang membuat PDF…', it: 'Python sta generando il PDF…',
+    pl: 'Python generuje PDF…', pt: 'Python está gerando o PDF…'
+  },
+  pdfReportScopeGeneral: {
+    es: 'general', en: 'general', ar: 'عام', ru: 'общий', fr: 'général', tr: 'genel',
+    id: 'umum', it: 'generale', pl: 'ogólny', pt: 'geral'
+  },
+  pdfReportScopeModule: {
+    es: (n) => `del módulo ${n}`, en: (n) => `for module ${n}`, ar: (n) => `للوحدة ${n}`,
+    ru: (n) => `по модулю ${n}`, fr: (n) => `du module ${n}`, tr: (n) => `${n}. modül için`,
+    id: (n) => `untuk modul ${n}`, it: (n) => `del modulo ${n}`, pl: (n) => `dla modułu ${n}`,
+    pt: (n) => `do módulo ${n}`
+  },
+  pdfReportTypeByModule: {
+    es: 'por módulo', en: 'by module', ar: 'حسب الوحدة', ru: 'по модулю', fr: 'par module',
+    tr: 'modüle göre', id: 'per modul', it: 'per modulo', pl: 'dla modułu', pt: 'por módulo'
+  },
+  pdfReportDoneStatus: {
+    es: (scope) => `Python inició el reporte ${scope} en una ventana nueva. El PDF se abrirá al terminar.`,
+    en: (scope) => `Python started the ${scope} report in a new window. The PDF will open when it's done.`,
+    ar: (scope) => `بدأ بايثون إنشاء التقرير ${scope} في نافذة جديدة. سيُفتح ملف PDF عند الانتهاء.`,
+    ru: (scope) => `Python начал формировать отчёт (${scope}) в новом окне. PDF откроется по завершении.`,
+    fr: (scope) => `Python a lancé le rapport ${scope} dans une nouvelle fenêtre. Le PDF s'ouvrira une fois terminé.`,
+    tr: (scope) => `Python, ${scope} raporu yeni bir pencerede başlattı. Bittiğinde PDF açılacak.`,
+    id: (scope) => `Python memulai laporan ${scope} di jendela baru. PDF akan terbuka setelah selesai.`,
+    it: (scope) => `Python ha avviato il report ${scope} in una nuova finestra. Il PDF si aprirà al termine.`,
+    pl: (scope) => `Python rozpoczął tworzenie raportu ${scope} w nowym oknie. PDF otworzy się po zakończeniu.`,
+    pt: (scope) => `Python iniciou o relatório ${scope} em uma nova janela. O PDF abrirá ao terminar.`
+  },
+  pdfReportWhatsappNote: {
+    es: ' Ya abrí WhatsApp; adjunta el PDF cuando aparezca y pulsa Enviar.',
+    en: ' I already opened WhatsApp; attach the PDF once it appears and hit Send.',
+    ar: ' فتحتُ واتساب بالفعل؛ أرفق ملف PDF عند ظهوره واضغط إرسال.',
+    ru: ' WhatsApp уже открыт; прикрепите PDF, когда он появится, и нажмите «Отправить».',
+    fr: " J'ai déjà ouvert WhatsApp ; joignez le PDF dès qu'il apparaît et appuyez sur Envoyer.",
+    tr: " WhatsApp'ı zaten açtım; PDF göründüğünde ekleyip Gönder'e basın.",
+    id: ' Saya sudah membuka WhatsApp; lampirkan PDF setelah muncul lalu tekan Kirim.',
+    it: ' Ho già aperto WhatsApp; allega il PDF non appena appare e premi Invia.',
+    pl: ' WhatsApp jest już otwarty; dołącz PDF, gdy się pojawi, i naciśnij Wyślij.',
+    pt: ' Já abri o WhatsApp; anexe o PDF quando aparecer e toque em Enviar.'
+  },
+  pdfReportBridgeError: {
+    es: 'El puente Python no pudo generar el reporte.', en: "The Python bridge couldn't generate the report.",
+    ar: 'تعذّر على جسر بايثون إنشاء التقرير.', ru: 'Мост Python не смог создать отчёт.',
+    fr: "Le pont Python n'a pas pu générer le rapport.", tr: 'Python köprüsü raporu oluşturamadı.',
+    id: 'Jembatan Python gagal membuat laporan.', it: 'Il bridge Python non è riuscito a generare il report.',
+    pl: 'Mostek Python nie mógł wygenerować raportu.', pt: 'A ponte Python não conseguiu gerar o relatório.'
+  },
+  pdfReportGenerateError: {
+    es: 'No se pudo generar el reporte con Python.', en: "Couldn't generate the report with Python.",
+    ar: 'تعذّر إنشاء التقرير باستخدام بايثون.', ru: 'Не удалось создать отчёт через Python.',
+    fr: "Impossible de générer le rapport avec Python.", tr: 'Python ile rapor oluşturulamadı.',
+    id: 'Gagal membuat laporan dengan Python.', it: 'Impossibile generare il report con Python.',
+    pl: 'Nie udało się wygenerować raportu za pomocą Pythona.', pt: 'Não foi possível gerar o relatório com Python.'
+  },
+  settingPdfReportTemplate: {
+    es: '📄 Mensaje al compartir el reporte PDF:', en: '📄 Message when sharing the PDF report:',
+    ar: '📄 الرسالة عند مشاركة تقرير PDF:', ru: '📄 Сообщение при отправке PDF-отчёта:',
+    fr: '📄 Message lors du partage du rapport PDF :', tr: '📄 PDF raporu paylaşılırken gönderilecek mesaj:',
+    id: '📄 Pesan saat membagikan laporan PDF:', it: '📄 Messaggio quando condividi il report PDF:',
+    pl: '📄 Wiadomość przy udostępnianiu raportu PDF:', pt: '📄 Mensagem ao compartilhar o relatório PDF:'
+  },
+
+
   broadcastFirstClassButton: {
     es: '🎉 Primera clase', en: '🎉 First class', ar: '🎉 الحصة الأولى', ru: '🎉 Первое занятие',
     fr: '🎉 Premier cours', tr: '🎉 İlk ders', id: '🎉 Kelas pertama', it: '🎉 Prima lezione',
@@ -1068,7 +1186,7 @@ const UI_STRINGS = {
     pt: 'Ocorreu um erro ao montar a mensagem. Verifique o console.'
   },
 
-  // --- Prompts ---
+
   promptClassTime: {
     es: 'No pude detectar la hora automáticamente. ¿A qué hora es la clase? (ej: 6:00 p.m.)',
     en: "I couldn't detect the time automatically. What time is the class? (e.g. 6:00 p.m.)",
@@ -1141,9 +1259,7 @@ const UI_STRINGS = {
   }
 };
 
-// Look up a UI string in the current message language, falling back to
-// Spanish. Entries that are functions are called with the extra
-// arguments, so callers can write uiText('scheduleFetchError', 404).
+
 function uiTextForLanguage(key, languageOverride, ...args) {
   const entry = UI_STRINGS[key];
   if (!entry) {
@@ -1160,29 +1276,27 @@ function uiText(key, ...args) {
   return uiTextForLanguage(key, getMessageLanguage(), ...args);
 }
 
-// Track processed students to avoid duplicate fetches
+
 const processedStudents = new Set();
 
-// Track if processing is in progress
+
 let isProcessingStudents = false;
 
-// Fallback interceptor installer, only used if early-auth-capture.js
-// somehow didn't run (should be rare - it's a separate document_start
-// content script matching the same pages).
+
 function installAuthTokenInterceptorsFallback() {
   const originalFetch = window.fetch;
   window.fetch = function(...args) {
     const [url, options = {}] = args;
     
-    // Check if Authorization header exists
+
     if (options.headers) {
       let authHeader = null;
       
-      // Handle Headers object
+
       if (options.headers instanceof Headers) {
         authHeader = options.headers.get('Authorization');
       } 
-      // Handle plain object
+
       else if (typeof options.headers === 'object') {
         authHeader = options.headers['Authorization'] || options.headers.Authorization;
       }
@@ -1195,10 +1309,10 @@ function installAuthTokenInterceptorsFallback() {
       }
     }
     
-    // Also check response headers for token hints (some APIs return tokens)
+
     const fetchPromise = originalFetch.apply(this, args);
     fetchPromise.then(response => {
-      // Check if response contains auth info
+
       const authHeader = response.headers.get('Authorization') || response.headers.get('X-Auth-Token');
       if (authHeader && authHeader.startsWith('Bearer ')) {
         const newToken = authHeader.replace('Bearer ', '').trim();
@@ -1211,7 +1325,7 @@ function installAuthTokenInterceptorsFallback() {
     return fetchPromise;
   };
   
-  // Intercept XMLHttpRequest
+
   const originalSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
   
   XMLHttpRequest.prototype.setRequestHeader = function(header, value) {
@@ -1223,15 +1337,13 @@ function installAuthTokenInterceptorsFallback() {
 }
 
 function captureAuthToken() {
-  // The fetch/XHR interceptors are normally already installed by
-  // early-auth-capture.js at document_start (before this script even runs).
-  // Only install them here as a fallback, in case that file somehow didn't run.
+
   if (!window.__kodlandAuthInterceptorsInstalled) {
     window.__kodlandAuthInterceptorsInstalled = true;
     installAuthTokenInterceptorsFallback();
   }
   
-  // Try to get token from localStorage/sessionStorage
+
   try {
     const keys = ['auth_token', 'token', 'access_token', 'bearer_token', 'jwt_token', 'api_token', 'accessToken', 'authToken'];
     for (const key of keys) {
@@ -1242,27 +1354,27 @@ function captureAuthToken() {
       }
     }
     
-    // Also try to get all localStorage/sessionStorage keys and search for token-like values
+
     if (!authToken) {
       try {
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
           const value = localStorage.getItem(key);
           if (value && value.length > 50 && /^[A-Za-z0-9\-._~+/]+=*$/.test(value)) {
-            // Looks like a JWT or token
+
             authToken = value;
             break;
           }
         }
       } catch (e) {
-        // Ignore
+
       }
     }
   } catch (e) {
     console.warn('[Group Students Info] Could not access storage:', e);
   }
   
-  // Try to get token from cookies
+
   try {
     const cookies = document.cookie.split(';');
     for (const cookie of cookies) {
@@ -1277,12 +1389,12 @@ function captureAuthToken() {
     console.warn('[Group Students Info] Could not access cookies:', e);
   }
   
-  // Try to extract token from page scripts (some apps embed tokens)
+
   try {
     const scripts = document.querySelectorAll('script');
     for (const script of scripts) {
       const content = script.textContent || script.innerHTML;
-      // Look for common token patterns
+
       const tokenMatch = content.match(/(?:bearer|token|auth)[\s:=]+['"]([A-Za-z0-9\-._~+/]+=*)['"]/i);
       if (tokenMatch && tokenMatch[1]) {
         authToken = tokenMatch[1];
@@ -1293,11 +1405,11 @@ function captureAuthToken() {
     console.warn('[Group Students Info] Could not search scripts:', e);
   }
   
-  // Monitor network requests for a short time to capture token
+
   setTimeout(() => {
     if (!authToken) {
       console.warn('[Group Students Info] ⚠️ No token captured yet. Waiting for network requests...');
-      // Try one more time after a delay
+
       setTimeout(() => {
         if (!authToken) {
           console.error('[Group Students Info] ❌ No Bearer token found. API requests may fail with 401.');
@@ -1308,23 +1420,13 @@ function captureAuthToken() {
   }, 1000);
 }
 
-// ---------------------------------------------------------------------
-// Group general info (backoffice API)
-// ---------------------------------------------------------------------
-// GET /api/v2/student_groups/{id}/get_general_info_for_group_backoffice_page
-// One call gives us, among other things: chat_link (the WhatsApp group
-// invite link), group_miro_board_url, group_teacher.full_name,
-// predicted_end_date and course.title. We use it mainly to auto-detect the
-// WhatsApp link (so the tutor doesn't have to paste it manually), with an
-// in-memory cache so we don't hit the API more than needed per group.
 
-const GROUP_INFO_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
-const groupInfoCache = new Map(); // groupId -> { data, fetchedAt }
-const groupInfoInFlight = new Map(); // groupId -> Promise (dedupes concurrent calls)
 
-// Fetch (and cache) the general info blob for a group. Auto-saves chat_link
-// into the same localStorage key the manual "paste link" flow reads from,
-// so that flow becomes a fallback/correction tool instead of a requirement.
+const GROUP_INFO_CACHE_TTL_MS = 10 * 60 * 1000;
+const groupInfoCache = new Map();
+const groupInfoInFlight = new Map();
+
+
 async function fetchGroupGeneralInfo(groupId, { force = false, _retry = false } = {}) {
   if (!groupId) return null;
 
@@ -1353,9 +1455,7 @@ async function fetchGroupGeneralInfo(groupId, { force = false, _retry = false } 
 
       if (!response.ok) {
         console.warn(`[Group Info] HTTP ${response.status} fetching general info for group ${groupId}`);
-        // The very first call on page load can race the auth token capture
-        // (it only fills in once some other authenticated request fires).
-        // Give it one retry a few seconds later before giving up.
+
         if (!_retry) {
           groupInfoInFlight.delete(groupId);
           await new Promise(resolve => setTimeout(resolve, 3000));
@@ -1371,7 +1471,7 @@ async function fetchGroupGeneralInfo(groupId, { force = false, _retry = false } 
         try {
           localStorage.setItem(`kodland_wa_group_link_${groupId}`, data.chat_link);
         } catch (e) {
-          // Ignore storage errors (e.g. private mode)
+
         }
       }
 
@@ -1388,15 +1488,13 @@ async function fetchGroupGeneralInfo(groupId, { force = false, _retry = false } 
   return requestPromise;
 }
 
-// Synchronous read of whatever's cached right now, without triggering a
-// fetch. Use fetchGroupGeneralInfo() first (it's cheap once cached).
+
 function getCachedGroupGeneralInfo(groupId) {
   const cached = groupInfoCache.get(groupId);
   return cached ? cached.data : null;
 }
 
-// Small convenience getters for other data the endpoint brings along for
-// free - ready to wire into templates/UI as needed.
+
 function getGroupMiroBoardUrl(groupId) {
   return getCachedGroupGeneralInfo(groupId)?.group_miro_board_url || null;
 }
@@ -1409,58 +1507,52 @@ function getGroupPredictedEndDate(groupId) {
   return getCachedGroupGeneralInfo(groupId)?.predicted_end_date || null;
 }
 
-// ---------------------------------------------------------------------
-// WhatsApp group link
-// ---------------------------------------------------------------------
-// Auto-detected via fetchGroupGeneralInfo() above (chat_link), which saves
-// it into the same localStorage key this reads from. The tutor can still
-// paste/correct it manually as a fallback if auto-detection ever fails.
 
-// Get the cached WhatsApp group link for the current group, if any
+
+
 function getGroupWhatsAppLink(groupIdOverride = null) {
   const groupId = groupIdOverride || extractGroupId();
   if (!groupId) return null;
   return localStorage.getItem(`kodland_wa_group_link_${groupId}`) || null;
 }
 
-// Function to check if we're on a group page
+
 function isGroupPage() {
   const url = window.location.href;
   return /https?:\/\/bo\.kodland\.org\/groups\/\d+/.test(url);
 }
 
-// Function to extract group ID from URL
+
 function extractGroupId() {
   const url = window.location.href;
   const match = url.match(/\/groups\/(\d+)/);
   return match ? match[1] : null;
 }
 
-// Function to extract student ID from a link element
+
 function extractStudentId(linkElement) {
   if (!linkElement) return null;
   
   const href = linkElement.getAttribute('href');
   if (!href) return null;
   
-  // Extract ID from /students/{id}
+
   const match = href.match(/\/students\/(\d+)/);
   return match ? match[1] : null;
 }
 
-// Function to find all student elements in the column
+
 function findStudentElements() {
-  // Look for elements with the structure: <a href="/students/{id}">
-  // These are inside <div class="d-flex flex-column actions">
+
   const studentLinks = [];
   
-  // Strategy 1: Find all links that match the pattern
+
   const allLinks = document.querySelectorAll('a[href^="/students/"]');
   
   for (const link of allLinks) {
     const studentId = extractStudentId(link);
     if (studentId) {
-      // Find the parent container with class "actions"
+
       const container = link.closest('.d-flex.flex-column.actions') || 
                        link.closest('[class*="actions"]') ||
                        link.parentElement;
@@ -1481,23 +1573,23 @@ function findStudentElements() {
   return studentLinks;
 }
 
-// Function to fetch student information from API
+
 async function fetchStudentInfo(studentId) {
   const apiUrl = `https://backoffice.kodland.org/api/v2/students/${studentId}/get_general_info_for_student_backoffice_page/`;
   
   try {
     
-    // Prepare headers
+
     const headers = {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
     };
     
-    // Add Bearer token if available
+
     if (authToken) {
       headers['Authorization'] = `Bearer ${authToken}`;
     } else {
-      // Try to capture token one more time by waiting a bit
+
       await new Promise(resolve => setTimeout(resolve, 1000));
       if (authToken) {
         headers['Authorization'] = `Bearer ${authToken}`;
@@ -1509,7 +1601,7 @@ async function fetchStudentInfo(studentId) {
     
     const response = await fetch(apiUrl, {
       method: 'GET',
-      credentials: 'include', // Include cookies for authentication
+      credentials: 'include',
       headers: headers
     });
     
@@ -1533,19 +1625,19 @@ async function fetchStudentInfo(studentId) {
   }
 }
 
-// Function to fetch homework modules progress for a student
+
 async function fetchHomeworkModulesProgress(studentId, groupId) {
   const apiUrl = `https://backoffice.kodland.org/api/v2/students/${studentId}/group/${groupId}/get_progress_for_homework_modules/`;
   
   try {
     
-    // Prepare headers
+
     const headers = {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
     };
     
-    // Add Bearer token if available
+
     if (authToken) {
       headers['Authorization'] = `Bearer ${authToken}`;
     } else {
@@ -1584,7 +1676,7 @@ async function fetchHomeworkModulesProgress(studentId, groupId) {
   }
 }
 
-// Function to get completed lessons count from the page
+
 function getCompletedLessonsCount() {
   const xpath = '//*[@id="app"]/div/div/div/div/div[2]/main/div/div[1]/div[1]/div[2]/div[2]/div[2]/div/div/div[6]/div/div/span/span';
   
@@ -1602,7 +1694,7 @@ function getCompletedLessonsCount() {
       const text = element.textContent?.trim() || element.innerText?.trim() || '';
       console.log(`[getCompletedLessonsCount] ✅ Found element with text: "${text}"`);
       
-      // Extract format like "7/14" where 7 is completed and 14 is total
+
       const match = text.match(/(\d+)\/(\d+)/);
       if (match) {
         const completed = parseInt(match[1], 10);
@@ -1619,14 +1711,14 @@ function getCompletedLessonsCount() {
     console.error('[getCompletedLessonsCount] ❌ Error finding element:', error);
   }
   
-  // Fallback: return null if not found
+
   console.warn('[getCompletedLessonsCount] ❌ Could not find completed lessons count - returning null');
   return null;
 }
 
-// Function to extract lesson IDs from modules progress data
+
 function extractLessonIds(modulesData, maxLessons = null) {
-  // Preserve discovery order (as returned by the API) while deduping
+
   const lessonIds = [];
   const seen = new Set();
   
@@ -1635,7 +1727,7 @@ function extractLessonIds(modulesData, maxLessons = null) {
     return [];
   }
   
-  // Try to find lesson IDs in different possible structures
+
   function addLessonId(id, path) {
     if (id === undefined || id === null) return;
     const key = String(id);
@@ -1649,12 +1741,12 @@ function extractLessonIds(modulesData, maxLessons = null) {
   function extractFromObject(obj, path = '') {
     if (!obj || typeof obj !== 'object') return;
     
-    // Check if this object has a lesson_id or id field
+
     if (obj.hasOwnProperty('lesson_id')) addLessonId(obj.lesson_id, path);
     if (obj.hasOwnProperty('lessonId')) addLessonId(obj.lessonId, path);
     if (obj.hasOwnProperty('id') && path.includes('lesson')) addLessonId(obj.id, path);
     
-    // Recursively search in nested objects and arrays
+
     for (const [key, value] of Object.entries(obj)) {
       const newPath = path ? `${path}.${key}` : key;
       if (Array.isArray(value)) {
@@ -1672,7 +1764,7 @@ function extractLessonIds(modulesData, maxLessons = null) {
   let lessonIdsArray = lessonIds;
   console.log(`[extractLessonIds] Found ${lessonIdsArray.length} total lesson IDs before limiting (order preserved)`);
   
-  // Limit to completed lessons if maxLessons is specified
+
   if (maxLessons !== null && maxLessons > 0) {
     if (lessonIdsArray.length > maxLessons) {
       const originalLength = lessonIdsArray.length;
@@ -1689,7 +1781,7 @@ function extractLessonIds(modulesData, maxLessons = null) {
   return lessonIdsArray;
 }
 
-// Function to fetch class tasks progress for a lesson
+
 async function fetchClassTasksProgress(studentId, lessonId) {
   const apiUrl = `https://backoffice.kodland.org/api/v2/students/${studentId}/lesson/${lessonId}/get_progress_for_class_tasks/`;
   
@@ -1729,7 +1821,7 @@ async function fetchClassTasksProgress(studentId, lessonId) {
   }
 }
 
-// Function to fetch homework tasks progress for a lesson
+
 async function fetchHomeworkTasksProgress(studentId, lessonId) {
   const apiUrl = `https://backoffice.kodland.org/api/v2/students/${studentId}/lesson/${lessonId}/get_progress_for_homework_tasks/`;
   
@@ -1769,11 +1861,11 @@ async function fetchHomeworkTasksProgress(studentId, lessonId) {
   }
 }
 
-// Function to organize tasks data by modules and lessons
+
 function organizeTasksByModules(modulesData, tasksData) {
   const organized = {};
   
-  // First, try to organize by modules from modulesData
+
   if (Array.isArray(modulesData)) {
     modulesData.forEach((module, moduleIndex) => {
       const moduleName = module.name || module.title || module.module_name || `Module ${moduleIndex + 1}`;
@@ -1787,7 +1879,7 @@ function organizeTasksByModules(modulesData, tasksData) {
         };
       }
       
-      // Extract lessons from module
+
       if (module.lessons && Array.isArray(module.lessons)) {
         module.lessons.forEach((lesson, lessonIndex) => {
           const lessonId = lesson.id || lesson.lesson_id || tasksData[lessonIndex]?.lessonId;
@@ -1804,7 +1896,7 @@ function organizeTasksByModules(modulesData, tasksData) {
       }
     });
   } else if (typeof modulesData === 'object' && modulesData !== null) {
-    // If modulesData is an object, try to extract modules
+
     const modulesArray = modulesData.modules || modulesData.data || [modulesData];
     modulesArray.forEach((module, moduleIndex) => {
       const moduleName = module.name || module.title || module.module_name || `Module ${moduleIndex + 1}`;
@@ -1820,7 +1912,7 @@ function organizeTasksByModules(modulesData, tasksData) {
     });
   }
   
-  // If no modules found, organize by lessons directly
+
   if (Object.keys(organized).length === 0) {
     organized['default'] = {
       id: 'default',
@@ -1833,9 +1925,9 @@ function organizeTasksByModules(modulesData, tasksData) {
       }))
     };
   } else {
-    // Map tasks to lessons in modules
+
     tasksData.forEach(taskData => {
-      // Try to find which module this lesson belongs to
+
       let found = false;
       for (const moduleId in organized) {
         const module = organized[moduleId];
@@ -1848,7 +1940,7 @@ function organizeTasksByModules(modulesData, tasksData) {
         }
       }
       
-      // If not found in any module, add to first module or create default
+
       if (!found) {
         const firstModuleId = Object.keys(organized)[0];
         organized[firstModuleId].lessons.push({
@@ -1864,7 +1956,7 @@ function organizeTasksByModules(modulesData, tasksData) {
   return organized;
 }
 
-// Function to calculate task percentages
+
 function calculateTaskPercentages(organizedData) {
   let totalHomework = 0;
   let submittedHomework = 0;
@@ -1873,7 +1965,7 @@ function calculateTaskPercentages(organizedData) {
   
   Object.values(organizedData).forEach(module => {
     module.lessons.forEach(lesson => {
-      // Count homework tasks
+
       if (lesson.homeworkTasks) {
         let homeworkTasks = [];
         if (Array.isArray(lesson.homeworkTasks)) {
@@ -1891,7 +1983,7 @@ function calculateTaskPercentages(organizedData) {
         });
       }
       
-      // Count class tasks
+
       if (lesson.classTasks) {
         let classTasks = [];
         if (Array.isArray(lesson.classTasks)) {
@@ -1924,7 +2016,7 @@ function calculateTaskPercentages(organizedData) {
   };
 }
 
-// Function to generate weekly summary message
+
 function generateWeeklySummaryMessage(studentName, lessonsCompleted, percentages, language = getMessageLanguage()) {
   const { homeworkPercentage, classPercentage } = percentages;
 
@@ -2005,7 +2097,7 @@ function generateWeeklySummaryMessage(studentName, lessonsCompleted, percentages
   
   let message = `${msg.greeting}\n\n${msg.intro}\n\n`;
   
-  // Determine message based on percentages
+
   if (homeworkPercentage === 100 && classPercentage === 100) {
     message += msg.allCompleted;
   } else if (homeworkPercentage < 50 || classPercentage < 50) {
@@ -2017,15 +2109,15 @@ function generateWeeklySummaryMessage(studentName, lessonsCompleted, percentages
   return message;
 }
 
-// Function to create and show tasks modal
+
 function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
-  // Remove existing modal if any
+
   const existingModal = document.getElementById('kodland-tasks-modal');
   if (existingModal) {
     existingModal.remove();
   }
   
-  // Detect language and path for links
+
   const detectedLang = getMessageLanguage();
   const langUrlMap = {
     'es': 'es',
@@ -2040,23 +2132,23 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
   };
   const langPath = langUrlMap[detectedLang] || 'es';
 
-  // Organize data by modules
+
   const organizedData = organizeTasksByModules(modulesData, tasksData);
   
-  // Get student name
+
   const studentName = document.querySelector(`a[href="/students/${studentId}"] h3`)?.textContent?.trim() || uiText('studentWithId', studentId);
 
-  // Create modal
+
   const modal = document.createElement('div');
   modal.id = 'kodland-tasks-modal';
   modal.className = 'kodland-modal';
   applyLanguageDirection(modal, detectedLang);
 
-  // Create modal content
+
   const modalContent = document.createElement('div');
   modalContent.className = 'kodland-modal-content';
   
-  // Localized labels
+
   const labels = {
     title: {
       es: 'Progreso de tareas',
@@ -2080,15 +2172,15 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
   };
   const t = (group, key) => (labels[group]?.[key]?.[detectedLang]) || labels[group]?.[key]?.['es'] || key;
 
-  // Calculate task percentages
+
   const percentages = calculateTaskPercentages(organizedData);
   
-  // Get lessons completed count
+
   const lessonsCompleted = Object.values(organizedData).reduce((total, module) => {
     return total + module.lessons.length;
   }, 0);
   
-  // Modal header
+
   const header = document.createElement('div');
   header.className = 'kodland-modal-header';
   header.innerHTML = `
@@ -2100,7 +2192,7 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
     </div>
   `;
   
-  // Create filter bar
+
   const filterBar = document.createElement('div');
   filterBar.className = 'kodland-filter-bar';
   filterBar.innerHTML = `
@@ -2126,11 +2218,11 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
     </button>
   `;
   
-  // Modal body
+
   const body = document.createElement('div');
   body.className = 'kodland-modal-body';
   
-  // Helper function to count tasks by status
+
   function countTasksByStatus(tasksData) {
     const counts = {
       all: 0,
@@ -2160,7 +2252,7 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
       });
     }
     
-    // Count in all lessons
+
     Object.values(organizedData).forEach(module => {
       module.lessons.forEach(lesson => {
         countInData(lesson.classTasks);
@@ -2171,18 +2263,18 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
     return counts;
   }
   
-  // Count tasks and update filter counts
+
   const taskCounts = countTasksByStatus(tasksData);
-  // Note: counts live inside filterBar, so query within filterBar to avoid null
+
   filterBar.querySelector('#count-all').textContent = taskCounts.all;
   filterBar.querySelector('#count-submitted').textContent = taskCounts.TASK_SUBMITTED;
   filterBar.querySelector('#count-checked').textContent = taskCounts.TASK_CHECKED;
   filterBar.querySelector('#count-not-submitted').textContent = taskCounts.TASK_NOT_SUBMITTED;
   filterBar.querySelector('#count-submitted-late').textContent = taskCounts.TASK_SUBMITTED_LATE;
   
-  // Helper function to check if tasks match filter
+
   function hasMatchingTasks(tasksData, filterStatus) {
-    if (!filterStatus) return true; // Show all if no filter
+    if (!filterStatus) return true;
     
     if (!tasksData) return false;
     
@@ -2199,20 +2291,20 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
     });
   }
   
-  // Function to render content with filter
+
   function renderContent(filterStatus = null) {
-    body.innerHTML = ''; // Clear body
+    body.innerHTML = '';
     
     Object.values(organizedData).forEach((module, moduleIndex) => {
       const lessonsContainer = document.createElement('div');
       lessonsContainer.className = 'kodland-lessons-container';
       
       module.lessons.forEach((lesson, lessonIndex) => {
-        // Check if this lesson has matching tasks
+
         const hasClassTasks = hasMatchingTasks(lesson.classTasks, filterStatus);
         const hasHomeworkTasks = hasMatchingTasks(lesson.homeworkTasks, filterStatus);
         
-        // Skip lesson if no matching tasks
+
         if (!hasClassTasks && !hasHomeworkTasks && filterStatus !== null) {
           return;
         }
@@ -2225,7 +2317,7 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
         lessonHeader.textContent = uiTextForLanguage('lessonCardHeader', detectedLang, lessonIndex + 1, lesson.id);
         lessonCard.appendChild(lessonHeader);
 
-        // Class tasks section
+
         if (lesson.classTasks && hasClassTasks) {
           const classTasksSection = document.createElement('div');
           classTasksSection.className = 'kodland-tasks-section kodland-class-tasks';
@@ -2236,7 +2328,7 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
           lessonCard.appendChild(classTasksSection);
         }
 
-        // Homework tasks section
+
         if (lesson.homeworkTasks && hasHomeworkTasks) {
           const homeworkTasksSection = document.createElement('div');
           homeworkTasksSection.className = 'kodland-tasks-section kodland-homework-tasks';
@@ -2254,7 +2346,7 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
         lessonsContainer.appendChild(lessonCard);
       });
       
-      // Only add module section if it has visible lessons
+
       if (lessonsContainer.children.length > 0) {
         const moduleSection = document.createElement('div');
         moduleSection.className = 'kodland-module-section';
@@ -2264,13 +2356,13 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
       }
     });
     
-    // Show message if no tasks match filter
+
     if (body.children.length === 0 && filterStatus !== null) {
       body.innerHTML = `<p class="kodland-no-tasks" style="text-align: center; padding: 40px; font-size: 16px;">${escapeHtml(uiTextForLanguage('noTasksMatchFilter', detectedLang))}</p>`;
     }
   }
   
-  // Initial render with no filter
+
   renderContent(null);
   
   modalContent.appendChild(header);
@@ -2278,32 +2370,32 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
   modalContent.appendChild(body);
   modal.appendChild(modalContent);
   
-  // Add to document
+
   document.body.appendChild(modal);
   
-  // Filter button handlers
+
   const filterButtons = filterBar.querySelectorAll('.kodland-filter-btn');
   filterButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-      // Update active state
+
       filterButtons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       
-      // Get filter value
+
       const filterValue = btn.getAttribute('data-filter');
       const filterStatus = filterValue === 'all' ? null : filterValue;
       
-      // Re-render content with filter
+
       renderContent(filterStatus);
     });
   });
 
-  // Weekly summary button handler
+
   const weeklySummaryBtn = header.querySelector('.kodland-weekly-summary-btn');
   if (weeklySummaryBtn) {
     weeklySummaryBtn.addEventListener('click', async () => {
       try {
-        // Alert messages by language
+
         const alertMessages = {
           es: {
             noStudentData: 'No se pudo obtener la información del estudiante',
@@ -2359,7 +2451,7 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
         
         const alerts = alertMessages[detectedLang] || alertMessages.es;
         
-        // Fetch student data to get parent phone
+
         const studentData = await fetchStudentInfo(studentId);
         if (!studentData) {
           alert(alerts.noStudentData);
@@ -2377,17 +2469,17 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
           return;
         }
         
-        // Generate message
+
         const message = generateWeeklySummaryMessage(studentName, lessonsCompleted, percentages, detectedLang);
         
-        // Format phone for WhatsApp
+
         const formattedPhone = formatPhoneForWhatsApp(parentPhone);
         const phoneForUrl = formattedPhone.replace(/^\+/, '');
         
-        // Encode message for WhatsApp URL
+
         const encodedMessage = encodeMessageForWhatsApp(message);
         
-        // Open WhatsApp
+
         const whatsappUrl = `https://api.whatsapp.com/send?phone=${phoneForUrl}&text=${encodedMessage}`;
         window.open(whatsappUrl, '_blank');
         
@@ -2411,7 +2503,7 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
     });
   }
   
-  // Refresh button handler
+
   const refreshBtn = header.querySelector('.kodland-refresh-btn');
   if (refreshBtn) {
     refreshBtn.addEventListener('click', async () => {
@@ -2429,20 +2521,20 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
     });
   }
   
-  // Close button handler
+
   const closeBtn = modal.querySelector('.kodland-modal-close');
   closeBtn.addEventListener('click', () => {
     modal.remove();
   });
   
-  // Close on backdrop click
+
   modal.addEventListener('click', (e) => {
     if (e.target === modal) {
       modal.remove();
     }
   });
   
-  // Close on Escape key
+
   const escapeHandler = (e) => {
     if (e.key === 'Escape' && document.getElementById('kodland-tasks-modal')) {
       modal.remove();
@@ -2454,7 +2546,7 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
   console.log('[Group Students Info] ✅ Modal displayed');
 }
 
-// Function to render tasks list
+
 function renderTasksList(tasksData, filterStatus = null, studentId = null, langPath = 'es') {
   const list = document.createElement('div');
   list.className = 'kodland-tasks-list';
@@ -2464,7 +2556,7 @@ function renderTasksList(tasksData, filterStatus = null, studentId = null, langP
     return list;
   }
 
-  // Extract tasks array
+
   let tasks = [];
   if (Array.isArray(tasksData)) {
     tasks = tasksData;
@@ -2477,7 +2569,7 @@ function renderTasksList(tasksData, filterStatus = null, studentId = null, langP
     return list;
   }
 
-  // Filter tasks based on status
+
   let filteredTasks = tasks;
   if (filterStatus) {
     filteredTasks = tasks.filter(task => {
@@ -2491,18 +2583,18 @@ function renderTasksList(tasksData, filterStatus = null, studentId = null, langP
     return list;
   }
 
-  // Render filtered tasks
+
   filteredTasks.forEach((task) => {
     const taskItem = document.createElement('div');
     taskItem.className = 'kodland-task-item';
     taskItem.setAttribute('data-task-status', task.task_status_key || task.status_key || '');
 
-    // Use task_title as primary source, fallback to other fields
+
     const taskName = task.task_title || task.title || task.name || task.task_name || uiText('unnamedTask');
     const taskStatusKey = task.task_status_key || task.status_key || '';
     const taskStatusValue = task.task_status_value || task.status_value || task.status || uiText('unknownStatus');
     
-    // Determine status class based on task_status_key
+
     let statusClass = 'pending';
     let statusIcon = '○';
     
@@ -2523,14 +2615,14 @@ function renderTasksList(tasksData, filterStatus = null, studentId = null, langP
       statusIcon = 'ℹ';
     }
     
-    // Show grade if available
+
     let gradeInfo = '';
     if (task.task_max_grade && task.task_max_grade > 0) {
       const currentGrade = task.task_current_grade || 0;
       gradeInfo = ` <span class="kodland-task-grade">(${currentGrade}/${task.task_max_grade})</span>`;
     }
     
-    // Build task link if task_id and studentId are available
+
     let taskLinkHtml = '';
     if (task.task_id && studentId) {
       const taskUrl = `https://learn.kodland.org/${langPath}/task/${task.task_id}/check/${studentId}`;
@@ -2553,47 +2645,46 @@ function renderTasksList(tasksData, filterStatus = null, studentId = null, langP
   return list;
 }
 
-// Helper function to escape HTML
+
 function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
 }
 
-// Function to format phone number for WhatsApp
+
 function formatPhoneForWhatsApp(phone) {
   if (!phone) return null;
   
-  // Remove all non-digit characters except +
+
   let cleanPhone = phone.replace(/[^\d+]/g, '');
   
-  // Remove leading zeros
+
   cleanPhone = cleanPhone.replace(/^0+/, '');
   
-  // Ensure it starts with country code
+
   if (!cleanPhone.startsWith('+')) {
-    // If it doesn't start with +, assume it needs country code
-    // You might need to adjust this based on your country
+
     cleanPhone = '+' + cleanPhone;
   }
   
   return cleanPhone;
 }
 
-// Function to get country code from phone number
+
 function getCountryCodeFromPhone(phone) {
   if (!phone) {
     console.warn('[getCountryCodeFromPhone] No phone provided');
     return null;
   }
   
-  // Remove all non-digit characters except +
+
   let cleanPhone = String(phone).replace(/[^\d+]/g, '');
   console.log('[getCountryCodeFromPhone] Cleaned phone:', cleanPhone);
   
-  // If it doesn't start with +, try to add it
+
   if (!cleanPhone.startsWith('+')) {
-    // If it's all digits, assume it needs +
+
     if (/^\d+$/.test(cleanPhone)) {
       cleanPhone = '+' + cleanPhone;
       console.log('[getCountryCodeFromPhone] Added +, new phone:', cleanPhone);
@@ -2603,8 +2694,7 @@ function getCountryCodeFromPhone(phone) {
     }
   }
   
-  // Extract country code (1-3 digits after +)
-  // Try 3 digits first (for codes like 212, 213, etc.), then 2, then 1
+
   let match = cleanPhone.match(/^\+(\d{3})/);
   if (match) {
     const code = match[1];
@@ -2630,221 +2720,221 @@ function getCountryCodeFromPhone(phone) {
   return null;
 }
 
-// Function to get country initials from country code
+
 function getCountryInitialsFromPhone(phone) {
   const countryCode = getCountryCodeFromPhone(phone);
   if (!countryCode) return '';
   
-  // Map of country codes to country initials
+
   const countryInitialsMap = {
-    '1': 'US', // USA/Canada
-    '7': 'RU', // Russia/Kazakhstan
-    '20': 'EG', // Egypt
-    '27': 'ZA', // South Africa
-    '30': 'GR', // Greece
-    '31': 'NL', // Netherlands
-    '32': 'BE', // Belgium
-    '33': 'FR', // France
-    '34': 'ES', // Spain
-    '39': 'IT', // Italy
-    '40': 'RO', // Romania
-    '41': 'CH', // Switzerland
-    '43': 'AT', // Austria
-    '44': 'GB', // UK
-    '45': 'DK', // Denmark
-    '46': 'SE', // Sweden
-    '47': 'NO', // Norway
-    '48': 'PL', // Poland
-    '49': 'DE', // Germany
-    '51': 'PE', // Peru
-    '52': 'MX', // Mexico
-    '53': 'CU', // Cuba
-    '54': 'AR', // Argentina
-    '55': 'BR', // Brazil
-    '56': 'CL', // Chile
-    '57': 'CO', // Colombia
-    '58': 'VE', // Venezuela
-    '60': 'MY', // Malaysia
-    '61': 'AU', // Australia
-    '62': 'ID', // Indonesia
-    '63': 'PH', // Philippines
-    '64': 'NZ', // New Zealand
-    '65': 'SG', // Singapore
-    '66': 'TH', // Thailand
-    '81': 'JP', // Japan
-    '82': 'KR', // South Korea
-    '84': 'VN', // Vietnam
-    '86': 'CN', // China
-    '90': 'TR', // Turkey
-    '91': 'IN', // India
-    '92': 'PK', // Pakistan
-    '93': 'AF', // Afghanistan
-    '94': 'LK', // Sri Lanka
-    '95': 'MM', // Myanmar
-    '98': 'IR', // Iran
-    '212': 'MA', // Morocco
-    '213': 'DZ', // Algeria
-    '216': 'TN', // Tunisia
-    '218': 'LY', // Libya
-    '220': 'GM', // Gambia
-    '221': 'SN', // Senegal
-    '222': 'MR', // Mauritania
-    '223': 'ML', // Mali
-    '224': 'GN', // Guinea
-    '225': 'CI', // Ivory Coast
-    '226': 'BF', // Burkina Faso
-    '227': 'NE', // Niger
-    '228': 'TG', // Togo
-    '229': 'BJ', // Benin
-    '230': 'MU', // Mauritius
-    '231': 'LR', // Liberia
-    '232': 'SL', // Sierra Leone
-    '233': 'GH', // Ghana
-    '234': 'NG', // Nigeria
-    '235': 'TD', // Chad
-    '236': 'CF', // Central African Republic
-    '237': 'CM', // Cameroon
-    '238': 'CV', // Cape Verde
-    '239': 'ST', // São Tomé and Príncipe
-    '240': 'GQ', // Equatorial Guinea
-    '241': 'GA', // Gabon
-    '242': 'CG', // Republic of the Congo
-    '243': 'CD', // DR Congo
-    '244': 'AO', // Angola
-    '245': 'GW', // Guinea-Bissau
-    '246': 'IO', // British Indian Ocean Territory
-    '248': 'SC', // Seychelles
-    '249': 'SD', // Sudan
-    '250': 'RW', // Rwanda
-    '251': 'ET', // Ethiopia
-    '252': 'SO', // Somalia
-    '253': 'DJ', // Djibouti
-    '254': 'KE', // Kenya
-    '255': 'TZ', // Tanzania
-    '256': 'UG', // Uganda
-    '257': 'BI', // Burundi
-    '258': 'MZ', // Mozambique
-    '260': 'ZM', // Zambia
-    '261': 'MG', // Madagascar
-    '262': 'RE', // Réunion
-    '263': 'ZW', // Zimbabwe
-    '264': 'NA', // Namibia
-    '265': 'MW', // Malawi
-    '266': 'LS', // Lesotho
-    '267': 'BW', // Botswana
-    '268': 'SZ', // Eswatini
-    '269': 'KM', // Comoros
-    '290': 'SH', // Saint Helena
-    '291': 'ER', // Eritrea
-    '297': 'AW', // Aruba
-    '298': 'FO', // Faroe Islands
-    '299': 'GL', // Greenland
-    '350': 'GI', // Gibraltar
-    '351': 'PT', // Portugal
-    '352': 'LU', // Luxembourg
-    '353': 'IE', // Ireland
-    '354': 'IS', // Iceland
-    '355': 'AL', // Albania
-    '356': 'MT', // Malta
-    '357': 'CY', // Cyprus
-    '358': 'FI', // Finland
-    '359': 'BG', // Bulgaria
-    '360': 'HU', // Hungary
-    '370': 'LT', // Lithuania
-    '371': 'LV', // Latvia
-    '372': 'EE', // Estonia
-    '373': 'MD', // Moldova
-    '374': 'AM', // Armenia
-    '375': 'BY', // Belarus
-    '376': 'AD', // Andorra
-    '377': 'MC', // Monaco
-    '378': 'SM', // San Marino
-    '380': 'UA', // Ukraine
-    '381': 'RS', // Serbia
-    '382': 'ME', // Montenegro
-    '383': 'XK', // Kosovo
-    '385': 'HR', // Croatia
-    '386': 'SI', // Slovenia
-    '387': 'BA', // Bosnia and Herzegovina
-    '389': 'MK', // North Macedonia
-    '420': 'CZ', // Czech Republic
-    '421': 'SK', // Slovakia
-    '423': 'LI', // Liechtenstein
-    '500': 'FK', // Falkland Islands
-    '501': 'BZ', // Belize
-    '502': 'GT', // Guatemala
-    '503': 'SV', // El Salvador
-    '504': 'HN', // Honduras
-    '505': 'NI', // Nicaragua
-    '506': 'CR', // Costa Rica
-    '507': 'PA', // Panama
-    '509': 'HT', // Haiti
-    '590': 'GP', // Guadeloupe
-    '591': 'BO', // Bolivia
-    '592': 'GY', // Guyana
-    '593': 'EC', // Ecuador
-    '594': 'GF', // French Guiana
-    '595': 'PY', // Paraguay
-    '596': 'MQ', // Martinique
-    '597': 'SR', // Suriname
-    '598': 'UY', // Uruguay
-    '670': 'TL', // East Timor
-    '672': 'AQ', // Antarctica
-    '673': 'BN', // Brunei
-    '674': 'NR', // Nauru
-    '675': 'PG', // Papua New Guinea
-    '676': 'TO', // Tonga
-    '677': 'SB', // Solomon Islands
-    '678': 'VU', // Vanuatu
-    '679': 'FJ', // Fiji
-    '680': 'PW', // Palau
-    '681': 'WF', // Wallis and Futuna
-    '682': 'CK', // Cook Islands
-    '683': 'NU', // Niue
-    '684': 'AS', // American Samoa
-    '685': 'WS', // Samoa
-    '686': 'KI', // Kiribati
-    '687': 'NC', // New Caledonia
-    '688': 'TV', // Tuvalu
-    '689': 'PF', // French Polynesia
-    '690': 'TK', // Tokelau
-    '691': 'FM', // Micronesia
-    '692': 'MH', // Marshall Islands
-    '850': 'KP', // North Korea
-    '852': 'HK', // Hong Kong
-    '853': 'MO', // Macau
-    '855': 'KH', // Cambodia
-    '856': 'LA', // Laos
-    '880': 'BD', // Bangladesh
-    '886': 'TW', // Taiwan
-    '960': 'MV', // Maldives
-    '961': 'LB', // Lebanon
-    '962': 'JO', // Jordan
-    '963': 'SY', // Syria
-    '964': 'IQ', // Iraq
-    '965': 'KW', // Kuwait
-    '966': 'SA', // Saudi Arabia
-    '967': 'YE', // Yemen
-    '968': 'OM', // Oman
-    '970': 'PS', // Palestine
-    '971': 'AE', // UAE
-    '972': 'IL', // Israel
-    '973': 'BH', // Bahrain
-    '974': 'QA', // Qatar
-    '975': 'BT', // Bhutan
-    '976': 'MN', // Mongolia
-    '977': 'NP', // Nepal
-    '992': 'TJ', // Tajikistan
-    '993': 'TM', // Turkmenistan
-    '994': 'AZ', // Azerbaijan
-    '995': 'GE', // Georgia
-    '996': 'KG', // Kyrgyzstan
-    '998': 'UZ'  // Uzbekistan
+    '1': 'US',
+    '7': 'RU',
+    '20': 'EG',
+    '27': 'ZA',
+    '30': 'GR',
+    '31': 'NL',
+    '32': 'BE',
+    '33': 'FR',
+    '34': 'ES',
+    '39': 'IT',
+    '40': 'RO',
+    '41': 'CH',
+    '43': 'AT',
+    '44': 'GB',
+    '45': 'DK',
+    '46': 'SE',
+    '47': 'NO',
+    '48': 'PL',
+    '49': 'DE',
+    '51': 'PE',
+    '52': 'MX',
+    '53': 'CU',
+    '54': 'AR',
+    '55': 'BR',
+    '56': 'CL',
+    '57': 'CO',
+    '58': 'VE',
+    '60': 'MY',
+    '61': 'AU',
+    '62': 'ID',
+    '63': 'PH',
+    '64': 'NZ',
+    '65': 'SG',
+    '66': 'TH',
+    '81': 'JP',
+    '82': 'KR',
+    '84': 'VN',
+    '86': 'CN',
+    '90': 'TR',
+    '91': 'IN',
+    '92': 'PK',
+    '93': 'AF',
+    '94': 'LK',
+    '95': 'MM',
+    '98': 'IR',
+    '212': 'MA',
+    '213': 'DZ',
+    '216': 'TN',
+    '218': 'LY',
+    '220': 'GM',
+    '221': 'SN',
+    '222': 'MR',
+    '223': 'ML',
+    '224': 'GN',
+    '225': 'CI',
+    '226': 'BF',
+    '227': 'NE',
+    '228': 'TG',
+    '229': 'BJ',
+    '230': 'MU',
+    '231': 'LR',
+    '232': 'SL',
+    '233': 'GH',
+    '234': 'NG',
+    '235': 'TD',
+    '236': 'CF',
+    '237': 'CM',
+    '238': 'CV',
+    '239': 'ST',
+    '240': 'GQ',
+    '241': 'GA',
+    '242': 'CG',
+    '243': 'CD',
+    '244': 'AO',
+    '245': 'GW',
+    '246': 'IO',
+    '248': 'SC',
+    '249': 'SD',
+    '250': 'RW',
+    '251': 'ET',
+    '252': 'SO',
+    '253': 'DJ',
+    '254': 'KE',
+    '255': 'TZ',
+    '256': 'UG',
+    '257': 'BI',
+    '258': 'MZ',
+    '260': 'ZM',
+    '261': 'MG',
+    '262': 'RE',
+    '263': 'ZW',
+    '264': 'NA',
+    '265': 'MW',
+    '266': 'LS',
+    '267': 'BW',
+    '268': 'SZ',
+    '269': 'KM',
+    '290': 'SH',
+    '291': 'ER',
+    '297': 'AW',
+    '298': 'FO',
+    '299': 'GL',
+    '350': 'GI',
+    '351': 'PT',
+    '352': 'LU',
+    '353': 'IE',
+    '354': 'IS',
+    '355': 'AL',
+    '356': 'MT',
+    '357': 'CY',
+    '358': 'FI',
+    '359': 'BG',
+    '360': 'HU',
+    '370': 'LT',
+    '371': 'LV',
+    '372': 'EE',
+    '373': 'MD',
+    '374': 'AM',
+    '375': 'BY',
+    '376': 'AD',
+    '377': 'MC',
+    '378': 'SM',
+    '380': 'UA',
+    '381': 'RS',
+    '382': 'ME',
+    '383': 'XK',
+    '385': 'HR',
+    '386': 'SI',
+    '387': 'BA',
+    '389': 'MK',
+    '420': 'CZ',
+    '421': 'SK',
+    '423': 'LI',
+    '500': 'FK',
+    '501': 'BZ',
+    '502': 'GT',
+    '503': 'SV',
+    '504': 'HN',
+    '505': 'NI',
+    '506': 'CR',
+    '507': 'PA',
+    '509': 'HT',
+    '590': 'GP',
+    '591': 'BO',
+    '592': 'GY',
+    '593': 'EC',
+    '594': 'GF',
+    '595': 'PY',
+    '596': 'MQ',
+    '597': 'SR',
+    '598': 'UY',
+    '670': 'TL',
+    '672': 'AQ',
+    '673': 'BN',
+    '674': 'NR',
+    '675': 'PG',
+    '676': 'TO',
+    '677': 'SB',
+    '678': 'VU',
+    '679': 'FJ',
+    '680': 'PW',
+    '681': 'WF',
+    '682': 'CK',
+    '683': 'NU',
+    '684': 'AS',
+    '685': 'WS',
+    '686': 'KI',
+    '687': 'NC',
+    '688': 'TV',
+    '689': 'PF',
+    '690': 'TK',
+    '691': 'FM',
+    '692': 'MH',
+    '850': 'KP',
+    '852': 'HK',
+    '853': 'MO',
+    '855': 'KH',
+    '856': 'LA',
+    '880': 'BD',
+    '886': 'TW',
+    '960': 'MV',
+    '961': 'LB',
+    '962': 'JO',
+    '963': 'SY',
+    '964': 'IQ',
+    '965': 'KW',
+    '966': 'SA',
+    '967': 'YE',
+    '968': 'OM',
+    '970': 'PS',
+    '971': 'AE',
+    '972': 'IL',
+    '973': 'BH',
+    '974': 'QA',
+    '975': 'BT',
+    '976': 'MN',
+    '977': 'NP',
+    '992': 'TJ',
+    '993': 'TM',
+    '994': 'AZ',
+    '995': 'GE',
+    '996': 'KG',
+    '998': 'UZ'
   };
   
   console.log(`[getCountryInitialsFromPhone] Looking for country code: "${countryCode}" (type: ${typeof countryCode}, length: ${countryCode.length})`);
   
-  // Try exact match first (string key)
+
   const codeStr = String(countryCode);
   if (countryInitialsMap.hasOwnProperty(codeStr)) {
     const initials = countryInitialsMap[codeStr];
@@ -2852,7 +2942,7 @@ function getCountryInitialsFromPhone(phone) {
     return initials;
   }
   
-  // Try 3-digit match first
+
   if (codeStr.length === 3) {
     if (countryInitialsMap.hasOwnProperty(codeStr)) {
       const initials = countryInitialsMap[codeStr];
@@ -2861,7 +2951,7 @@ function getCountryInitialsFromPhone(phone) {
     }
   }
   
-  // Try 2-digit match
+
   if (codeStr.length >= 2) {
     const twoDigit = codeStr.substring(0, 2);
     if (countryInitialsMap.hasOwnProperty(twoDigit)) {
@@ -2871,7 +2961,7 @@ function getCountryInitialsFromPhone(phone) {
     }
   }
   
-  // Try 1-digit match
+
   if (codeStr.length >= 1) {
     const oneDigit = codeStr.substring(0, 1);
     if (countryInitialsMap.hasOwnProperty(oneDigit)) {
@@ -2885,223 +2975,222 @@ function getCountryInitialsFromPhone(phone) {
   return '';
 }
 
-// Function to get country flag emoji from country code (kept for reference but not used)
+
 function getCountryFlagFromPhone(phone) {
   const countryCode = getCountryCodeFromPhone(phone);
   if (!countryCode) return '';
   
-  // Map of country codes to flag emojis
-  // Using Unicode Regional Indicator Symbols for flags
+
   const countryCodeMap = {
-    '1': '🇺🇸', // USA/Canada
-    '7': '🇷🇺', // Russia/Kazakhstan
-    '20': '🇪🇬', // Egypt
-    '27': '🇿🇦', // South Africa
-    '30': '🇬🇷', // Greece
-    '31': '🇳🇱', // Netherlands
-    '32': '🇧🇪', // Belgium
-    '33': '🇫🇷', // France
-    '34': '🇪🇸', // Spain
-    '39': '🇮🇹', // Italy
-    '40': '🇷🇴', // Romania
-    '41': '🇨🇭', // Switzerland
-    '43': '🇦🇹', // Austria
-    '44': '🇬🇧', // UK
-    '45': '🇩🇰', // Denmark
-    '46': '🇸🇪', // Sweden
-    '47': '🇳🇴', // Norway
-    '48': '🇵🇱', // Poland
-    '49': '🇩🇪', // Germany
-    '51': '🇵🇪', // Peru
-    '52': '🇲🇽', // Mexico
-    '53': '🇨🇺', // Cuba
-    '54': '🇦🇷', // Argentina
-    '55': '🇧🇷', // Brazil
-    '56': '🇨🇱', // Chile
-    '57': '🇨🇴', // Colombia
-    '58': '🇻🇪', // Venezuela
-    '60': '🇲🇾', // Malaysia
-    '61': '🇦🇺', // Australia
-    '62': '🇮🇩', // Indonesia
-    '63': '🇵🇭', // Philippines
-    '64': '🇳🇿', // New Zealand
-    '65': '🇸🇬', // Singapore
-    '66': '🇹🇭', // Thailand
-    '81': '🇯🇵', // Japan
-    '82': '🇰🇷', // South Korea
-    '84': '🇻🇳', // Vietnam
-    '86': '🇨🇳', // China
-    '90': '🇹🇷', // Turkey
-    '91': '🇮🇳', // India
-    '92': '🇵🇰', // Pakistan
-    '93': '🇦🇫', // Afghanistan
-    '94': '🇱🇰', // Sri Lanka
-    '95': '🇲🇲', // Myanmar
-    '98': '🇮🇷', // Iran
-    '212': '🇲🇦', // Morocco
-    '213': '🇩🇿', // Algeria
-    '216': '🇹🇳', // Tunisia
-    '218': '🇱🇾', // Libya
-    '220': '🇬🇲', // Gambia
-    '221': '🇸🇳', // Senegal
-    '222': '🇲🇷', // Mauritania
-    '223': '🇲🇱', // Mali
-    '224': '🇬🇳', // Guinea
-    '225': '🇨🇮', // Ivory Coast
-    '226': '🇧🇫', // Burkina Faso
-    '227': '🇳🇪', // Niger
-    '228': '🇹🇬', // Togo
-    '229': '🇧🇯', // Benin
-    '230': '🇲🇺', // Mauritius
-    '231': '🇱🇷', // Liberia
-    '232': '🇸🇱', // Sierra Leone
-    '233': '🇬🇭', // Ghana
-    '234': '🇳🇬', // Nigeria
-    '235': '🇹🇩', // Chad
-    '236': '🇨🇫', // Central African Republic
-    '237': '🇨🇲', // Cameroon
-    '238': '🇨🇻', // Cape Verde
-    '239': '🇸🇹', // São Tomé and Príncipe
-    '240': '🇬🇶', // Equatorial Guinea
-    '241': '🇬🇦', // Gabon
-    '242': '🇨🇬', // Republic of the Congo
-    '243': '🇨🇩', // DR Congo
-    '244': '🇦🇴', // Angola
-    '245': '🇬🇼', // Guinea-Bissau
-    '246': '🇮🇴', // British Indian Ocean Territory
-    '248': '🇸🇨', // Seychelles
-    '249': '🇸🇩', // Sudan
-    '250': '🇷🇼', // Rwanda
-    '251': '🇪🇹', // Ethiopia
-    '252': '🇸🇴', // Somalia
-    '253': '🇩🇯', // Djibouti
-    '254': '🇰🇪', // Kenya
-    '255': '🇹🇿', // Tanzania
-    '256': '🇺🇬', // Uganda
-    '257': '🇧🇮', // Burundi
-    '258': '🇲🇿', // Mozambique
-    '260': '🇿🇲', // Zambia
-    '261': '🇲🇬', // Madagascar
-    '262': '🇷🇪', // Réunion
-    '263': '🇿🇼', // Zimbabwe
-    '264': '🇳🇦', // Namibia
-    '265': '🇲🇼', // Malawi
-    '266': '🇱🇸', // Lesotho
-    '267': '🇧🇼', // Botswana
-    '268': '🇸🇿', // Eswatini
-    '269': '🇰🇲', // Comoros
-    '290': '🇸🇭', // Saint Helena
-    '291': '🇪🇷', // Eritrea
-    '297': '🇦🇼', // Aruba
-    '298': '🇫🇴', // Faroe Islands
-    '299': '🇬🇱', // Greenland
-    '350': '🇬🇮', // Gibraltar
-    '351': '🇵🇹', // Portugal
-    '352': '🇱🇺', // Luxembourg
-    '353': '🇮🇪', // Ireland
-    '354': '🇮🇸', // Iceland
-    '355': '🇦🇱', // Albania
-    '356': '🇲🇹', // Malta
-    '357': '🇨🇾', // Cyprus
-    '358': '🇫🇮', // Finland
-    '359': '🇧🇬', // Bulgaria
-    '360': '🇭🇺', // Hungary
-    '370': '🇱🇹', // Lithuania
-    '371': '🇱🇻', // Latvia
-    '372': '🇪🇪', // Estonia
-    '373': '🇲🇩', // Moldova
-    '374': '🇦🇲', // Armenia
-    '375': '🇧🇾', // Belarus
-    '376': '🇦🇩', // Andorra
-    '377': '🇲🇨', // Monaco
-    '378': '🇸🇲', // San Marino
-    '380': '🇺🇦', // Ukraine
-    '381': '🇷🇸', // Serbia
-    '382': '🇲🇪', // Montenegro
-    '383': '🇽🇰', // Kosovo
-    '385': '🇭🇷', // Croatia
-    '386': '🇸🇮', // Slovenia
-    '387': '🇧🇦', // Bosnia and Herzegovina
-    '389': '🇲🇰', // North Macedonia
-    '420': '🇨🇿', // Czech Republic
-    '421': '🇸🇰', // Slovakia
-    '423': '🇱🇮', // Liechtenstein
-    '500': '🇫🇰', // Falkland Islands
-    '501': '🇧🇿', // Belize
-    '502': '🇬🇹', // Guatemala
-    '503': '🇸🇻', // El Salvador
-    '504': '🇭🇳', // Honduras
-    '505': '🇳🇮', // Nicaragua
-    '506': '🇨🇷', // Costa Rica
-    '507': '🇵🇦', // Panama
-    '509': '🇭🇹', // Haiti
-    '590': '🇬🇵', // Guadeloupe
-    '591': '🇧🇴', // Bolivia
-    '592': '🇬🇾', // Guyana
-    '593': '🇪🇨', // Ecuador
-    '594': '🇬🇫', // French Guiana
-    '595': '🇵🇾', // Paraguay
-    '596': '🇲🇶', // Martinique
-    '597': '🇸🇷', // Suriname
-    '598': '🇺🇾', // Uruguay
-    '670': '🇹🇱', // East Timor
-    '672': '🇦🇶', // Antarctica
-    '673': '🇧🇳', // Brunei
-    '674': '🇳🇷', // Nauru
-    '675': '🇵🇬', // Papua New Guinea
-    '676': '🇹🇴', // Tonga
-    '677': '🇸🇧', // Solomon Islands
-    '678': '🇻🇺', // Vanuatu
-    '679': '🇫🇯', // Fiji
-    '680': '🇵🇼', // Palau
-    '681': '🇼🇫', // Wallis and Futuna
-    '682': '🇨🇰', // Cook Islands
-    '683': '🇳🇺', // Niue
-    '684': '🇦🇸', // American Samoa
-    '685': '🇼🇸', // Samoa
-    '686': '🇰🇮', // Kiribati
-    '687': '🇳🇨', // New Caledonia
-    '688': '🇹🇻', // Tuvalu
-    '689': '🇵🇫', // French Polynesia
-    '690': '🇹🇰', // Tokelau
-    '691': '🇫🇲', // Micronesia
-    '692': '🇲🇭', // Marshall Islands
-    '850': '🇰🇵', // North Korea
-    '852': '🇭🇰', // Hong Kong
-    '853': '🇲🇴', // Macau
-    '855': '🇰🇭', // Cambodia
-    '856': '🇱🇦', // Laos
-    '880': '🇧🇩', // Bangladesh
-    '886': '🇹🇼', // Taiwan
-    '960': '🇲🇻', // Maldives
-    '961': '🇱🇧', // Lebanon
-    '962': '🇯🇴', // Jordan
-    '963': '🇸🇾', // Syria
-    '964': '🇮🇶', // Iraq
-    '965': '🇰🇼', // Kuwait
-    '966': '🇸🇦', // Saudi Arabia
-    '967': '🇾🇪', // Yemen
-    '968': '🇴🇲', // Oman
-    '970': '🇵🇸', // Palestine
-    '971': '🇦🇪', // UAE
-    '972': '🇮🇱', // Israel
-    '973': '🇧🇭', // Bahrain
-    '974': '🇶🇦', // Qatar
-    '975': '🇧🇹', // Bhutan
-    '976': '🇲🇳', // Mongolia
-    '977': '🇳🇵', // Nepal
-    '992': '🇹🇯', // Tajikistan
-    '993': '🇹🇲', // Turkmenistan
-    '994': '🇦🇿', // Azerbaijan
-    '995': '🇬🇪', // Georgia
-    '996': '🇰🇬', // Kyrgyzstan
-    '998': '🇺🇿'  // Uzbekistan
+    '1': '🇺🇸',
+    '7': '🇷🇺',
+    '20': '🇪🇬',
+    '27': '🇿🇦',
+    '30': '🇬🇷',
+    '31': '🇳🇱',
+    '32': '🇧🇪',
+    '33': '🇫🇷',
+    '34': '🇪🇸',
+    '39': '🇮🇹',
+    '40': '🇷🇴',
+    '41': '🇨🇭',
+    '43': '🇦🇹',
+    '44': '🇬🇧',
+    '45': '🇩🇰',
+    '46': '🇸🇪',
+    '47': '🇳🇴',
+    '48': '🇵🇱',
+    '49': '🇩🇪',
+    '51': '🇵🇪',
+    '52': '🇲🇽',
+    '53': '🇨🇺',
+    '54': '🇦🇷',
+    '55': '🇧🇷',
+    '56': '🇨🇱',
+    '57': '🇨🇴',
+    '58': '🇻🇪',
+    '60': '🇲🇾',
+    '61': '🇦🇺',
+    '62': '🇮🇩',
+    '63': '🇵🇭',
+    '64': '🇳🇿',
+    '65': '🇸🇬',
+    '66': '🇹🇭',
+    '81': '🇯🇵',
+    '82': '🇰🇷',
+    '84': '🇻🇳',
+    '86': '🇨🇳',
+    '90': '🇹🇷',
+    '91': '🇮🇳',
+    '92': '🇵🇰',
+    '93': '🇦🇫',
+    '94': '🇱🇰',
+    '95': '🇲🇲',
+    '98': '🇮🇷',
+    '212': '🇲🇦',
+    '213': '🇩🇿',
+    '216': '🇹🇳',
+    '218': '🇱🇾',
+    '220': '🇬🇲',
+    '221': '🇸🇳',
+    '222': '🇲🇷',
+    '223': '🇲🇱',
+    '224': '🇬🇳',
+    '225': '🇨🇮',
+    '226': '🇧🇫',
+    '227': '🇳🇪',
+    '228': '🇹🇬',
+    '229': '🇧🇯',
+    '230': '🇲🇺',
+    '231': '🇱🇷',
+    '232': '🇸🇱',
+    '233': '🇬🇭',
+    '234': '🇳🇬',
+    '235': '🇹🇩',
+    '236': '🇨🇫',
+    '237': '🇨🇲',
+    '238': '🇨🇻',
+    '239': '🇸🇹',
+    '240': '🇬🇶',
+    '241': '🇬🇦',
+    '242': '🇨🇬',
+    '243': '🇨🇩',
+    '244': '🇦🇴',
+    '245': '🇬🇼',
+    '246': '🇮🇴',
+    '248': '🇸🇨',
+    '249': '🇸🇩',
+    '250': '🇷🇼',
+    '251': '🇪🇹',
+    '252': '🇸🇴',
+    '253': '🇩🇯',
+    '254': '🇰🇪',
+    '255': '🇹🇿',
+    '256': '🇺🇬',
+    '257': '🇧🇮',
+    '258': '🇲🇿',
+    '260': '🇿🇲',
+    '261': '🇲🇬',
+    '262': '🇷🇪',
+    '263': '🇿🇼',
+    '264': '🇳🇦',
+    '265': '🇲🇼',
+    '266': '🇱🇸',
+    '267': '🇧🇼',
+    '268': '🇸🇿',
+    '269': '🇰🇲',
+    '290': '🇸🇭',
+    '291': '🇪🇷',
+    '297': '🇦🇼',
+    '298': '🇫🇴',
+    '299': '🇬🇱',
+    '350': '🇬🇮',
+    '351': '🇵🇹',
+    '352': '🇱🇺',
+    '353': '🇮🇪',
+    '354': '🇮🇸',
+    '355': '🇦🇱',
+    '356': '🇲🇹',
+    '357': '🇨🇾',
+    '358': '🇫🇮',
+    '359': '🇧🇬',
+    '360': '🇭🇺',
+    '370': '🇱🇹',
+    '371': '🇱🇻',
+    '372': '🇪🇪',
+    '373': '🇲🇩',
+    '374': '🇦🇲',
+    '375': '🇧🇾',
+    '376': '🇦🇩',
+    '377': '🇲🇨',
+    '378': '🇸🇲',
+    '380': '🇺🇦',
+    '381': '🇷🇸',
+    '382': '🇲🇪',
+    '383': '🇽🇰',
+    '385': '🇭🇷',
+    '386': '🇸🇮',
+    '387': '🇧🇦',
+    '389': '🇲🇰',
+    '420': '🇨🇿',
+    '421': '🇸🇰',
+    '423': '🇱🇮',
+    '500': '🇫🇰',
+    '501': '🇧🇿',
+    '502': '🇬🇹',
+    '503': '🇸🇻',
+    '504': '🇭🇳',
+    '505': '🇳🇮',
+    '506': '🇨🇷',
+    '507': '🇵🇦',
+    '509': '🇭🇹',
+    '590': '🇬🇵',
+    '591': '🇧🇴',
+    '592': '🇬🇾',
+    '593': '🇪🇨',
+    '594': '🇬🇫',
+    '595': '🇵🇾',
+    '596': '🇲🇶',
+    '597': '🇸🇷',
+    '598': '🇺🇾',
+    '670': '🇹🇱',
+    '672': '🇦🇶',
+    '673': '🇧🇳',
+    '674': '🇳🇷',
+    '675': '🇵🇬',
+    '676': '🇹🇴',
+    '677': '🇸🇧',
+    '678': '🇻🇺',
+    '679': '🇫🇯',
+    '680': '🇵🇼',
+    '681': '🇼🇫',
+    '682': '🇨🇰',
+    '683': '🇳🇺',
+    '684': '🇦🇸',
+    '685': '🇼🇸',
+    '686': '🇰🇮',
+    '687': '🇳🇨',
+    '688': '🇹🇻',
+    '689': '🇵🇫',
+    '690': '🇹🇰',
+    '691': '🇫🇲',
+    '692': '🇲🇭',
+    '850': '🇰🇵',
+    '852': '🇭🇰',
+    '853': '🇲🇴',
+    '855': '🇰🇭',
+    '856': '🇱🇦',
+    '880': '🇧🇩',
+    '886': '🇹🇼',
+    '960': '🇲🇻',
+    '961': '🇱🇧',
+    '962': '🇯🇴',
+    '963': '🇸🇾',
+    '964': '🇮🇶',
+    '965': '🇰🇼',
+    '966': '🇸🇦',
+    '967': '🇾🇪',
+    '968': '🇴🇲',
+    '970': '🇵🇸',
+    '971': '🇦🇪',
+    '972': '🇮🇱',
+    '973': '🇧🇭',
+    '974': '🇶🇦',
+    '975': '🇧🇹',
+    '976': '🇲🇳',
+    '977': '🇳🇵',
+    '992': '🇹🇯',
+    '993': '🇹🇲',
+    '994': '🇦🇿',
+    '995': '🇬🇪',
+    '996': '🇰🇬',
+    '998': '🇺🇿'
   };
   
   console.log(`[getCountryFlagFromPhone] Looking for country code: "${countryCode}" (type: ${typeof countryCode}, length: ${countryCode.length})`);
   console.log(`[getCountryFlagFromPhone] Available keys in map:`, Object.keys(countryCodeMap).slice(0, 20));
   
-  // Try exact match first (string key)
+
   const codeStr = String(countryCode);
   if (countryCodeMap.hasOwnProperty(codeStr)) {
     const flag = countryCodeMap[codeStr];
@@ -3109,7 +3198,7 @@ function getCountryFlagFromPhone(phone) {
     return flag;
   }
   
-  // Try 3-digit match first (for codes like 212, 213, 593, etc.)
+
   if (codeStr.length === 3) {
     if (countryCodeMap.hasOwnProperty(codeStr)) {
       const flag = countryCodeMap[codeStr];
@@ -3118,7 +3207,7 @@ function getCountryFlagFromPhone(phone) {
     }
   }
   
-  // Try 2-digit match for codes like 20, 27, 59, etc.
+
   if (codeStr.length >= 2) {
     const twoDigit = codeStr.substring(0, 2);
     if (countryCodeMap.hasOwnProperty(twoDigit)) {
@@ -3128,7 +3217,7 @@ function getCountryFlagFromPhone(phone) {
     }
   }
   
-  // Try 1-digit match for codes like 1, 7
+
   if (codeStr.length >= 1) {
     const oneDigit = codeStr.substring(0, 1);
     if (countryCodeMap.hasOwnProperty(oneDigit)) {
@@ -3143,42 +3232,36 @@ function getCountryFlagFromPhone(phone) {
   return '';
 }
 
-// Function to encode message for WhatsApp URL
+
 function encodeMessageForWhatsApp(text) {
   if (!text) return '';
   
-  // Normalize line breaks
+
   let normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   
-  // encodeURIComponent properly handles UTF-8 encoding, including emojis
-  // It converts Unicode characters to percent-encoded UTF-8 bytes
+
   let encoded = encodeURIComponent(normalized);
   
-  // Replace spaces with + for URL encoding (WhatsApp format)
+
   encoded = encoded.replace(/%20/g, '+');
   
   return encoded;
 }
 
-// Store student credentials by ID
+
 const studentCredentialsCache = {};
 
-// Cache of full student general-info responses, keyed by studentId.
-// Populated as students are processed on the group page; used later
-// to export contacts to CSV without re-fetching everything.
+
 const studentGeneralInfoCache = {};
 
-// Function to get student credentials (username/password)
+
 async function getStudentCredentials(studentId) {
-  // Check cache first
+
   if (studentCredentialsCache[studentId]) {
     return studentCredentialsCache[studentId];
   }
 
-  // Reuse the general-info response already fetched for this student (e.g.
-  // by processAllStudents when the group page loaded) instead of hitting
-  // the same API endpoint a second time. Only fetch if we truly don't have
-  // it cached anywhere yet.
+
   let data = studentGeneralInfoCache[studentId] || null;
 
   if (!data) {
@@ -3189,8 +3272,7 @@ async function getStudentCredentials(studentId) {
   if (!data) return null;
 
   try {
-    // Try to extract credentials from response
-    // Look for student_login and student_password specifically (as mentioned by user)
+
     const username = data.student_login || 
                     data.student_user || 
                     data.student_username || 
@@ -3228,7 +3310,7 @@ async function getStudentCredentials(studentId) {
       });
     }
     
-    // Try other possible structures
+
     if (data.credentials) {
       const creds = typeof data.credentials === 'string' 
         ? { formatted: data.credentials, username: '', password: '' }
@@ -3253,14 +3335,11 @@ async function getStudentCredentials(studentId) {
     console.error(`[Group Students Info] Error extracting credentials for student ${studentId}:`, error);
   }
   
-  // If credentials not found, return null to trigger fallback
+
   return null;
 }
 
-// Function to generate the "student didn't connect to class" message.
-// Personalized with the student's name, the tutor's name (from settings),
-// and the course name. Currently only Spanish text is provided; falls back
-// to Spanish for any other detected page language.
+
 function generateAbsenceMessage(language = getMessageLanguage(), { studentName, tutorName, courseName } = {}) {
   const settings = getExtensionSettings();
   const resolvedTutorName = tutorName || settings.tutorName || 'tu tutor';
@@ -3273,7 +3352,7 @@ function generateAbsenceMessage(language = getMessageLanguage(), { studentName, 
   });
 }
 
-// Function to find course name using XPath
+
 function findCourseName() {
   const xpath = '//*[@id="app"]/div/div/div/div/div[2]/main/div/div[1]/div[1]/div[2]/div[2]/div[2]/div/div/div[1]/div/div/span/a';
   
@@ -3291,17 +3370,14 @@ function findCourseName() {
       const fullText = element.textContent?.trim() || element.innerText?.trim() || '';
       console.log('[Group Students Info] Full course text found:', fullText);
       
-      // Extract course name between ID and next bracketed field
-      // Format examples: "[1210] Roblox Game Developer [2024]..." (with spaces)
-      //                or "[1354]Creatividad digital. Nivel 1[None]..." (no spaces)
-      // We want just: "Roblox Game Developer" / "Creatividad digital. Nivel 1"
+
       const match = fullText.match(/\]\s*(.+?)\s*\[/);
       if (match && match[1]) {
         const courseName = match[1].trim();
         console.log('[Group Students Info] Extracted course name:', courseName);
         return courseName;
       } else {
-        // Fallback: if pattern doesn't match, return the full text
+
         console.warn('[Group Students Info] Could not extract course name from pattern, using full text');
         return fullText;
       }
@@ -3310,10 +3386,7 @@ function findCourseName() {
     console.warn('[Group Students Info] Error finding course name:', error);
   }
 
-  // Fallback: the XPath is brittle (breaks with layout changes). If it
-  // didn't find anything but we already have the group's general info
-  // cached (fetched on group page load), use course.title from there -
-  // same "[id] Name [year]..." format, so we reuse the same regex.
+
   const groupId = extractGroupId();
   const cachedInfo = groupId ? getCachedGroupGeneralInfo(groupId) : null;
   const apiCourseTitle = cachedInfo?.course?.title;
@@ -3327,16 +3400,16 @@ function findCourseName() {
   return '';
 }
 
-// Function to detect page language
+
 function detectPageLanguage() {
-  // Look for the active language item in the language selector
+
   try {
     const activeLangItem = document.querySelector('.v-list-item--active .v-list-item-title');
     if (activeLangItem) {
       const langText = activeLangItem.textContent?.trim() || '';
       console.log('[Group Students Info] Detected language:', langText);
       
-      // Map language names to codes
+
       const langMap = {
         'Русский': 'ru',
         'English': 'en',
@@ -3349,18 +3422,18 @@ function detectPageLanguage() {
         'Portuguese': 'pt'
       };
       
-      return langMap[langText] || 'es'; // Default to Spanish
+      return langMap[langText] || 'es';
     }
   } catch (error) {
     console.warn('[Group Students Info] Error detecting language:', error);
   }
   
-  // Fallback: check document language
+
   const htmlLang = document.documentElement.lang || 'es';
   return htmlLang.substring(0, 2).toLowerCase();
 }
 
-// Function to get button tooltips based on language
+
 function getButtonTooltips(language = getMessageLanguage()) {
   const tooltips = {
     'es': {
@@ -3418,9 +3491,9 @@ function getButtonTooltips(language = getMessageLanguage()) {
   return tooltips[language] || tooltips['es'];
 }
 
-// Function to create welcome message with credentials
+
 function createWelcomeMessage(studentName, credentials, courseName = '', language = getMessageLanguage()) {
-  // credentials can be an object with username/password or a formatted string
+
   const credentialLabels = {
     es: (c) => `Usuario: ${c.username}\nContraseña: ${c.password}`,
     en: (c) => `Username: ${c.username}\nPassword: ${c.password}`,
@@ -3439,13 +3512,11 @@ function createWelcomeMessage(studentName, credentials, courseName = '', languag
       ? (credentialLabels[language] || credentialLabels.es)(credentials)
       : credentials);
   
-  // Use emojis as Unicode code points to ensure proper encoding
-  // 👋 = U+1F44B, 🚀 = U+1F680
-  // Convert to actual emoji characters
-  const waveEmoji = String.fromCodePoint(0x1F44B); // 👋
-  const rocketEmoji = String.fromCodePoint(0x1F680); // 🚀
+
+  const waveEmoji = String.fromCodePoint(0x1F44B);
+  const rocketEmoji = String.fromCodePoint(0x1F680);
   
-  // Messages in different languages
+
   const messages = {
     'es': {
       greeting: '¡Hola!',
@@ -3530,7 +3601,7 @@ function createWelcomeMessage(studentName, credentials, courseName = '', languag
     }
   };
   
-  // Map language codes to URL paths
+
   const langUrlMap = {
     'es': 'es',
     'en': 'en',
@@ -3543,14 +3614,14 @@ function createWelcomeMessage(studentName, credentials, courseName = '', languag
     'pt': 'pt'
   };
   
-  // Get URL path for current language, default to Spanish
+
   const langPath = langUrlMap[language] || 'es';
   const loginUrl = `https://learn.kodland.org/${langPath}/auth`;
   
-  // Get message for current language, fallback to Spanish
+
   const msg = messages[language] || messages['es'];
   
-  // Return plain text with emojis (will be encoded by encodeMessageForWhatsApp)
+
   return `${msg.greeting} ${waveEmoji}
 
 ${msg.welcome}
@@ -3564,8 +3635,7 @@ ${loginUrl}
 ${msg.closing} ${rocketEmoji}`;
 }
 
-// Extract just the student's name from their container, stripping the
-// "[XX]" country-code badge that's prepended inside the same <h3>.
+
 function extractStudentName(container) {
   const h3 = container?.querySelector('h3');
   if (!h3) return 'Estudiante';
@@ -3575,7 +3645,7 @@ function extractStudentName(container) {
   return clone.textContent.trim() || 'Estudiante';
 }
 
-// Function to find the nearest lesson from schedule data
+
 function findNearestLesson(scheduleData) {
   if (!scheduleData || !Array.isArray(scheduleData) || scheduleData.length === 0) {
     return null;
@@ -3584,12 +3654,12 @@ function findNearestLesson(scheduleData) {
   const now = new Date();
   const nowTime = now.getTime();
   
-  // Filter lessons that are today or in the future, and sort by time
+
   const upcomingLessons = scheduleData
     .filter(lesson => {
       if (!lesson.timetable_time) return false;
       const lessonTime = new Date(lesson.timetable_time).getTime();
-      // Include lessons from 15 minutes ago (in case class just started)
+
       const fifteenMinutesAgo = nowTime - (15 * 60 * 1000);
       return lessonTime >= fifteenMinutesAgo;
     })
@@ -3606,10 +3676,7 @@ function findNearestLesson(scheduleData) {
   return upcomingLessons[0];
 }
 
-// Find the very first lesson (M1L1) from schedule data - the earliest by date,
-// regardless of whether it's already past. Used for the welcome message,
-// which should reference the course's actual start date, not "whatever
-// lesson is coming up next".
+
 function findFirstLesson(scheduleData) {
   if (!scheduleData || !Array.isArray(scheduleData) || scheduleData.length === 0) {
     return null;
@@ -3623,9 +3690,7 @@ function findFirstLesson(scheduleData) {
   );
 }
 
-// Find the very LAST lesson (the final class, often graduation day) from
-// schedule data - the latest by date. Used to suggest a default date/time
-// for the graduation broadcast message.
+
 function findLastLesson(scheduleData) {
   if (!scheduleData || !Array.isArray(scheduleData) || scheduleData.length === 0) {
     return null;
@@ -3639,10 +3704,7 @@ function findLastLesson(scheduleData) {
   );
 }
 
-// Find the most recent lesson that has ALREADY happened (as opposed to
-// findLastLesson, which finds the last lesson of the whole course by date,
-// even if that's still in the future). This is what "grabación de la
-// última clase" actually means.
+
 function findMostRecentPastLesson(scheduleData) {
   if (!scheduleData || !Array.isArray(scheduleData) || scheduleData.length === 0) {
     return null;
@@ -3676,21 +3738,12 @@ async function fetchLastPastLessonForGroup(groupId) {
   }
 }
 
-// The recording link isn't part of the schedule_view API response - it
-// lives in the "Horario" tab's UI (?tab=2 on the group page). Each
-// completed lesson row has a "Grabaciones de la clase" toggle
-// (.zoom-records-cell a) that expands a card showing either an
-// "Enlace - S3" link or a "No hay grabaciones disponibles" message.
-//
-// If that tab happens to already be rendered in the page (the tutor
-// visited it earlier this session and Vue kept it mounted), we can read
-// it directly instead of making the tutor go find it by hand.
+
 async function scrapeRecordingLinkFromScheduleDOM() {
   const rows = Array.from(document.querySelectorAll('.schedule-slot'));
-  if (rows.length === 0) return null; // schedule tab isn't rendered right now
+  if (rows.length === 0) return null;
 
-  // Completed lessons only, most recent first (rows are in chronological
-  // order in the DOM, so reversing gives us newest-first).
+
   const completedRows = rows.filter(row => {
     const statusBtn = row.querySelector('.classroom-cell button');
     return statusBtn && /completado/i.test(statusBtn.textContent || '');
@@ -3711,9 +3764,7 @@ async function scrapeRecordingLinkFromScheduleDOM() {
       }
     }
 
-    // The card can become visible before Vue has actually populated its
-    // contents, so poll briefly for either a real link or the "no
-    // recordings" message before deciding this lesson has nothing.
+
     let link = null;
     let confirmedEmpty = false;
     for (let i = 0; i < 15; i++) {
@@ -3724,14 +3775,13 @@ async function scrapeRecordingLinkFromScheduleDOM() {
     }
 
     if (link) return link;
-    if (confirmedEmpty) continue; // this lesson has none - try the previous one
+    if (confirmedEmpty) continue;
   }
 
   return null;
 }
 
-// Kept as a cheap secondary check in case Kodland ever starts including
-// the recording link directly in the schedule_view API response.
+
 function extractRecordingLinkFromLesson(lesson) {
   if (!lesson) return null;
   const candidates = [
@@ -3748,11 +3798,7 @@ function extractRecordingLinkFromLesson(lesson) {
   return found ? found.trim() : null;
 }
 
-// Resolves the recording link for the group's last past lesson: first
-// tries reading it straight out of the "Horario" tab's DOM (if it's
-// already rendered), then a couple of long-shot API field names, and
-// finally asks the tutor to paste it - with exact directions to where it
-// lives - so the button still works even when auto-detection fails.
+
 async function getLastClassRecordingLink(groupId) {
   let link = await scrapeRecordingLinkFromScheduleDOM().catch(() => null);
 
@@ -3789,9 +3835,7 @@ async function fetchLastLessonForGroup(groupId) {
   }
 }
 
-// Fetch the first lesson (M1L1) for a group - reuses the same schedule_view
-// endpoint as fetchNearestLessonForGroup, but picks the earliest lesson
-// instead of the next upcoming one.
+
 async function fetchFirstLessonForGroup(groupId) {
   try {
     const apiUrl = `https://backoffice.kodland.org/api/v2/student_groups/${groupId}/schedule_view/`;
@@ -3826,50 +3870,94 @@ async function fetchFirstLessonForGroup(groupId) {
 
 
 
-// Function to format time according to country timezone
+
+const KODLAND_COUNTRY_TIMEZONE_MAP = {
+  'MX': 'America/Mexico_City',
+  'US': 'America/New_York',
+  'CR': 'America/Costa_Rica',
+  'AR': 'America/Argentina/Buenos_Aires',
+  'ES': 'Europe/Madrid',
+  'CL': 'America/Santiago',
+  'CO': 'America/Bogota',
+  'PE': 'America/Lima',
+  'PA': 'America/Panama',
+  'EC': 'America/Guayaquil',
+  'BO': 'America/La_Paz',
+  'PY': 'America/Asuncion',
+  'UY': 'America/Montevideo',
+  'VE': 'America/Caracas',
+  'GT': 'America/Guatemala',
+  'HN': 'America/Tegucigalpa',
+  'NI': 'America/Managua',
+  'SV': 'America/El_Salvador',
+  'DO': 'America/Santo_Domingo',
+  'CU': 'America/Havana',
+  'PR': 'America/Puerto_Rico',
+  'BR': 'America/Sao_Paulo',
+  'PT': 'Europe/Lisbon',
+  'RU': 'Europe/Moscow',
+  'FR': 'Europe/Paris',
+  'TR': 'Europe/Istanbul',
+  'ID': 'Asia/Jakarta',
+  'IT': 'Europe/Rome',
+  'PL': 'Europe/Warsaw'
+};
+
+const KODLAND_COUNTRY_LOCALE_MAP = {
+  'MX': 'es-MX',
+  'US': 'en-US',
+  'CR': 'es-CR',
+  'AR': 'es-AR',
+  'ES': 'es-ES',
+  'CL': 'es-CL',
+  'CO': 'es-CO',
+  'PE': 'es-PE',
+  'PA': 'es-PA',
+  'EC': 'es-EC',
+  'BO': 'es-BO',
+  'PY': 'es-PY',
+  'UY': 'es-UY',
+  'VE': 'es-VE',
+  'GT': 'es-GT',
+  'HN': 'es-HN',
+  'NI': 'es-NI',
+  'SV': 'es-SV',
+  'DO': 'es-DO',
+  'CU': 'es-CU',
+  'PR': 'es-PR',
+  'BR': 'pt-BR',
+  'PT': 'pt-PT',
+  'RU': 'ru-RU',
+  'FR': 'fr-FR',
+  'TR': 'tr-TR',
+  'ID': 'id-ID',
+  'IT': 'it-IT',
+  'PL': 'pl-PL'
+};
+
+const KODLAND_LANGUAGE_LOCALE_MAP = {
+  es: 'es-CO',
+  en: 'en-US',
+  ar: 'ar-SA',
+  ru: 'ru-RU',
+  fr: 'fr-FR',
+  tr: 'tr-TR',
+  id: 'id-ID',
+  it: 'it-IT',
+  pl: 'pl-PL',
+  pt: 'pt-PT'
+};
+
+
 function formatTimeForCountry(dateTimeString, countryCode) {
   if (!dateTimeString) return '';
-  
+
   const date = new Date(dateTimeString);
-  
-  // Map country codes to timezones (simplified - using major cities)
-  const timezoneMap = {
-    'MX': 'America/Mexico_City',
-    'US': 'America/New_York',
-    'CR': 'America/Costa_Rica',
-    'AR': 'America/Argentina/Buenos_Aires',
-    'ES': 'Europe/Madrid',
-    'CL': 'America/Santiago',
-    'CO': 'America/Bogota',
-    'PE': 'America/Lima',
-    'PA': 'America/Panama',
-    'PE': 'America/Lima',
-    'EC': 'America/Guayaquil',
-    'BO': 'America/La_Paz',
-    'PY': 'America/Asuncion',
-    'UY': 'America/Montevideo',
-    'VE': 'America/Caracas',
-    'GT': 'America/Guatemala',
-    'HN': 'America/Tegucigalpa',
-    'NI': 'America/Managua',
-    'SV': 'America/El_Salvador',
-    'DO': 'America/Santo_Domingo',
-    'CU': 'America/Havana',
-    'PR': 'America/Puerto_Rico',
-    'BR': 'America/Sao_Paulo',
-    'PT': 'Europe/Lisbon',
-    'RU': 'Europe/Moscow',
-    'FR': 'Europe/Paris',
-    'TR': 'Europe/Istanbul',
-    'ID': 'Asia/Jakarta',
-    'IT': 'Europe/Rome',
-    'PL': 'Europe/Warsaw'
-  };
-  
-  const timezone = timezoneMap[countryCode] || 'UTC';
+
+  const timezone = KODLAND_COUNTRY_TIMEZONE_MAP[countryCode] || 'UTC';
   
   try {
-    // Format time in 12-hour format with AM/PM
+
     const formatter = new Intl.DateTimeFormat('en-US', {
       timeZone: timezone,
       hour: 'numeric',
@@ -3879,7 +3967,7 @@ function formatTimeForCountry(dateTimeString, countryCode) {
     
     return formatter.format(date);
   } catch (e) {
-    // Fallback to UTC if timezone not supported
+
     const hours = date.getUTCHours();
     const minutes = date.getUTCMinutes();
     const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -3888,46 +3976,13 @@ function formatTimeForCountry(dateTimeString, countryCode) {
   }
 }
 
-// Function to format date according to country
+
 function formatDateForCountry(dateTimeString, countryCode, language = 'es') {
   if (!dateTimeString) return '';
   
   const date = new Date(dateTimeString);
-  
-  // Map country codes to locales
-  const localeMap = {
-    'MX': 'es-MX',
-    'US': 'en-US',
-    'CR': 'es-CR',
-    'AR': 'es-AR',
-    'ES': 'es-ES',
-    'CL': 'es-CL',
-    'CO': 'es-CO',
-    'PE': 'es-PE',
-    'PA': 'es-PA',
-    'EC': 'es-EC',
-    'BO': 'es-BO',
-    'PY': 'es-PY',
-    'UY': 'es-UY',
-    'VE': 'es-VE',
-    'GT': 'es-GT',
-    'HN': 'es-HN',
-    'NI': 'es-NI',
-    'SV': 'es-SV',
-    'DO': 'es-DO',
-    'CU': 'es-CU',
-    'PR': 'es-PR',
-    'BR': 'pt-BR',
-    'PT': 'pt-PT',
-    'RU': 'ru-RU',
-    'FR': 'fr-FR',
-    'TR': 'tr-TR',
-    'ID': 'id-ID',
-    'IT': 'it-IT',
-    'PL': 'pl-PL'
-  };
-  
-  const locale = localeMap[countryCode] || (language === 'es' ? 'es-ES' : 'en-US');
+
+  const locale = KODLAND_COUNTRY_LOCALE_MAP[countryCode] || (language === 'es' ? 'es-ES' : 'en-US');
   
   try {
     const formatter = new Intl.DateTimeFormat(locale, {
@@ -3939,12 +3994,12 @@ function formatDateForCountry(dateTimeString, countryCode, language = 'es') {
     
     return formatter.format(date);
   } catch (e) {
-    // Fallback
+
     return date.toLocaleDateString();
   }
 }
 
-// Function to calculate time remaining until class
+
 function calculateTimeRemaining(lessonTimeMs, nowTime) {
   const diffMs = lessonTimeMs - nowTime;
   const diffMinutes = Math.floor(diffMs / (1000 * 60));
@@ -3959,7 +4014,7 @@ function calculateTimeRemaining(lessonTimeMs, nowTime) {
   };
 }
 
-// Function to format time remaining text
+
 function formatTimeRemaining(timeRemaining, language = getMessageLanguage()) {
   const { minutes, hours } = timeRemaining;
 
@@ -4084,7 +4139,7 @@ function formatTimeRemaining(timeRemaining, language = getMessageLanguage()) {
   }
 }
 
-// Function to generate class reminder message
+
 const JOIN_LINK_LABELS = {
   es: 'Por el siguiente enlace:',
   en: 'Via the following link:',
@@ -4108,7 +4163,7 @@ function generateClassReminderMessage(parentName, lesson, countryCode, language 
   const nowTime = now.getTime();
   const lessonTimeMs = lessonTime.getTime();
   
-  // Check if class is today, tomorrow, or later
+
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const lessonDate = new Date(lessonTime.getFullYear(), lessonTime.getMonth(), lessonTime.getDate());
   const tomorrow = new Date(today);
@@ -4120,12 +4175,12 @@ function generateClassReminderMessage(parentName, lesson, countryCode, language 
   const lessonNumber = lesson.lesson_number || 0;
   const zoomLink = lesson.zoom_schedule_join_url || '';
   
-  // Class has started if lesson time is now or in the past (within last 15 minutes)
+
   const fifteenMinutesAgo = nowTime - (15 * 60 * 1000);
   const hasStarted = lessonTimeMs <= nowTime && lessonTimeMs >= fifteenMinutesAgo;
   
   if (hasStarted) {
-    // Class just started
+
     const messages = {
       es: `Hola ${parentName}, te recordamos que nuestra clase número ${lessonNumber} ya empezó.`,
       en: `Hello ${parentName}, we remind you that our class number ${lessonNumber} has already started.`,
@@ -4147,7 +4202,7 @@ function generateClassReminderMessage(parentName, lesson, countryCode, language 
   }
   
   if (isToday) {
-    // Class is today - show time remaining
+
     const timeRemaining = calculateTimeRemaining(lessonTimeMs, nowTime);
     const timeText = formatTimeRemaining(timeRemaining, language);
     
@@ -4171,7 +4226,7 @@ function generateClassReminderMessage(parentName, lesson, countryCode, language 
     return message;
   }
   
-  // Class is tomorrow or later - general reminder
+
   const formattedDate = formatDateForCountry(lesson.timetable_time, countryCode, language);
   
   const messages = {
@@ -4221,7 +4276,7 @@ function generateClassReminderMessage(parentName, lesson, countryCode, language 
   return isTomorrow ? msg.tomorrow : msg.later;
 }
 
-// Function to fetch the personalized "wonder login" direct-access link for a student
+
 async function fetchWonderLoginLink(studentId) {
   const apiUrl = `https://backoffice.kodland.org/api/v1/wonderlogin/generate/?student_id=${studentId}`;
 
@@ -4254,8 +4309,7 @@ async function fetchWonderLoginLink(studentId) {
   }
 }
 
-// Function to fetch the nearest/current lesson for a group (used for the
-// welcome message's class day/time, and reusable wherever schedule info is needed)
+
 async function fetchNearestLessonForGroup(groupId) {
   try {
     const apiUrl = `https://backoffice.kodland.org/api/v2/student_groups/${groupId}/schedule_view/`;
@@ -4288,21 +4342,21 @@ async function fetchNearestLessonForGroup(groupId) {
   }
 }
 
-// Format a lesson's date/time in Spanish, Colombia timezone, e.g.
-// { dayName: 'viernes', fullDate: '19 de junio de 2026', time: '16:00' }
-function formatLessonDateForMessage(isoDateStr) {
+
+function formatLessonDateForMessage(isoDateStr, language = getMessageLanguage()) {
   try {
     const date = new Date(isoDateStr);
 
-    const dayName = new Intl.DateTimeFormat('es-CO', { weekday: 'long', timeZone: 'America/Bogota' }).format(date);
-    const dayNum = new Intl.DateTimeFormat('es-CO', { day: 'numeric', timeZone: 'America/Bogota' }).format(date);
-    const month = new Intl.DateTimeFormat('es-CO', { month: 'long', timeZone: 'America/Bogota' }).format(date);
-    const year = new Intl.DateTimeFormat('es-CO', { year: 'numeric', timeZone: 'America/Bogota' }).format(date);
-    const time = new Intl.DateTimeFormat('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Bogota' }).format(date);
+    const locale = KODLAND_LANGUAGE_LOCALE_MAP[language] || 'es-CO';
+    const timeZone = 'America/Bogota';
+
+    const dayName = new Intl.DateTimeFormat(locale, { weekday: 'long', timeZone }).format(date);
+    const fullDate = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric', timeZone }).format(date);
+    const time = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit', hour12: false, timeZone }).format(date);
 
     return {
       dayName,
-      fullDate: `${dayNum} de ${month} de ${year}`,
+      fullDate,
       time
     };
   } catch (error) {
@@ -4311,8 +4365,7 @@ function formatLessonDateForMessage(isoDateStr) {
   }
 }
 
-// Build the full welcome message using the tutor's exact script.
-// NOTE: edit `tutorName` below if a different tutor uses this extension.
+
 function createFullWelcomeMessage({ studentName, courseName, waGroupLink, wonderLoginUrl, username, password, lessonDateInfo }) {
   const settings = getExtensionSettings();
   const tutorName = settings.tutorName || 'TL Camilo Bermudez';
@@ -4338,9 +4391,7 @@ function createFullWelcomeMessage({ studentName, courseName, waGroupLink, wonder
   });
 }
 
-// Build a map of lessonId -> "M{module}L{lesson}" label (matching the visual
-// numbering used on the group page), by walking the modules/lessons
-// structure returned by fetchHomeworkModulesProgress.
+
 function buildLessonLabelMap(modulesData) {
   const labelMap = {};
 
@@ -4364,16 +4415,10 @@ function buildLessonLabelMap(modulesData) {
   return labelMap;
 }
 
-// ---------------------------------------------------------------------
-// Task alerts: pending grading (tutor) / not submitted (student)
-// ---------------------------------------------------------------------
+
 const studentTaskAlertsCache = {};
 
-// Fetch every lesson's class + homework tasks for a student and compute:
-// - pendingGradingCount: tasks the student already submitted but the tutor
-//   hasn't graded/checked yet (TASK_SUBMITTED / TASK_SUBMITTED_LATE / TASK_NOT_GRADED)
-// - notSubmittedTasks: names of tasks the student hasn't submitted at all (TASK_NOT_SUBMITTED)
-// Reuses the same fetching pipeline as the tasks modal, just without building any UI.
+
 async function fetchStudentTaskAlerts(studentId) {
   const groupId = extractGroupId();
   if (!groupId) return null;
@@ -4421,12 +4466,7 @@ async function fetchStudentTaskAlerts(studentId) {
         const taskName = task.task_title || task.title || task.name || task.task_name || 'Tarea sin nombre';
         const taskId = task.task_id || task.id || null;
 
-        // "Teoría" tasks are auto-graded by the platform (quizzes/reading
-        // checks), so they never need a tutor to review them manually.
-        // Heuristic 1: name contains "teoría"/"teoria".
-        // Heuristic 2: tasks with no max grade defined are typically
-        // auto-scored (the per-student modal only shows a grade badge
-        // when task_max_grade > 0), so they're not tutor-gradable either.
+
         const isTheoryTask = /teor/i.test(taskName) || !(task.task_max_grade > 0);
 
         if (statusKey === 'TASK_SUBMITTED' || statusKey === 'TASK_SUBMITTED_LATE' || statusKey === 'TASK_NOT_GRADED') {
@@ -4452,9 +4492,7 @@ async function fetchStudentTaskAlerts(studentId) {
   return result;
 }
 
-// Fetch the grading report for EVERY student currently loaded in the group
-// (sequentially, with a short pause between students to avoid hammering the
-// API). Returns a list sorted by pendingGradingCount, descending.
+
 async function fetchGroupGradingReport(onProgress = null) {
   const students = findStudentElements();
   const report = [];
@@ -4487,7 +4525,7 @@ async function fetchGroupGradingReport(onProgress = null) {
   return report;
 }
 
-// Show the group grading report in a modal (reusing the existing modal styles)
+
 function showGroupGradingReportModal(report) {
   const existing = document.getElementById('kodland-grading-report-modal');
   if (existing) existing.remove();
@@ -4495,7 +4533,7 @@ function showGroupGradingReportModal(report) {
   const totalPending = report.reduce((sum, r) => sum + r.pendingGradingCount, 0);
   const withPending = report.filter(r => r.pendingGradingCount > 0);
 
-  // Same URL pattern used by the per-student tasks modal
+
   const langUrlMap = { es: 'es', en: 'en', ru: 'ru', fr: 'fr', tr: 'tr', id: 'id', it: 'it', pl: 'pl', pt: 'pt' };
   const langPath = langUrlMap[getMessageLanguage()] || 'es';
 
@@ -4526,6 +4564,7 @@ function showGroupGradingReportModal(report) {
     <div class="kodland-modal-content">
       <div class="kodland-modal-header">
         <h2>${escapeHtml(uiText('gradingReportTitle', totalPending))}</h2>
+        <button id="kodland-calificar-todo-btn" class="kodland-toolbar-btn">${escapeHtml(uiText('calificarTodoButton'))}</button>
         <button class="kodland-modal-close">&times;</button>
       </div>
       <div class="kodland-modal-body">
@@ -4537,14 +4576,21 @@ function showGroupGradingReportModal(report) {
   document.body.appendChild(modal);
   modal.querySelector('.kodland-modal-close').addEventListener('click', () => modal.remove());
   modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+  modal.querySelector('#kodland-calificar-todo-btn').addEventListener('click', async () => {
+    try {
+      if (!window.KodlandCalificador) {
+        alert(uiText('pdfReportBridgeError'));
+        return;
+      }
+      const respuesta = await window.KodlandCalificador.ejecutar('calificar');
+      console.log(respuesta);
+    } catch (error) {
+      console.error('[Group Grading Report] Calificador bridge error:', error);
+    }
+  });
 }
 
-// All floating action buttons (broadcast + settings + export + grading
-// report + WA link + attendance) now live together in this single toolbar
-// fixed to the top of the page, instead of being scattered as separate
-// stacked pill buttons. Every inject*Button() function below fetches (or
-// creates, if it's the first one to run) this shared wrapper and appends
-// its button to it.
+
 function getOrCreateToolbar() {
   let wrapper = document.getElementById('kodland-broadcast-buttons');
   if (!wrapper) {
@@ -4553,20 +4599,13 @@ function getOrCreateToolbar() {
     wrapper.className = 'kodland-broadcast-buttons';
     document.body.appendChild(wrapper);
 
-    // The toolbar is `position: fixed`, so it floats ON TOP of the page
-    // instead of pushing it down. With only a handful of buttons that was
-    // barely noticeable, but now that it can hold up to 9 buttons (and
-    // wrap into 2-3 rows on smaller screens) it was tall enough to cover
-    // the first row of students on the group page. Keep body padding in
-    // sync with the toolbar's real rendered height so nothing ends up
-    // hidden underneath it.
+
     const adjustBodyPadding = () => {
       const height = wrapper.offsetHeight;
       document.body.style.paddingTop = height > 0 ? `${height + 16}px` : '';
     };
     adjustBodyPadding();
-    // Re-measure whenever the toolbar's own size changes (buttons
-    // shown/hidden via settings, or it wraps to more/fewer rows on resize).
+
     if (typeof ResizeObserver !== 'undefined') {
       new ResizeObserver(adjustBodyPadding).observe(wrapper);
     } else {
@@ -4576,7 +4615,7 @@ function getOrCreateToolbar() {
   return wrapper;
 }
 
-// Inject the floating "Group grading report" button
+
 function injectGroupGradingReportButton() {
   if (!isGroupPage()) return;
   if (!getExtensionSettings().showGroupGradingReport) return;
@@ -4613,9 +4652,393 @@ function injectGroupGradingReportButton() {
   console.log('[Group Students Info] ✅ Botón "Reporte calificación" inyectado');
 }
 
-// Function to display student info with buttons
+
+// --- Ported from KodlandTutorAssistant: per-student PDF report, generated by
+// the Python calificador (calificador/generar_reporte.py) via the Native
+// Messaging bridge (background.js -> puente_kodland.py). Course templates
+// live in calificador/reportes/curso_*.json; optional per-group/per-student
+// overrides in calificador/reportes/datos_<CODE>.json. ---
+
+const groupReportProgressCache = new Map();
+const REPORT_COURSE_FILES = [
+  'curso_creatividad.json', 'curso_creatividad_2.json', 'curso_drawing.json',
+  'curso_funtech.json', 'curso_fwd_pro.json', 'curso_graphic_design.json',
+  'curso_illustration.json', 'curso_minecraft.json', 'curso_minecraft_2.json',
+  'curso_python.json', 'curso_python_pro.json', 'curso_roblox.json',
+  'curso_roblox_2.json', 'curso_scratch.json', 'curso_unity.json', 'curso_web.json'
+];
+
+async function loadReportCourse(courseTitle) {
+  const normalize = value => String(value || '').toLowerCase()
+    .replace(/([a-z])(\d)/g, '$1 $2').replace(/(\d)([a-z])/g, '$1 $2')
+    .split(/[^a-z0-9]+/).filter(Boolean);
+  const titleWords = new Set(normalize(courseTitle));
+  const words = [...titleWords];
+  const levelIndex = words.findIndex(word => word === 'lvl' || word === 'level');
+  const level = levelIndex >= 0 ? words[levelIndex + 1] : null;
+  const alias = titleWords.has('digital') && titleWords.has('creativity')
+    ? ({ '1': 'curso_creatividad.json', '2': 'curso_creatividad_2.json' })[level]
+    : null;
+  const matches = REPORT_COURSE_FILES.map(file => ({
+    file,
+    words: normalize(file.replace(/^curso_|\.json$/g, '').replace(/_/g, ' '))
+  })).filter(item => item.words.length && item.words.every(word => titleWords.has(word)))
+    .sort((left, right) => right.words.length - left.words.length);
+  const file = alias || matches[0]?.file;
+  if (!file) throw new Error(`No encontré una plantilla para el curso «${courseTitle}».`);
+  const response = await fetch(chrome.runtime.getURL(`calificador/reportes/${file}`));
+  if (!response.ok) throw new Error(`No se pudo cargar la plantilla ${file}.`);
+  const course = await response.json();
+  course._template_file = file;
+  return course;
+}
+
+async function fetchGroupReportProgress(groupId) {
+  const cached = groupReportProgressCache.get(groupId);
+  if (cached && Date.now() - cached.timestamp < 30000) return cached.data;
+
+  const response = await fetch(
+    `https://backoffice.kodland.org/api/v2/student_groups/${groupId}/get_students_main_data`,
+    {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {})
+      }
+    }
+  );
+  if (!response.ok) throw new Error(`Kodland respondió ${response.status} al consultar el progreso.`);
+  const data = await response.json();
+  if (!Array.isArray(data)) throw new Error('La respuesta de progreso del grupo no tiene el formato esperado.');
+  groupReportProgressCache.set(groupId, { timestamp: Date.now(), data });
+  return data;
+}
+
+function reportTaskCounts(data) {
+  const tasks = Array.isArray(data) ? data : data?.tasks || data?.data || [];
+  return tasks.reduce((counts, task) => {
+    if (!(Number(task.task_max_grade) > 0) || task.task_status_key === 'TASK_NOT_GRADED') return counts;
+    counts.total += 1;
+    if (task.task_status_key && task.task_status_key !== 'TASK_NOT_SUBMITTED') counts.sent += 1;
+    return counts;
+  }, { sent: 0, total: 0 });
+}
+
+function resolveReportGroupCode(groupInfo, groupId) {
+  const candidates = [
+    groupInfo?.group_code,
+    groupInfo?.code,
+    groupInfo?.group?.code,
+    groupInfo?.student_group?.code,
+    document.title,
+    document.querySelector('main h1')?.textContent,
+    document.querySelector('[class*="group-code"], [data-group-code]')?.textContent
+  ];
+  for (const value of candidates) {
+    const match = String(value || '').match(/[A-Z0-9]+(?:_[A-Z0-9-]+)+/i);
+    if (match) return match[0].trim();
+  }
+  return String(groupInfo?.id || groupId || '');
+}
+
+async function loadManualReportData(groupCode, studentName) {
+  if (!groupCode || /^\d+$/.test(groupCode)) return {};
+  const safeCode = groupCode.replace(/[^A-Za-z0-9_-]/g, '_');
+  try {
+    const response = await fetch(chrome.runtime.getURL(`calificador/reportes/datos_${safeCode}.json`));
+    if (!response.ok) return {};
+    const saved = await response.json();
+    return Object.assign({}, saved._grupo || {}, saved[studentName] || {});
+  } catch (error) {
+    return {};
+  }
+}
+
+function firstReportValue(source, keys) {
+  if (!source || typeof source !== 'object') return '';
+  for (const key of keys) {
+    const value = source[key];
+    if (['string', 'number'].includes(typeof value) && String(value).trim()) return String(value).trim();
+  }
+  for (const value of Object.values(source)) {
+    if (value && typeof value === 'object') {
+      const found = firstReportValue(value, keys);
+      if (found) return found;
+    }
+  }
+  return '';
+}
+
+async function loadStudentReportData(studentId, studentData, parentPhone) {
+  const groupId = extractGroupId();
+  if (!groupId) throw new Error('No pude identificar el grupo actual.');
+
+  const [groupInfo, students] = await Promise.all([
+    fetchGroupGeneralInfo(groupId),
+    fetchGroupReportProgress(groupId)
+  ]);
+  const record = students.find(item => String(item.main_info?.student_id) === String(studentId));
+  if (!record) throw new Error('No encontré el progreso de este alumno en el grupo.');
+
+  const progress = Array.isArray(record.progress_info) ? record.progress_info : [];
+  const progressModules = progress;
+  const orderedLessons = progressModules.flatMap((module, moduleIndex) =>
+    (module.lessons_data || []).map((lesson, lessonIndex) => ({
+      ...lesson,
+      moduleNumber: Number(module.module_number) || moduleIndex + 1,
+      lessonNumber: Number(lesson.lesson_number) || lessonIndex + 1
+    }))
+  );
+  const lastLessonId = record.main_info?.last_lesson_id;
+  const lastLessonIndex = lastLessonId == null
+    ? -1
+    : orderedLessons.findIndex(lesson => String(lesson.lesson_id) === String(lastLessonId));
+  const cutoffIndex = lastLessonIndex >= 0 ? lastLessonIndex : orderedLessons.length - 1;
+  const lessonsToReport = orderedLessons.slice(0, cutoffIndex + 1);
+  if (!lessonsToReport.length) throw new Error('El alumno todavía no tiene lecciones realizadas para reportar.');
+
+  const courseTitle = groupInfo?.course?.title || findCourseName();
+  if (!courseTitle) throw new Error('No pude identificar el curso de este grupo.');
+  const course = await loadReportCourse(courseTitle);
+  const studentName = record.main_info?.full_name || extractStudentName(document.querySelector(`a[href="/students/${studentId}"]`)?.parentElement || document);
+  const groupCode = resolveReportGroupCode(groupInfo, groupId);
+  const manualData = await loadManualReportData(groupCode, studentName);
+  const visibleModuleNumbers = new Set(lessonsToReport.map(lesson => lesson.moduleNumber));
+  const reportModules = course.modulos
+    .filter(module => visibleModuleNumbers.has(Number(module.numero)))
+    .sort((a, b) => Number(a.numero) - Number(b.numero));
+  if (!reportModules.length) throw new Error(`La plantilla «${course.curso}» no coincide con los módulos del progreso.`);
+
+  const tasksByLesson = new Map();
+  for (let index = 0; index < lessonsToReport.length; index += 3) {
+    const batch = lessonsToReport.slice(index, index + 3);
+    const results = await Promise.all(batch.map(async lesson => {
+      const [classTasks, homeworkTasks] = await Promise.all([
+        fetchClassTasksProgress(studentId, lesson.lesson_id),
+        fetchHomeworkTasksProgress(studentId, lesson.lesson_id)
+      ]);
+      return { lessonId: String(lesson.lesson_id), counts: reportTaskCounts([classTasks, homeworkTasks].flatMap(value => Array.isArray(value) ? value : value?.tasks || value?.data || [])) };
+    }));
+    results.forEach(result => tasksByLesson.set(result.lessonId, result.counts));
+  }
+
+  const apiModules = new Map(progressModules.map((module, index) => [
+    Number(module.module_number) || index + 1,
+    module
+  ]));
+  const reportModuleData = reportModules.map(module => {
+    const number = Number(module.numero);
+    const apiModule = apiModules.get(number) || {};
+    const lessons = lessonsToReport.filter(lesson => lesson.moduleNumber === number);
+    const taskCounts = lessons.reduce((total, lesson) => {
+      const counts = tasksByLesson.get(String(lesson.lesson_id)) || { sent: 0, total: 0 };
+      return { sent: total.sent + counts.sent, total: total.total + counts.total };
+    }, { sent: 0, total: 0 });
+    const moduleSessions = lessons.flatMap(lesson => {
+      const states = { 2: ['present', 'Presente'], 1: ['justified', 'Justificada'], 0: ['absent', 'Ausente'] };
+      const state = states[lesson.attendance_status];
+      return state ? [{ label: `M${lesson.moduleNumber} L${lesson.lessonNumber}`, status: state[0], text: state[1] }] : [];
+    });
+    return {
+      ...module,
+      pct: apiModule.module_max_grade
+        ? Math.round(100 * (Number(apiModule.module_current_grade) || 0) / Number(apiModule.module_max_grade))
+        : 0,
+      points: Number(apiModule.module_current_grade) || 0,
+      maxPoints: Number(apiModule.module_max_grade) || 0,
+      tasksSent: taskCounts.sent,
+      tasksTotal: taskCounts.total,
+      attendance: {
+        attended: moduleSessions.filter(session => session.status === 'present').length,
+        total: moduleSessions.length,
+        sessions: moduleSessions
+      }
+    };
+  });
+
+  const sessions = lessonsToReport.flatMap(lesson => {
+    const states = { 2: ['present', 'Presente'], 1: ['justified', 'Justificada'], 0: ['absent', 'Ausente'] };
+    const state = states[lesson.attendance_status];
+    return state ? [{ label: `M${lesson.moduleNumber} L${lesson.lessonNumber}`, status: state[0], text: state[1] }] : [];
+  });
+  const report = {
+    studentName,
+    teacher: groupInfo?.group_teacher?.full_name || '',
+    groupCode,
+    modules: reportModuleData,
+    tasksSent: reportModuleData.reduce((sum, module) => sum + module.tasksSent, 0),
+    tasksTotal: reportModuleData.reduce((sum, module) => sum + module.tasksTotal, 0),
+    attendance: {
+      attended: sessions.filter(item => item.status === 'present').length,
+      total: sessions.length,
+      sessions
+    },
+    whatsappPhone: formatPhoneForWhatsApp(manualData.telefono || parentPhone),
+    data: {
+      acudiente: manualData.acudiente || firstReportValue(studentData, ['parent_name', 'parent_full_name', 'representative_name', 'parent']),
+      email: manualData.email || firstReportValue(studentData, ['email', 'student_email', 'parent_email', 'login']),
+      telefono: manualData.telefono || firstReportValue(studentData, ['phone', 'phone_number', 'parent_phone', 'telephone']),
+      pais: manualData.pais || firstReportValue(studentData, ['country', 'country_name']),
+      codigo_grupo: manualData.codigo_grupo || groupCode,
+      tipo_grupo: manualData.tipo_grupo || firstReportValue(groupInfo, ['group_type', 'group_type_name', 'type']),
+      dia_hora: manualData.dia_hora || firstReportValue(groupInfo, ['schedule', 'lesson_time', 'group_schedule', 'day_and_time', 'lesson_day']),
+      modulo_informe: manualData.modulo_informe || `M${reportModules.at(-1)?.numero || ''}`
+    },
+    bannerUrl: chrome.runtime.getURL('calificador/reportes/img/banner_kodland.png'),
+    includeDetails: true
+  };
+  return { course, report };
+}
+
+function createStudentReportButton(container, studentId, studentData, parentPhone) {
+  const button = document.createElement('button');
+  button.className = 'kodland-wa-btn kodland-report-btn';
+  button.textContent = 'PDF';
+  button.title = uiText('pdfReportButtonTooltip');
+  button.setAttribute('aria-label', uiText('pdfReportButtonTooltip'));
+  button.addEventListener('click', event => {
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    showStudentReportModal(studentId, studentData, parentPhone);
+  });
+  return button;
+}
+
+function showStudentReportModal(studentId, studentData, parentPhone) {
+  document.getElementById('kodland-student-report-modal')?.remove();
+  const modal = document.createElement('div');
+  modal.id = 'kodland-student-report-modal';
+  modal.className = 'kodland-modal';
+  applyLanguageDirection(modal);
+  modal.innerHTML = `
+    <div class="kodland-modal-content kodland-report-modal-content">
+      <div class="kodland-modal-header">
+        <h2>${escapeHtml(uiText('pdfReportModalTitle', extractStudentName(document.querySelector(`a[href="/students/${studentId}"]`)?.parentElement || document)))}</h2>
+        <button class="kodland-modal-close" type="button" aria-label="Close">&times;</button>
+      </div>
+      <div class="kodland-modal-body">
+        <p class="kodland-report-status">${escapeHtml(uiText('pdfReportStatusLoading'))}</p>
+        <div class="kodland-report-controls" hidden>
+          <button class="kodland-report-python-general" type="button" disabled>${escapeHtml(uiText('pdfReportGeneralButton'))}</button>
+          <label class="kodland-report-module-label" for="kodland-report-module">${escapeHtml(uiText('pdfReportModuleLabel'))}</label>
+          <div class="kodland-report-module-row">
+            <select id="kodland-report-module" disabled></select>
+            <button class="kodland-report-python-module" type="button" disabled>${escapeHtml(uiText('pdfReportModuleButton'))}</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  const close = () => modal.remove();
+  modal.querySelector('.kodland-modal-close').addEventListener('click', close);
+  modal.addEventListener('click', event => { if (event.target === modal) close(); });
+  const escape = event => {
+    if (event.key === 'Escape' && document.getElementById(modal.id)) {
+      close();
+      document.removeEventListener('keydown', escape);
+    }
+  };
+  document.addEventListener('keydown', escape);
+
+  const status = modal.querySelector('.kodland-report-status');
+  const controls = modal.querySelector('.kodland-report-controls');
+  const pythonGeneralButton = modal.querySelector('.kodland-report-python-general');
+  const moduleSelect = modal.querySelector('#kodland-report-module');
+  const pythonModuleButton = modal.querySelector('.kodland-report-python-module');
+
+  const generateWithPython = async selectedModule => {
+    if (!window.KodlandCalificador) {
+      status.textContent = uiText('pdfReportBridgeError');
+      return;
+    }
+    const reportData = modal.reportData;
+    const phone = reportData?.report.whatsappPhone;
+    const whatsappWindow = phone ? window.open('about:blank', '_blank') : null;
+    [pythonGeneralButton, pythonModuleButton].forEach(button => { button.disabled = true; });
+    status.textContent = uiText('pdfReportGenerating');
+
+    const modules = selectedModule == null
+      ? reportData.report.modules
+      : reportData.report.modules.filter(module => Number(module.numero) === Number(selectedModule));
+    const payload = {
+      course_file: reportData.course._template_file,
+      module_number: selectedModule == null ? null : Number(selectedModule),
+      student: {
+        alumno: reportData.report.studentName,
+        profesor: reportData.report.teacher,
+        modules: modules.map(module => ({
+          numero: module.numero,
+          pct: module.pct,
+          points: module.points,
+          maxPoints: module.maxPoints,
+          tasksSent: module.tasksSent,
+          tasksTotal: module.tasksTotal,
+          attendance: module.attendance
+        })),
+        attendance: reportData.report.attendance,
+        datos: reportData.report.data
+      }
+    };
+
+    try {
+      const response = await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({ tipo: 'calificador', action: 'generar_reporte_python', payload }, result => {
+          if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
+          else resolve(result);
+        });
+      });
+      if (!response?.ok) throw new Error(response?.error || uiText('pdfReportBridgeError'));
+
+      const scope = selectedModule == null ? uiText('pdfReportScopeGeneral') : uiText('pdfReportScopeModule', selectedModule);
+      status.textContent = uiText('pdfReportDoneStatus', scope) + (phone ? uiText('pdfReportWhatsappNote') : '');
+      if (whatsappWindow && !whatsappWindow.closed) {
+        const settings = getExtensionSettings();
+        const selected = selectedModule == null
+          ? null
+          : reportData.report.modules.find(module => Number(module.numero) === Number(selectedModule));
+        const message = renderTemplate(getResolvedPdfReportTemplate(getMessageLanguage(), settings), {
+          studentName: reportData.report.studentName,
+          tutorName: settings.tutorName,
+          courseName: reportData.course.curso,
+          reportType: selectedModule == null ? uiText('pdfReportScopeGeneral') : uiText('pdfReportTypeByModule'),
+          moduleName: selected ? ` · M${selected.numero}: ${selected.titulo}` : ''
+        });
+        whatsappWindow.location.href = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
+      }
+    } catch (error) {
+      whatsappWindow?.close();
+      status.textContent = error.message || uiText('pdfReportGenerateError');
+    } finally {
+      [pythonGeneralButton, pythonModuleButton].forEach(button => { button.disabled = false; });
+    }
+  };
+
+  pythonGeneralButton.addEventListener('click', () => generateWithPython(null));
+  pythonModuleButton.addEventListener('click', () => generateWithPython(Number(moduleSelect.value)));
+
+  loadStudentReportData(studentId, studentData, parentPhone).then(data => {
+    if (!document.body.contains(modal)) return;
+    modal.reportData = data;
+    moduleSelect.innerHTML = data.report.modules.map(module =>
+      `<option value="${Number(module.numero)}">M${Number(module.numero)} · ${escapeHtml(module.titulo)}</option>`
+    ).join('');
+    status.textContent = uiText('pdfReportStatusReady', data.report.modules.length) + (data.report.whatsappPhone ? '' : uiText('pdfReportNoPhoneNote'));
+    controls.hidden = false;
+    pythonGeneralButton.disabled = false;
+    moduleSelect.disabled = false;
+    pythonModuleButton.disabled = false;
+  }).catch(error => {
+    status.textContent = error.message || uiText('pdfReportLoadError');
+  });
+}
+
+
 function displayStudentInfo(container, studentData, studentId) {
-  // Remove existing info element if any
+
   const existingInfo = container.querySelector('.kodland-student-buttons');
   if (existingInfo) {
     existingInfo.remove();
@@ -4630,7 +5053,7 @@ function displayStudentInfo(container, studentData, studentId) {
     return;
   }
   
-  // Extract parent information
+
   const parentName = studentData.parent_name || 
                      studentData.parent?.name || 
                      studentData.parent_name_full ||
@@ -4642,7 +5065,7 @@ function displayStudentInfo(container, studentData, studentId) {
                       studentData.parent?.phone_number ||
                       null;
   
-  // Extract credentials from studentData if available (to avoid another API call)
+
   const studentLogin = studentData.student_login || 
                        studentData.student_user || 
                        studentData.student_username || '';
@@ -4650,7 +5073,7 @@ function displayStudentInfo(container, studentData, studentId) {
   const studentPassword = studentData.student_password || 
                           studentData.student_pass || '';
   
-  // Cache credentials if found
+
   if (studentLogin && studentPassword) {
     const credentials = {
       username: studentLogin,
@@ -4668,14 +5091,14 @@ function displayStudentInfo(container, studentData, studentId) {
   });
   
   if (!parentPhone) {
-    return; // Don't show buttons if no phone
+    return;
   }
   
-  // Get language for tooltips
+
   const language = getMessageLanguage();
   const tooltips = getButtonTooltips(language);
   
-  // Find the student name h3 element using XPath (inside the <a> tag)
+
   const xpath = './/a[contains(@href, "/students/")]/h3';
   let studentH3 = null;
   
@@ -4690,7 +5113,7 @@ function displayStudentInfo(container, studentData, studentId) {
     studentH3 = result.singleNodeValue;
   } catch (error) {
     console.warn('[Group Students Info] Error finding h3 with XPath, trying alternative:', error);
-    // Fallback: find h3 inside student link
+
     const fallbackLink = container.querySelector('a[href^="/students/"]');
     if (fallbackLink) {
       studentH3 = fallbackLink.querySelector('h3');
@@ -4702,26 +5125,26 @@ function displayStudentInfo(container, studentData, studentId) {
     return;
   }
   
-  // Get the parent <a> element
+
   const studentLink = studentH3.closest('a[href^="/students/"]');
   if (!studentLink) {
     console.warn('[Group Students Info] Could not find student link element');
     return;
   }
   
-  // Check if buttons already exist (search outside the link as well)
+
   const existingButtons = document.querySelector(`.kodland-student-buttons[data-student-id="${studentId}"]`);
   if (existingButtons) {
     existingButtons.remove();
   }
   
-  // Check if country initials already exist inside h3
+
   const existingInitials = studentH3.querySelector('.kodland-country-initials');
   if (existingInitials) {
     existingInitials.remove();
   }
   
-  // Get country initials from phone number
+
   console.log(`[Group Students Info] Getting country initials for phone: ${parentPhone}`);
   const countryCode = getCountryCodeFromPhone(parentPhone);
   console.log(`[Group Students Info] Extracted country code: ${countryCode}`);
@@ -4729,15 +5152,15 @@ function displayStudentInfo(container, studentData, studentId) {
   console.log(`[Group Students Info] Country initials result: "${countryInitials}"`);
   
   if (countryInitials && countryInitials.trim() && countryInitials.length > 0) {
-    // Get current text content of h3
+
     const currentText = studentH3.textContent || studentH3.innerText || '';
     console.log(`[Group Students Info] Current h3 text: "${currentText}"`);
     
-    // Check if initials are already in the text
+
     if (currentText.includes(`[${countryInitials}]`)) {
       console.log(`[Group Students Info] Initials already in text, skipping`);
     } else {
-      // Create initials element
+
       const initialsElement = document.createElement('span');
       initialsElement.className = 'kodland-country-initials';
       initialsElement.textContent = `[${countryInitials}]`;
@@ -4752,7 +5175,7 @@ function displayStudentInfo(container, studentData, studentId) {
       `;
       initialsElement.setAttribute('title', `Country code: ${countryCode}`);
       
-      // Insert initials at the beginning of h3 (before the student name)
+
       studentH3.insertBefore(initialsElement, studentH3.firstChild);
       
       console.log(`[Group Students Info] ✅ Added country initials "[${countryInitials}]" for phone ${parentPhone} (code: ${countryCode})`);
@@ -4762,16 +5185,15 @@ function displayStudentInfo(container, studentData, studentId) {
     console.warn(`[Group Students Info] ⚠️ No country initials found for phone ${parentPhone} (code: ${countryCode})`);
   }
   
-  // Create buttons container (outside the <a> tag)
+
   const buttonsContainer = document.createElement('span');
   buttonsContainer.className = 'kodland-student-buttons';
-  
-  // No need for container click handler since buttons are outside the link
-  // Each button has its own handler with preventDefault and stopPropagation
-  
+
+  buttonsContainer.appendChild(createStudentReportButton(container, studentId, studentData, parentPhone));
+
   const formattedPhone = formatPhoneForWhatsApp(parentPhone);
   
-  // Button 1: Open WA (icon only)
+
   const openWAButton = document.createElement('button');
   openWAButton.className = 'kodland-wa-btn kodland-open-btn';
   openWAButton.setAttribute('title', tooltips.openWA);
@@ -4794,16 +5216,16 @@ function displayStudentInfo(container, studentData, studentId) {
       return;
     }
     
-    // Remove + sign for URL
+
     const phoneForUrl = formattedPhone.replace(/^\+/, '');
     
-    // Use api.whatsapp.com for direct WhatsApp link (opens chat without message)
+
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${phoneForUrl}`;
     console.log(`[Group Students Info] Opening WhatsApp for parent phone: ${formattedPhone}`);
     window.open(whatsappUrl, '_blank');
   });
   
-  // Button 2: Welcome Message (icon only)
+
   const sendCredentialButton = document.createElement('button');
   sendCredentialButton.className = 'kodland-wa-btn kodland-send-btn';
   sendCredentialButton.setAttribute('title', tooltips.welcomeMessage);
@@ -4833,32 +5255,33 @@ function displayStudentInfo(container, studentData, studentId) {
     
     const credentials = await getStudentCredentials(studentId);
     if (credentials) {
-      // Get student name from container (without the "[XX]" country badge)
-      const studentName = extractStudentName(container);
-      
-      // Get course name
+
+      const studentName = studentData.student_first_name || extractStudentName(container);
+
+
       const courseName = findCourseName();
       console.log('[Group Students Info] Course name:', courseName);
-      
-      // Get the personalized direct-access link (wonder login)
+
+
       const wonderLoginUrl = await fetchWonderLoginLink(studentId);
       if (!wonderLoginUrl) {
         console.warn(`[Group Students Info] ⚠️ No se pudo obtener el link de acceso personalizado para ${studentId}`);
       }
-      
-      // Get the cached WhatsApp group link for this course
+
+
       const waGroupLink = getGroupWhatsAppLink();
       if (!waGroupLink) {
         console.warn('[Group Students Info] ⚠️ No hay link de WhatsApp del grupo guardado todavía');
       }
-      
-      // Get the FIRST lesson (M1L1) to fill in the course's start day/time
-      // (not just whichever lesson happens to be coming up next)
+
+
       const groupId = extractGroupId();
       const firstLesson = groupId ? await fetchFirstLessonForGroup(groupId) : null;
-      const lessonDateInfo = firstLesson ? formatLessonDateForMessage(firstLesson.timetable_time) : null;
-      
-      // Build the full welcome message
+      const lessonDateInfo = firstLesson
+        ? formatLessonDateForMessage(firstLesson.timetable_time, getMessageLanguage())
+        : null;
+
+
       const welcomeMessage = createFullWelcomeMessage({
         studentName,
         courseName,
@@ -4870,13 +5293,13 @@ function displayStudentInfo(container, studentData, studentId) {
       });
       console.log('[Group Students Info] Welcome message (plain text):', welcomeMessage);
       
-      // Encode message for WhatsApp URL
+
       const encodedMessage = encodeMessageForWhatsApp(welcomeMessage);
       
-      // Remove + sign for URL
+
       const phoneForUrl = formattedPhone.replace(/^\+/, '');
       
-      // Use api.whatsapp.com for WhatsApp link with message
+
       const whatsappUrl = `https://api.whatsapp.com/send?phone=${phoneForUrl}&text=${encodedMessage}`;
       
       console.log(`[Group Students Info] Sending welcome message to parent phone: ${formattedPhone}`);
@@ -4890,7 +5313,7 @@ function displayStudentInfo(container, studentData, studentId) {
         </svg>
       `;
     } else {
-      // Fallback: open student page in new tab to copy credentials manually
+
       window.open(`https://bo.kodland.org/students/${studentId}`, '_blank');
       sendCredentialButton.disabled = false;
       sendCredentialButton.style.opacity = '1';
@@ -4905,7 +5328,7 @@ function displayStudentInfo(container, studentData, studentId) {
   buttonsContainer.appendChild(openWAButton);
   buttonsContainer.appendChild(sendCredentialButton);
   
-  // Button 3: Modules Progress (icon only)
+
   const modulesProgressButton = document.createElement('button');
   modulesProgressButton.className = 'kodland-wa-btn kodland-progress-btn';
   modulesProgressButton.setAttribute('title', tooltips.modulesProgress);
@@ -4934,7 +5357,7 @@ function displayStudentInfo(container, studentData, studentId) {
     `;
     
     const loadAndShow = async () => {
-      // Get group ID from URL
+
       const groupId = extractGroupId();
       if (!groupId) {
         console.error('[Group Students Info] Could not extract group ID from URL');
@@ -4949,7 +5372,7 @@ function displayStudentInfo(container, studentData, studentId) {
       if (progressData) {
         console.log(`[Group Students Info] ✅ Modules progress data loaded. Extracting lesson IDs...`);
         
-        // Get completed lessons count from the page
+
         const lessonsInfo = getCompletedLessonsCount();
         const maxLessons = lessonsInfo ? lessonsInfo.completed : null;
         
@@ -4959,10 +5382,10 @@ function displayStudentInfo(container, studentData, studentId) {
           console.warn(`[Group Students Info] ⚠️ Could not determine completed lessons count (${maxLessons}), will process all found lessons`);
         }
         
-        // Extract lesson IDs from the modules data, limiting to completed lessons
+
         let lessonIds = extractLessonIds(progressData, maxLessons);
         
-        // CRITICAL: Force limit to completed lessons BEFORE processing
+
         if (maxLessons !== null && maxLessons > 0) {
           if (lessonIds.length > maxLessons) {
             lessonIds = lessonIds.slice(0, maxLessons);
@@ -4974,15 +5397,15 @@ function displayStudentInfo(container, studentData, studentId) {
         if (lessonIds.length > 0) {
           console.log(`[Group Students Info] ✅ Ready to process ${lessonIds.length} lessons. Fetching tasks progress asynchronously...`);
           
-          // Store all tasks data organized by lesson
+
           const allTasksData = [];
           
-          // Fetch tasks progress for each lesson
+
           const limitedLessonIds = maxLessons !== null && maxLessons > 0 
             ? lessonIds.slice(0, maxLessons) 
             : lessonIds;
           
-          // Process lessons in batches of 3 (6 fetches total: 3 class + 3 homework)
+
           const batchSize = 3;
           for (let i = 0; i < limitedLessonIds.length; i += batchSize) {
             const batch = limitedLessonIds.slice(i, i + batchSize);
@@ -4992,10 +5415,9 @@ function displayStudentInfo(container, studentData, studentId) {
             console.log(`\n[Group Students Info] 📦 Processing batch ${batchNumber}/${totalBatches} (lessons ${i + 1}-${Math.min(i + batchSize, limitedLessonIds.length)})...`);
             console.log(`[Group Students Info] Batch lesson IDs (in order):`, batch);
             
-            // Create all fetch promises for this batch (6 fetches: 3 class + 3 homework)
-            // Use map with index to ensure order is preserved
+
             const fetchPromises = batch.map((lessonId, batchIndex) => {
-              // Store original index in batch to maintain order
+
               const originalIndex = i + batchIndex;
               return Promise.all([
                 fetchClassTasksProgress(studentId, lessonId),
@@ -5005,37 +5427,37 @@ function displayStudentInfo(container, studentData, studentId) {
                   lessonId: lessonId,
                   classTasks: classTasks,
                   homeworkTasks: homeworkTasks,
-                  originalIndex: originalIndex // Store original position
+                  originalIndex: originalIndex
                 };
               });
             });
             
-            // Wait for all fetches in this batch to complete (all 6 fetches run in parallel)
+
             const batchResults = await Promise.all(fetchPromises);
             
-            // Sort results by originalIndex to ensure correct order (in case promises resolved out of order)
+
             batchResults.sort((a, b) => a.originalIndex - b.originalIndex);
             
             console.log(`[Group Students Info] Batch results (after sorting):`, batchResults.map(r => r.lessonId));
             
-            // Add results to allTasksData, maintaining order
+
             allTasksData.push(...batchResults);
             
             console.log(`[Group Students Info] ✅ Batch ${batchNumber}/${totalBatches} completed (${batchResults.length} lessons processed)`);
             
-            // Small delay between batches to avoid overwhelming the server
+
             if (i + batchSize < limitedLessonIds.length) {
               await new Promise(resolve => setTimeout(resolve, 200));
             }
           }
           
-          // Final sort by originalIndex to ensure all lessons are in correct order
+
           allTasksData.sort((a, b) => (a.originalIndex || 0) - (b.originalIndex || 0));
           console.log(`[Group Students Info] ✅ Final ordered lesson IDs:`, allTasksData.map(r => r.lessonId));
           
           console.log(`[Group Students Info] ✅ Completed fetching all tasks data for ${allTasksData.length} lessons`);
           
-          // Show modal with all data organized by modules and lessons, pass refresh callback
+
           showTasksModal(studentId, progressData, allTasksData, loadAndShow);
         } else {
           console.warn(`[Group Students Info] ⚠️ No lesson IDs found in modules data`);
@@ -5058,7 +5480,7 @@ function displayStudentInfo(container, studentData, studentId) {
   
   buttonsContainer.appendChild(modulesProgressButton);
   
-  // Button 4: Class Reminder (icon only)
+
   const scheduleButton = document.createElement('button');
   scheduleButton.className = 'kodland-wa-btn kodland-schedule-btn';
   scheduleButton.setAttribute('title', uiText('classReminderTooltip'));
@@ -5106,7 +5528,7 @@ function displayStudentInfo(container, studentData, studentId) {
       
       const scheduleData = await response.json();
       
-      // Find nearest lesson
+
       const nearestLesson = findNearestLesson(scheduleData);
       
       if (!nearestLesson) {
@@ -5114,11 +5536,11 @@ function displayStudentInfo(container, studentData, studentId) {
         return;
       }
       
-      // Get country code from parent phone
+
       const countryCode = getCountryInitialsFromPhone(parentPhone);
       const language = getMessageLanguage();
       
-      // Generate message
+
       const message = generateClassReminderMessage(parentName, nearestLesson, countryCode, language);
       
       if (!message) {
@@ -5126,14 +5548,14 @@ function displayStudentInfo(container, studentData, studentId) {
         return;
       }
       
-      // Format phone for WhatsApp
+
       const formattedPhone = formatPhoneForWhatsApp(parentPhone);
       const phoneForUrl = formattedPhone.replace(/^\+/, '');
       
-      // Encode message for WhatsApp URL
+
       const encodedMessage = encodeMessageForWhatsApp(message);
       
-      // Open WhatsApp
+
       const whatsappUrl = `https://api.whatsapp.com/send?phone=${phoneForUrl}&text=${encodedMessage}`;
       window.open(whatsappUrl, '_blank');
       
@@ -5145,8 +5567,7 @@ function displayStudentInfo(container, studentData, studentId) {
   
   buttonsContainer.appendChild(scheduleButton);
   
-  // Button 5: Absence notice (student hasn't connected to the live class)
-  // Only created if the tutor hasn't hidden it in settings.
+
   if (getExtensionSettings().showAbsenceButton) {
     const absenceButton = document.createElement('button');
     absenceButton.className = 'kodland-wa-btn kodland-absence-btn';
@@ -5171,7 +5592,7 @@ function displayStudentInfo(container, studentData, studentId) {
       }
       
       const language = getMessageLanguage();
-      const studentName = extractStudentName(container);
+      const studentName = studentData.student_first_name || extractStudentName(container);
       const courseName = findCourseName();
       const tutorName = getExtensionSettings().tutorName;
       const message = generateAbsenceMessage(language, { studentName, tutorName, courseName });
@@ -5186,8 +5607,7 @@ function displayStudentInfo(container, studentData, studentId) {
     buttonsContainer.appendChild(absenceButton);
   }
   
-  // hasn't submitted yet). Reuses the cached check if available, otherwise
-  // fetches on the spot.
+
   if (getExtensionSettings().showTaskReportButton) {
     const taskReportButton = document.createElement('button');
     taskReportButton.className = 'kodland-wa-btn kodland-task-report-btn';
@@ -5223,14 +5643,13 @@ function displayStudentInfo(container, studentData, studentId) {
           return;
         }
 
-        const studentName = extractStudentName(container);
+        const studentName = studentData.student_first_name || extractStudentName(container);
         const courseName = findCourseName();
         const tutorName = getExtensionSettings().tutorName;
         const waveEmoji = String.fromCodePoint(0x1F44B);
         const smileEmoji = String.fromCodePoint(0x1F60A);
 
-        // Group missing tasks by lesson (M{module}L{lesson}) instead of
-        // repeating the lesson label on every line
+
         const groupedByLesson = {};
         alerts.notSubmittedTasks.forEach(task => {
           if (!groupedByLesson[task.label]) groupedByLesson[task.label] = [];
@@ -5256,8 +5675,7 @@ function displayStudentInfo(container, studentData, studentId) {
     buttonsContainer.appendChild(taskReportButton);
   }
 
-  // Button: send the recording link of the last (already happened) class
-  // straight to this student's parent via WhatsApp.
+
   if (getExtensionSettings().showRecordingButton) {
     const recordingButton = document.createElement('button');
     recordingButton.className = 'kodland-wa-btn kodland-recording-btn';
@@ -5288,7 +5706,7 @@ function displayStudentInfo(container, studentData, studentId) {
           return;
         }
 
-        const studentName = extractStudentName(container);
+        const studentName = studentData.student_first_name || extractStudentName(container);
         const courseName = findCourseName() || uiText('courseNameFallback');
         const settings = getExtensionSettings();
 
@@ -5313,19 +5731,18 @@ function displayStudentInfo(container, studentData, studentId) {
     buttonsContainer.appendChild(recordingButton);
   }
   
-  // Add data attribute to identify which student these buttons belong to
+
   buttonsContainer.setAttribute('data-student-id', studentId);
   
-  // Verify buttons are in container
+
   console.log('[Group Students Info] Buttons container prepared:', {
     buttonCount: buttonsContainer.children.length,
     buttons: Array.from(buttonsContainer.children).map(b => b.className)
   });
   
-  // Insert buttons OUTSIDE the <a> tag, after the <a> element
-  // This prevents clicking buttons from opening the student profile
+
   if (studentLink && studentLink.parentElement) {
-    // Insert buttons after the <a> element
+
     if (studentLink.nextSibling) {
       studentLink.parentElement.insertBefore(buttonsContainer, studentLink.nextSibling);
     } else {
@@ -5343,7 +5760,7 @@ function displayStudentInfo(container, studentData, studentId) {
       }))
     });
   } else {
-    // Fallback: try to insert after h3's parent (the <a>)
+
     const linkParent = studentH3.parentElement?.parentElement;
     if (linkParent) {
       linkParent.insertBefore(buttonsContainer, studentH3.parentElement?.nextSibling || null);
@@ -5358,7 +5775,7 @@ function displayStudentInfo(container, studentData, studentId) {
   console.log(`[Group Students Info] Created buttons for student ${studentId} (Parent: ${parentName}, Phone: ${parentPhone})`);
 }
 
-// Function to wait for auth token to be captured
+
 async function waitForAuthToken(maxWaitTime = 10000) {
   const startTime = Date.now();
   
@@ -5375,13 +5792,13 @@ async function waitForAuthToken(maxWaitTime = 10000) {
   }
 }
 
-// Function to process all students
+
 async function processAllStudents() {
   if (!isGroupPage()) {
     return;
   }
   
-  // Prevent multiple simultaneous executions
+
   if (isProcessingStudents) {
     console.log('[Group Students Info] Already processing students, skipping duplicate call');
     return;
@@ -5394,12 +5811,12 @@ async function processAllStudents() {
     return;
   }
   
-  // Helper: decide if a student still needs processing
+
   const needsProcessing = (student) => {
-    // If never processed, we need to process
+
     if (!processedStudents.has(student.id)) return true;
     
-    // If processed before, verify the buttons still exist (Vue re-renders can remove them)
+
     const selector = `.kodland-student-buttons[data-student-id="${student.id}"]`;
     const hasButtons =
       student.container.querySelector(selector) ||
@@ -5408,7 +5825,7 @@ async function processAllStudents() {
     return !hasButtons;
   };
   
-  // Check if all students are already processed or missing buttons
+
   const unprocessedStudents = students.filter(needsProcessing);
   if (unprocessedStudents.length === 0) {
     console.log('[Group Students Info] All students already processed');
@@ -5418,13 +5835,13 @@ async function processAllStudents() {
   isProcessingStudents = true;
   console.log(`[Group Students Info] Starting to process ${unprocessedStudents.length} new students...`);
   
-  // Wait for auth token before processing
+
   const hasToken = await waitForAuthToken(10000);
   
   if (!hasToken) {
     console.error('[Group Students Info] ❌ Cannot proceed without auth token. Please refresh the page or wait for network activity.');
     isProcessingStudents = false;
-    // Show error message in UI only for unprocessed students
+
     unprocessedStudents.forEach(student => {
       displayStudentInfo(student.container, null, student.id);
       const infoElement = student.container.querySelector('.kodland-student-buttons');
@@ -5435,7 +5852,7 @@ async function processAllStudents() {
     return;
   }
   
-  // Mark all unprocessed students as processing
+
   unprocessedStudents.forEach(student => {
     if (!processedStudents.has(student.id)) {
       processedStudents.add(student.id);
@@ -5444,15 +5861,15 @@ async function processAllStudents() {
   
   console.log(`[Group Students Info] 🚀 Starting parallel fetch for ${unprocessedStudents.length} students...`);
   
-  // Log student info before processing
+
   unprocessedStudents.forEach((student, i) => {
     console.log(`[Group Students Info] 📝 Student ${i + 1}/${unprocessedStudents.length}: ${student.name} (ID: ${student.id})`);
   });
   
-  // Create all fetch promises to execute in parallel
+
   const fetchPromises = unprocessedStudents.map(async (student) => {
     try {
-      // Fetch student info asynchronously
+
       const studentData = await fetchStudentInfo(student.id);
       
       return {
@@ -5470,33 +5887,33 @@ async function processAllStudents() {
     }
   });
   
-  // Wait for all fetches to complete in parallel
+
   const results = await Promise.all(fetchPromises);
   
   console.log(`[Group Students Info] ✅ All ${results.length} fetches completed. Processing results...`);
   
-  // Process results and display in UI
+
   results.forEach((result, i) => {
     const { student, studentData, success } = result;
     
-    // Cache full student data for later use (e.g. contacts CSV export)
+
     if (studentData) {
       studentGeneralInfoCache[student.id] = studentData;
     }
     
-    // Display info in UI with guard to avoid breaking when Vue proxies misbehave
+
     try {
       displayStudentInfo(student.container, studentData, student.id);
     } catch (error) {
       console.error('[Group Students Info] ❌ Error rendering buttons for student', student.id, error);
     }
     
-    // Log summary after processing
+
     if (success && studentData) {
       console.log(`[Group Students Info] ✅ Completed processing for ${student.name} (${i + 1}/${results.length})`);
     } else {
       console.log(`[Group Students Info] ⚠️ No data received for ${student.name} (${i + 1}/${results.length})`);
-      // Remove from processed set if failed, so it can be retried
+
       processedStudents.delete(student.id);
     }
   });
@@ -5505,9 +5922,7 @@ async function processAllStudents() {
   console.log(`[Group Students Info] Finished processing ${unprocessedStudents.length} students`);
 }
 
-// ---------------------------------------------------------------------
-// Extension settings (persisted in localStorage, per browser profile)
-// ---------------------------------------------------------------------
+
 const DEFAULT_WELCOME_TEMPLATE = `Hola {{studentName}} 👋
 Un cordial saludo. Mi nombre es {{tutorName}} y seré tu tutor en la clase de {{courseName}}, {{scheduleLine}}. Estamos muy contentos de que formes parte de esta experiencia en Kodland. Para estar listos para nuestra primera clase, por favor sigue estos pasos:
 🔹 Únete al grupo oficial de WhatsApp, donde compartiremos el enlace de la clase por Zoom y toda la información importante: 👉{{waGroupLink}}
@@ -5525,8 +5940,7 @@ Ya estamos iniciando nuestra clase de hoy y he notado que aún no te has conecta
 Si tienes algún inconveniente técnico para ingresar a la plataforma, por favor avísame de inmediato para ayudarte. Recuerda que si no logras conectarte en vivo, es muy importante que revises la grabación de la clase en tu panel de estudiante para que no te quedes atrás con el proyecto que estamos trabajando.
 ¡Te esperamos en la sala! 😊`;
 
-// Broadcast messages, meant to be sent to the WHATSAPP GROUP (not to a
-// single student), copied to clipboard and opened via the group chat link.
+
 
 const DEFAULT_CLASS_STARTING_TEMPLATE = `¡Hola a todos! 👋
 Hoy nos espera una nueva clase de {{courseName}} a las {{time}} (hora Colombia).
@@ -5597,11 +6011,12 @@ Les comparto la grabación de nuestra última clase de {{courseName}}, por si qu
 Cualquier duda, aquí estoy para ayudarles. ¡Sigamos aprendiendo! 🚀
 {{tutorName}}`;
 
-// Per-language default templates. Each function returns the Spanish
-// constant above for 'es' (or any unrecognized language), and a fully
-// translated equivalent for the other 9 supported languages - used both
-// to prefill the settings textarea when the tutor picks a language for
-// the first time, and by each "Reset" button in Configuración.
+const DEFAULT_PDF_REPORT_TEMPLATE = `Hola {{studentName}} 👋
+Te comparto el reporte {{reportType}} de {{courseName}}{{moduleName}}.
+Si tienes alguna duda sobre tu avance, escríbeme y con gusto lo revisamos.
+{{tutorName}}`;
+
+
 function getDefaultWelcomeTemplate(language = getMessageLanguage()) {
   const templates = {
     es: DEFAULT_WELCOME_TEMPLATE,
@@ -5639,7 +6054,7 @@ Best regards,
 {{tutorName}}
 Наставник курса {{courseName}}`,
     fr: `Bonjour {{studentName}} 👋
-Un cordial bonjour. Je m'appelle {{tutorName}} et je serai ton tuteur pour le cours de {{courseName}}, {{scheduleLine}}. Nous sommes ravis que tu fasses partie de cette expérience chez Kodland. Pour être prêt pour notre premier cours, merci de suivre ces étapes :
+Je te souhaite la bienvenue. Je m'appelle {{tutorName}} et je serai ton tuteur pour le cours de {{courseName}}, {{scheduleLine}}. Nous sommes ravis que tu fasses partie de cette expérience chez Kodland. Pour être prêt pour notre premier cours, merci de suivre ces étapes :
 🔹 Rejoins le groupe WhatsApp officiel, où nous partagerons le lien Zoom du cours ainsi que toutes les informations importantes : 👉{{waGroupLink}}
 🔹 Voici ton accès personnalisé à la plateforme Kodland :
 • Lien d'accès direct : {{wonderLoginUrl}}
@@ -5667,23 +6082,29 @@ Salam hangat. Nama saya {{tutorName}} dan saya akan menjadi tutormu di kelas {{c
 • Tautan akses langsung: {{wonderLoginUrl}}
 Nama pengguna: {{username}}
 Kata sandi: {{password}}
-Aku di sini untuk membantumu kapan pun kamu butuh. Sampai jumpa!
+Saya di sini untuk membantumu kapan pun kamu butuh. Sampai jumpa!
 Salam,
 {{tutorName}}
 Tutor {{courseName}}`,
     it: `Ciao {{studentName}} 👋
 Un caro saluto. Mi chiamo {{tutorName}} e sarò il tuo tutor per il corso di {{courseName}}, {{scheduleLine}}. Siamo davvero felici che tu faccia parte di questa esperienza con Kodland. Per essere pronti per la nostra prima lezione, segui questi passaggi:
-🔹 Unisciti al gruppo ufficiale WhatsApp, dove condivideremo il link della lezione su Zoom e tutte le informazioni importanti: 👉{{waGroupLink}}
+🔹 Unisciti al gruppo ufficiale WhatsApp, dove condivideremo tutte le informazioni importanti: 👉{{waGroupLink}}
 🔹 Ecco il tuo accesso personalizzato alla piattaforma Kodland:
 • Link di accesso diretto: {{wonderLoginUrl}}
 Nome utente: {{username}}
 Password: {{password}}
+🔹 Ecco come fare per collegarti alla nostra prima lezione:
+Accedi alla piattaforma circa 5 minuti prima dell'inizio, usando nome utente e password (se non li hai, chiedimeli pure!).
+Cerca il pulsante "Partecipa alla lezione" (Join Class), che diventerà visibile 15 minuti prima dell'orario di inizio.
+Autorizza videocamera e microfono: essendo la prima volta, il tuo browser ti chiederà il permesso di usarli. Ricordati di accettare!
+Testa il tuo equipaggiamento: prima di entrare, ti troverai in una sala d'attesa (Configuration Lobby) dove potrai controllare che audio e video funzionino bene. Quando sei pronto, clicca su "Partecipa alla riunione".
+Per maggiori informazioni: https://kodland-teaching.tilda.ws/italian
 Sono qui per aiutarti con tutto ciò di cui hai bisogno. A presto!
 Cordiali saluti,
 {{tutorName}}
 Tutor di {{courseName}}`,
     pl: `Cześć {{studentName}} 👋
-Serdecznie Cię witam. Nazywam się {{tutorName}} i będę Twoim opiekunem na zajęciach {{courseName}}, {{scheduleLine}}. Bardzo się cieszymy, że jesteś częścią tego doświadczenia w Kodland. Aby przygotować się do naszej pierwszej lekcji, wykonaj proszę poniższe kroki:
+Witam Cię serdecznie. Nazywam się {{tutorName}} i będę Twoim tutorem na zajęciach {{courseName}}, {{scheduleLine}}. Bardzo się cieszymy, że jesteś częścią naszej przygody w Kodland. Aby przygotować się do naszej pierwszej lekcji, wykonaj proszę poniższe kroki:
 🔹 Dołącz do oficjalnej grupy WhatsApp, gdzie będziemy udostępniać link do zajęć na Zoomie oraz wszystkie ważne informacje: 👉{{waGroupLink}}
 🔹 Oto Twój spersonalizowany dostęp do platformy Kodland:
 • Link do bezpośredniego logowania: {{wonderLoginUrl}}
@@ -5692,9 +6113,9 @@ Hasło: {{password}}
 Jestem tu, aby pomóc Ci we wszystkim, czego potrzebujesz. Do zobaczenia wkrótce!
 Pozdrawiam,
 {{tutorName}}
-Opiekun zajęć {{courseName}}`,
+Tutor zajęć {{courseName}}`,
     pt: `Olá {{studentName}} 👋
-Um caloroso cumprimento. Meu nome é {{tutorName}} e serei seu tutor na aula de {{courseName}}, {{scheduleLine}}. Estamos muito felizes por você fazer parte dessa experiência na Kodland. Para estarmos prontos para nossa primeira aula, siga estes passos:
+Seja muito bem-vindo(a)! Meu nome é {{tutorName}} e serei seu tutor na aula de {{courseName}}, {{scheduleLine}}. Estamos muito felizes por você fazer parte dessa experiência na Kodland. Para estarmos prontos para nossa primeira aula, siga estes passos:
 🔹 Entre no grupo oficial do WhatsApp, onde compartilharemos o link da aula pelo Zoom e todas as informações importantes: 👉{{waGroupLink}}
 🔹 Aqui está seu acesso personalizado à plataforma Kodland:
 • Link de acesso direto: {{wonderLoginUrl}}
@@ -5715,7 +6136,7 @@ function getDefaultAbsenceTemplate(language = getMessageLanguage()) {
 Our class is starting now and I noticed you haven't connected yet. Will you be joining the session? 🕒
 If you're having any technical trouble accessing the platform, please let me know right away so I can help you. Remember, if you can't connect live, it's very important that you watch the class recording on your student dashboard so you don't fall behind on the project we're working on.
 We'll be waiting for you in the room! 😊`,
-    ar: `مرحباً {{studentName}} 👋، أنا {{tutorName}}، معلمك في {{courseName}} لدى Kodland.
+    ar: `مرحباً {{studentName}} 👋، أنا {{tutorName}}، معلمك في {{courseName}} في Kodland.
 لقد بدأنا حصتنا اليوم ولاحظت أنك لم تنضم بعد. هل ستحضر الجلسة؟ 🕒
 إذا واجهت أي مشكلة تقنية في الدخول إلى المنصة، يرجى إعلامي فوراً لمساعدتك. تذكّر أنه إذا لم تتمكن من الانضمام مباشرة، فمن المهم جداً أن تشاهد تسجيل الحصة في لوحة الطالب الخاصة بك حتى لا تتأخر عن المشروع الذي نعمل عليه.
 بانتظارك في الغرفة! 😊`,
@@ -5739,7 +6160,7 @@ Kami tunggu kamu di ruang kelas! 😊`,
 La nostra lezione di oggi è già iniziata e ho notato che non ti sei ancora collegato. Parteciperai alla sessione? 🕒
 Se hai qualche problema tecnico per accedere alla piattaforma, avvisami subito così posso aiutarti. Ricorda che, se non riesci a collegarti in diretta, è molto importante che tu guardi la registrazione della lezione nella tua area studente, per non rimanere indietro con il progetto su cui stiamo lavorando.
 Ti aspettiamo in aula! 😊`,
-    pl: `Cześć {{studentName}} 👋, tu {{tutorName}}, Twój opiekun zajęć {{courseName}} w Kodland.
+    pl: `Cześć {{studentName}} 👋, tu {{tutorName}}, Twój tutor zajęć {{courseName}} w Kodland.
 Właśnie zaczynamy naszą dzisiejszą lekcję, a widzę, że jeszcze się nie połączyłeś. Czy weźmiesz udział w zajęciach? 🕒
 Jeśli masz jakiś problem techniczny z dostępem do platformy, daj mi proszę znać od razu, abym mógł Ci pomóc. Pamiętaj, że jeśli nie uda Ci się połączyć na żywo, koniecznie obejrzyj nagranie lekcji w swoim panelu ucznia, aby nie zostać w tyle z projektem, nad którym pracujemy.
 Czekamy na Ciebie w sali! 😊`,
@@ -5756,7 +6177,7 @@ function getDefaultClassStartingTemplate(language = getMessageLanguage()) {
     es: DEFAULT_CLASS_STARTING_TEMPLATE,
     en: `Hi everyone! 👋
 Today we have a new {{courseName}} class at {{time}} (Colombia time).
-🚀 See you directly on the Kodland Platform, as always. Come in with full energy! 💻
+🚀 See you directly on the Kodland Platform, as always. Come in with lots of energy! 💻
 If anyone has any trouble logging in, message me here quickly. 🔑
 See you in a bit! 🔥
 {{tutorName}}`,
@@ -5871,7 +6292,7 @@ function getDefaultGroupWelcomeTemplate(language = getMessageLanguage()) {
 Welcome to the {{courseName}} course. I'm really excited to start this journey with you, where we'll learn and build projects that combine creativity, functionality, and style.
 In this space, imagination and the drive to learn will be our main tools. We'll explore new topics, experiment with ideas, and bring unique projects to life that reflect your talent.
 🚀 I'm sure this will be the start of a great experience, where you'll develop useful skills and have fun while learning.
-📩 Please check your email, you'll find your access credentials there to log in to the Kodland platform.
+📩 Please check your email — you'll find your access credentials there to log in to the Kodland platform.
 💻✨ Get ready to learn, create, and leave your mark!
 {{tutorName}}`,
     ar: `👋✨ مرحبًا بالجميع!
@@ -5913,7 +6334,7 @@ Di ruang ini, imajinasi dan semangat belajar akan menjadi alat utama kita. Kita 
 Benvenuti al corso di {{courseName}}. Sono davvero entusiasta di iniziare questo viaggio con voi, dove impareremo e costruiremo progetti che uniscono creatività, funzionalità e stile.
 In questo spazio, l'immaginazione e la voglia di imparare saranno i nostri strumenti principali. Esploreremo nuovi argomenti, sperimenteremo con idee e daremo vita a progetti unici che rispecchiano il vostro talento.
 🚀 Sono sicuro che sarà l'inizio di un'esperienza fantastica, in cui potrete sviluppare competenze utili e divertirvi imparando.
-📩 Vi preghiamo di controllare la vostra email, lì troverete le credenziali di accesso per entrare nella piattaforma Kodland.
+📩 Vi prego di controllare la vostra email, lì troverete le credenziali di accesso per entrare nella piattaforma Kodland.
 💻✨ Preparatevi a imparare, creare e lasciare il vostro segno!
 {{tutorName}}`,
     pl: `👋✨ Cześć wszystkim!
@@ -5939,13 +6360,13 @@ function getDefaultFirstClassTemplate(language = getMessageLanguage()) {
     es: DEFAULT_FIRST_CLASS_TEMPLATE,
     en: `🎉 Welcome to your first {{courseName}} class at Kodland! 🎉
 Hi everyone! I'm so excited to officially welcome you to this new course, where we'll learn amazing things combining creativity, technology, and lots of enthusiasm. 🌐✨
-Today begins an adventure where you will be the protagonists. In every class we'll explore new tools and ways of expression to bring your ideas to life. Don't worry if this is your first time in this type of course, we're going to learn step by step and enjoy the process! 🚀
+Today begins an adventure where you will be the protagonists. In every class we'll explore new tools and ways of expression to bring your ideas to life. Don't worry if this is your first time in this type of course — we're going to learn step by step and enjoy the process! 🚀
 🚨 Important Reminder: See you on the platform 🚨
 Just a reminder that for our class TODAY at {{time}} (Colombia time), we'll connect directly through the Kodland platform.
 This is our first class together, so don't worry if you have questions about how we work in the virtual classroom… we're here to enjoy and grow together step by step!
 🛠️ Before class starts, make sure of this:
 ✅ Have you tried logging in yet? Log in to the platform with the credentials you received by email. Do it a little beforehand to confirm everything is in order and not lose valuable class minutes.
-📖 Questions about how to log in? Here's the guide handy in case you need to refresh the steps: https://docs.google.com/document/d/1HtCjckqbetfsSX0YWzuEHYAt53BgrPbdDNZwg4G4Jno/edit?tab=t.0#heading=h.ta5cgks4cr63
+📖 Questions about how to log in? Here's a handy guide in case you need a refresher on the steps: https://docs.google.com/document/d/1HtCjckqbetfsSX0YWzuEHYAt53BgrPbdDNZwg4G4Jno/edit?tab=t.0#heading=h.ta5cgks4cr63
 🔑 Trouble with your details? If you've checked your inbox and still haven't been able to log in with your credentials, message me RIGHT AWAY in private so I can help you solve it.
 ⚠️ Key requirement: For all the tools to work perfectly, make sure to log in using the Google Chrome browser. 🌐
 ✨ Don't forget to bring your creativity, curiosity, and enthusiasm. I'm so happy to be your teacher and join you on this learning journey!
@@ -5954,7 +6375,7 @@ See you in a bit on the platform! 🔥🙌
 {{tutorName}}`,
     ar: `🎉 مرحبًا بكم في أول حصة من {{courseName}} في Kodland! 🎉
 مرحبًا يا أصدقائي! أنا سعيد جدًا بالترحيب بكم رسميًا في هذه الدورة الجديدة، حيث سنتعلم أشياء رائعة تجمع بين الإبداع والتكنولوجيا والكثير من الحماس. 🌐✨
-تبدأ اليوم مغامرة ستكونون فيها أنتم أبطالها. في كل حصة سنستكشف أدوات جديدة وطرقًا للتعبير لنمنح أفكاركم حياةً حقيقية. لا داعي للقلق إذا كانت هذه أول مرة تخوضون فيها هذا النوع من الدورات، فسوف نتعلم خطوة بخطوة ونستمتع بالرحلة! 🚀
+تبدأ اليوم مغامرة ستكونون أنتم أبطالها. في كل حصة سنستكشف أدوات جديدة وطرقًا للتعبير لنمنح أفكاركم حياةً حقيقية. لا داعي للقلق إذا كانت هذه أول مرة تخوضون فيها هذا النوع من الدورات، فسوف نتعلم خطوة بخطوة ونستمتع بالرحلة! 🚀
 🚨 تذكير مهم: نلتقي على المنصة 🚨
 أذكّركم بأن حصتنا اليوم الساعة {{time}} (بتوقيت كولومبيا) ستكون عبر الاتصال المباشر بمنصة Kodland.
 هذه أول حصة لنا معًا، لذا لا تقلقوا إن كانت لديكم أسئلة حول كيفية سير العمل في الفصل الافتراضي… نحن هنا لنستمتع وننمو معًا خطوة بخطوة!
@@ -5975,7 +6396,7 @@ See you in a bit on the platform! 🔥🙌
 Это наше первое занятие вместе, так что не переживайте, если у вас есть вопросы о том, как мы работаем в виртуальном классе… мы здесь, чтобы получать удовольствие и расти вместе шаг за шагом!
 🛠️ Перед началом занятия убедитесь в следующем:
 ✅ Вы уже пробовали войти? Войдите на платформу, используя данные, полученные по электронной почте. Сделайте это немного заранее, чтобы убедиться, что всё в порядке, и не терять драгоценные минуты занятия.
-📖 Есть вопросы о том, как войти? Вот инструкция под рукой на случай, если понадобится освежить шаги в памяти: https://docs.google.com/document/d/1HtCjckqbetfsSX0YWzuEHYAt53BgrPbdDNZwg4G4Jno/edit?tab=t.0#heading=h.ta5cgks4cr63
+📖 Есть вопросы о том, как войти? Вот инструкция под рукой на случай, если понадобится освежить в памяти шаги: https://docs.google.com/document/d/1HtCjckqbetfsSX0YWzuEHYAt53BgrPbdDNZwg4G4Jno/edit?tab=t.0#heading=h.ta5cgks4cr63
 🔑 Проблемы с вашими данными? Если вы проверили входящие письма и всё равно не смогли войти со своими данными, НЕМЕДЛЕННО напишите мне в личные сообщения, чтобы я помог вам это решить.
 ⚠️ Ключевое требование: чтобы все инструменты работали идеально, обязательно заходите через браузер Google Chrome. 🌐
 ✨ Не забудьте взять с собой творчество, любопытство и энтузиазм. Я очень рад быть вашим преподавателем и сопровождать вас в этом учебном путешествии!
@@ -6019,7 +6440,7 @@ Hari ini dimulai sebuah petualangan di mana kalianlah yang menjadi tokoh utamany
 Saya ingatkan bahwa untuk kelas kita HARI INI pukul {{time}} (waktu Kolombia), kita akan terhubung langsung melalui platform Kodland.
 Ini adalah kelas pertama kita bersama, jadi jangan khawatir jika kalian memiliki pertanyaan tentang cara kita menjalankan kelas virtual ini… kita di sini untuk menikmati dan berkembang bersama selangkah demi selangkah!
 🛠️ Sebelum kelas dimulai, pastikan hal berikut:
-✅ Sudahkah kalian mencoba masuk? Masuklah ke platform dengan kredensial yang kalian terima melalui email. Lakukan sedikit lebih awal untuk memastikan semuanya berjalan lancar dan tidak kehilangan menit-menit berharga kelas.
+✅ Sudahkah kalian mencoba masuk? Masuklah ke platform dengan kredensial yang kalian terima melalui email. Lakukan sedikit lebih awal untuk memastikan semuanya berjalan lancar dan tidak kehilangan waktu berharga di kelas.
 📖 Ragu bagaimana cara masuk? Berikut panduannya agar mudah diakses jika kalian perlu mengingat kembali langkah-langkahnya: https://docs.google.com/document/d/1HtCjckqbetfsSX0YWzuEHYAt53BgrPbdDNZwg4G4Jno/edit?tab=t.0#heading=h.ta5cgks4cr63
 🔑 Ada masalah dengan data kalian? Jika kalian sudah memeriksa kotak masuk dan tetap belum bisa masuk dengan kredensial kalian, SEGERA hubungi saya secara pribadi agar saya bisa membantu menyelesaikannya.
 ⚠️ Syarat penting: Agar semua alat berfungsi dengan sempurna, pastikan kalian masuk menggunakan peramban Google Chrome. 🌐
@@ -6033,8 +6454,8 @@ Oggi inizia un'avventura in cui sarete voi i protagonisti. In ogni lezione esplo
 🚨 Promemoria importante: Ci vediamo sulla piattaforma 🚨
 Vi ricordo che per la nostra lezione di OGGI alle {{time}} (ora della Colombia), ci collegheremo direttamente tramite la piattaforma di Kodland.
 Questa è la nostra prima lezione insieme, quindi non preoccupatevi se avete dubbi su come funzioniamo nell'aula virtuale… siamo qui per divertirci e crescere insieme passo dopo passo!
-🛠️ Prima che inizi la lezione, assicuratevi di quanto segue:
-✅ Avete già provato ad accedere? Effettuate l'accesso alla piattaforma con le credenziali ricevute via email. Fatelo un po' prima per confermare che tutto sia in ordine e non perdere preziosi minuti di lezione.
+🛠️ Prima che inizi la lezione, assicuratevi di questo:
+✅ Avete già provato ad accedere? Accedete alla piattaforma con le credenziali ricevute via email. Fatelo un po' prima per confermare che tutto sia in ordine e non perdere preziosi minuti di lezione.
 📖 Dubbi su come accedere? Ecco la guida a portata di mano nel caso in cui abbiate bisogno di rinfrescare i passaggi: https://docs.google.com/document/d/1HtCjckqbetfsSX0YWzuEHYAt53BgrPbdDNZwg4G4Jno/edit?tab=t.0#heading=h.ta5cgks4cr63
 🔑 Problemi con i vostri dati? Se avete controllato la vostra casella di posta e nonostante ciò non siete riusciti ad accedere con le vostre credenziali, scrivetemi SUBITO in privato per aiutarvi a risolvere il problema.
 ⚠️ Requisito fondamentale: Affinché tutti gli strumenti funzionino alla perfezione, assicuratevi di accedere utilizzando il browser Google Chrome. 🌐
@@ -6089,7 +6510,7 @@ We are nearing the end of our journey in the {{courseName}} course and getting r
 • Project presentations: each student will share their final creation. They've done an amazing job!
 • Personalized feedback: comments on each student's performance and tips to keep learning.
 🧑‍💻 Important preparations for students:
-• Review and complete any remaining pending activities on the platform before class.
+• Review and complete any pending activities on the platform before class.
 • Prepare your virtual graduation background for the video call: https://drive.google.com/drive/folders/1bu8VJJdUXnG9fzqPYXvBYvEQeYq3hXTV
 • Choose which project you will present (your best work or course portfolio).
 ⏱ Each student will have a few minutes for their presentation.
@@ -6129,13 +6550,13 @@ Tutor: {{tutorName}}`,
 🧑‍💻 Важная подготовка для учащихся:
 • Проверить и выполнить оставшиеся незавершённые задания на платформе до начала занятия.
 • Подготовить виртуальный фон для выпускного к видеозвонку: https://drive.google.com/drive/folders/1bu8VJJdUXnG9fzqPYXvBYvEQeYq3hXTV
-• Выбрать, какой проект будет представлен (лучшую работу или портфолио курса).
+• Выбрать, какой проект вы представите (лучшую работу или портфолио курса).
 ⏱ У каждого учащегося будет несколько минут на презентацию.
 🕒 Занятие пройдёт в обычное время, но с особым праздничным акцентом. Присутствие всех очень важно, ведь это момент, когда учащиеся завершают свой цикл обучения и закрепляют полученные знания.
 Если по каким-либо уважительным причинам вы не сможете присутствовать, пожалуйста, сообщите мне об этом заранее.
 До встречи на занятии, чтобы отпраздновать ваш талант! 💙
 Команда Kodland
-Куратор: {{tutorName}}`,
+Наставник: {{tutorName}}`,
     fr: `🎉 Bonjour chers parents et élèves !
 Nous arrivons à la fin de notre parcours dans le cours de {{courseName}} et nous nous préparons pour notre grande Leçon de Remise des Diplômes.
 📅 Date : {{gradDate}}
@@ -6151,7 +6572,7 @@ Nous arrivons à la fin de notre parcours dans le cours de {{courseName}} et nou
 • Choisir quel projet vous allez présenter (votre meilleur travail ou portfolio du cours).
 ⏱ Chaque élève disposera de quelques minutes pour sa présentation.
 🕒 Le cours aura lieu à l'horaire habituel, avec cette touche spéciale de célébration. La présence de tous est très importante, car c'est le moment où les élèves clôturent leur cycle et valident ce qu'ils ont appris.
-Si, pour un cas de force majeure, vous ne pouvez pas assister, merci de me le faire savoir à l'avance.
+Si, en cas de force majeure, vous ne pouvez pas assister, merci de me le faire savoir à l'avance.
 Rendez-vous en cours pour célébrer votre talent ! 💙
 Équipe Kodland
 Tuteur : {{tutorName}}`,
@@ -6173,12 +6594,12 @@ Tuteur : {{tutorName}}`,
 Eğer mücbir bir sebepten katılamayacaksanız, lütfen bana önceden haber verin.
 Yeteneğinizi kutlamak için derste görüşürüz! 💙
 Kodland Ekibi
-Eğitmen: {{tutorName}}`,
+Öğretmen: {{tutorName}}`,
     id: `🎉 Halo, orang tua dan siswa tersayang!
 Kita sudah hampir mencapai akhir perjalanan kita di kursus {{courseName}} dan sedang bersiap untuk Pelajaran Kelulusan besar kita.
 📅 Tanggal: {{gradDate}}
 ⏰ Waktu: {{gradTime}} (Waktu Kolombia)
-✨ Undangan: Semua orang tua dan anggota keluarga dengan hormat diundang untuk merayakan kerja keras anak-anak.
+✨ Undangan: Semua orang tua dan anggota keluarga dengan hangat diundang untuk merayakan kerja keras anak-anak.
 🌟 Apa yang akan kita lakukan saat kelulusan?
 • Hasil kursus: ringkasan topik dan tujuan yang telah dicapai selama kursus.
 • Presentasi proyek: setiap siswa akan membagikan karya akhir mereka. Mereka telah melakukan pekerjaan yang luar biasa!
@@ -6186,10 +6607,10 @@ Kita sudah hampir mencapai akhir perjalanan kita di kursus {{courseName}} dan se
 🧑‍💻 Persiapan penting untuk siswa:
 • Meninjau dan menyelesaikan aktivitas yang masih tertunda di platform sebelum kelas.
 • Menyiapkan latar belakang virtual kelulusan untuk panggilan video: https://drive.google.com/drive/folders/1bu8VJJdUXnG9fzqPYXvBYvEQeYq3hXTV
-• Memilih proyek mana yang akan dipresentasikan (karya terbaik atau portofolio kursus Anda).
+• Memilih proyek mana yang akan dipresentasikan (karya terbaik atau portofolio kursus kalian).
 ⏱ Setiap siswa akan mendapat beberapa menit untuk presentasinya.
 🕒 Kelas akan berlangsung pada jam biasa, dengan fokus perayaan khusus ini. Kehadiran semua orang sangat penting, karena ini adalah momen di mana siswa menutup siklus belajar mereka dan memvalidasi apa yang telah dipelajari.
-Jika karena suatu alasan mendesak Anda tidak dapat hadir, mohon beri tahu saya sebelumnya.
+Jika karena suatu alasan mendesak kalian tidak dapat hadir, mohon beri tahu saya sebelumnya.
 Sampai jumpa di kelas untuk merayakan bakat kalian! 💙
 Tim Kodland
 Tutor: {{tutorName}}`,
@@ -6288,7 +6709,7 @@ Aku bagikan rekaman kelas {{courseName}} kita yang terakhir, siapa tahu kamu ing
 Kalau masih ada pertanyaan, aku di sini untuk membantu. Ayo kita terus maju! 🚀
 {{tutorName}}`,
     it: `🎥 Ciao {{studentName}}!
-Ti condivido la registrazione della nostra ultima lezione di {{courseName}}, nel caso tu voglia rivedere qualcosa o non sia riuscito/a a collegarti in diretta:
+Ti mando la registrazione della nostra ultima lezione di {{courseName}}, nel caso tu voglia rivedere qualcosa o non sia riuscito/a a collegarti in diretta:
 🔗 {{recordingLink}}
 Per qualsiasi dubbio, sono qui per aiutarti. Continuiamo ad andare avanti! 🚀
 {{tutorName}}`,
@@ -6340,7 +6761,7 @@ Aku bagikan rekaman kelas {{courseName}} kita yang terakhir, siapa tahu ada yang
 Kalau ada pertanyaan, aku di sini untuk membantu. Ayo terus belajar! 🚀
 {{tutorName}}`,
     it: `🎥 Ciao a tutti!
-Vi condivido la registrazione della nostra ultima lezione di {{courseName}}, nel caso vogliate rivedere qualcosa o qualcuno non sia riuscito a collegarsi in diretta:
+Vi mando la registrazione della nostra ultima lezione di {{courseName}}, nel caso vogliate rivedere qualcosa o qualcuno non sia riuscito a collegarsi in diretta:
 🔗 {{recordingLink}}
 Per qualsiasi dubbio, sono qui per aiutarvi. Continuiamo a imparare! 🚀
 {{tutorName}}`,
@@ -6358,9 +6779,50 @@ Qualquer dúvida, estou aqui para ajudar vocês. Vamos continuar aprendendo! �
   return templates[normalizeMessageLanguage(language)] || DEFAULT_RECORDING_GROUP_TEMPLATE;
 }
 
-// Resolve the template to actually use for a given language: the tutor's
-// saved customization if there is one, or the per-language default if the
-// stored value is still untouched (equal to the Spanish default constant).
+function getDefaultPdfReportTemplate(language = getMessageLanguage()) {
+  const templates = {
+    es: DEFAULT_PDF_REPORT_TEMPLATE,
+    en: `Hi {{studentName}} 👋
+Here's the {{reportType}} report for {{courseName}}{{moduleName}}.
+If you have any questions about your progress, message me and we'll go over it together.
+{{tutorName}}`,
+    ar: `مرحبًا {{studentName}} 👋
+أشارك معك التقرير {{reportType}} لمادة {{courseName}}{{moduleName}}.
+إذا كان لديك أي استفسار حول تقدّمك، راسلني وسنراجعه معًا.
+{{tutorName}}`,
+    ru: `Привет, {{studentName}} 👋
+Делюсь отчётом ({{reportType}}) по курсу {{courseName}}{{moduleName}}.
+Если есть вопросы о твоём прогрессе — напиши мне, с радостью всё обсудим.
+{{tutorName}}`,
+    fr: `Bonjour {{studentName}} 👋
+Je te partage le rapport {{reportType}} du cours {{courseName}}{{moduleName}}.
+Si tu as des questions sur ta progression, écris-moi et on en parle avec plaisir.
+{{tutorName}}`,
+    tr: `Merhaba {{studentName}} 👋
+Sana {{courseName}}{{moduleName}} için {{reportType}} raporu paylaşıyorum.
+İlerlemenle ilgili bir sorun olursa bana yaz, memnuniyetle gözden geçiririz.
+{{tutorName}}`,
+    id: `Hai {{studentName}} 👋
+Berikut laporan {{reportType}} untuk {{courseName}}{{moduleName}}.
+Kalau ada pertanyaan tentang perkembanganmu, kirim pesan ke saya ya, nanti kita bahas bersama.
+{{tutorName}}`,
+    it: `Ciao {{studentName}} 👋
+Ti condivido il report {{reportType}} di {{courseName}}{{moduleName}}.
+Se hai dubbi sui tuoi progressi, scrivimi e lo rivediamo insieme con piacere.
+{{tutorName}}`,
+    pl: `Cześć {{studentName}} 👋
+Przesyłam Ci raport {{reportType}} z kursu {{courseName}}{{moduleName}}.
+Jeśli masz pytania dotyczące swoich postępów, napisz do mnie, chętnie je omówimy.
+{{tutorName}}`,
+    pt: `Olá {{studentName}} 👋
+Aqui está o relatório {{reportType}} de {{courseName}}{{moduleName}}.
+Se tiver alguma dúvida sobre o seu progresso, me escreva que revisamos juntos com prazer.
+{{tutorName}}`
+  };
+  return templates[normalizeMessageLanguage(language)] || DEFAULT_PDF_REPORT_TEMPLATE;
+}
+
+
 function resolveTemplate(storedTemplate, defaultConstant, getDefaultForLanguage, language) {
   const template = storedTemplate || defaultConstant;
   if (!template || template === defaultConstant) {
@@ -6396,10 +6858,11 @@ function getResolvedRecordingStudentTemplate(language = getMessageLanguage(), se
 function getResolvedRecordingGroupTemplate(language = getMessageLanguage(), settings = getExtensionSettings()) {
   return resolveTemplate(settings.recordingGroupTemplate, DEFAULT_RECORDING_GROUP_TEMPLATE, getDefaultRecordingGroupTemplate, language);
 }
+function getResolvedPdfReportTemplate(language = getMessageLanguage(), settings = getExtensionSettings()) {
+  return resolveTemplate(settings.pdfReportTemplate, DEFAULT_PDF_REPORT_TEMPLATE, getDefaultPdfReportTemplate, language);
+}
 
-// Fill in a template string, replacing {{placeholder}} tokens with values
-// from `vars`. Unknown placeholders are left as-is (so a typo doesn't
-// silently delete text).
+
 function renderTemplate(template, vars) {
   return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
     const value = vars[key];
@@ -6417,8 +6880,7 @@ const DEFAULT_KODLAND_SETTINGS = {
   showGroupGradingReport: true,
   showBroadcastButtons: true,
   tutorName: 'TL Camilo Bermudez',
-  // Interface and message language. 'auto' follows Kodland's own language
-  // selector; any code in SUPPORTED_MESSAGE_LANGUAGES pins that language.
+
   messageLanguage: 'auto',
   welcomeTemplate: DEFAULT_WELCOME_TEMPLATE,
   absenceTemplate: DEFAULT_ABSENCE_TEMPLATE,
@@ -6428,7 +6890,8 @@ const DEFAULT_KODLAND_SETTINGS = {
   groupWelcomeTemplate: DEFAULT_GROUP_WELCOME_TEMPLATE,
   firstClassTemplate: DEFAULT_FIRST_CLASS_TEMPLATE,
   recordingStudentTemplate: DEFAULT_RECORDING_STUDENT_TEMPLATE,
-  recordingGroupTemplate: DEFAULT_RECORDING_GROUP_TEMPLATE
+  recordingGroupTemplate: DEFAULT_RECORDING_GROUP_TEMPLATE,
+  pdfReportTemplate: DEFAULT_PDF_REPORT_TEMPLATE
 };
 
 function getExtensionSettings() {
@@ -6446,8 +6909,7 @@ function saveExtensionSettings(settings) {
   localStorage.setItem('kodland_ext_settings', JSON.stringify(settings));
 }
 
-// Inject the floating "⚙️ Settings" button (always visible, so the tutor
-// can always get back in and re-enable anything they hid)
+
 function injectSettingsButton() {
   if (!isGroupPage()) return;
   if (document.getElementById('kodland-settings-button')) return;
@@ -6492,8 +6954,7 @@ function openSettingsModal() {
   const resetBtnStyle = 'background:none; border:none; color:#25D366; font-size:12px; cursor:pointer; text-decoration:underline;';
   const textareaStyle = `${fieldStyle} font-family:monospace; font-size:12px;`;
 
-  // Each entry: [settings key, textarea id, reset button id, label ui-key,
-  // getDefaultXTemplate function, rows]
+
   const TEMPLATE_FIELDS = [
     ['welcomeTemplate', 'kodland-setting-welcome-template', 'kodland-reset-welcome', 'settingWelcomeTemplate', getDefaultWelcomeTemplate, 8],
     ['absenceTemplate', 'kodland-setting-absence-template', 'kodland-reset-absence', 'settingAbsenceTemplate', getDefaultAbsenceTemplate, 6],
@@ -6503,7 +6964,8 @@ function openSettingsModal() {
     ['groupWelcomeTemplate', 'kodland-setting-groupwelcome-template', 'kodland-reset-groupwelcome', 'settingGroupWelcomeTemplate', getDefaultGroupWelcomeTemplate, 5],
     ['firstClassTemplate', 'kodland-setting-firstclass-template', 'kodland-reset-firstclass', 'settingFirstClassTemplate', getDefaultFirstClassTemplate, 10],
     ['recordingStudentTemplate', 'kodland-setting-recording-student-template', 'kodland-reset-recording-student', 'settingRecordingStudentTemplate', getDefaultRecordingStudentTemplate, 6],
-    ['recordingGroupTemplate', 'kodland-setting-recording-group-template', 'kodland-reset-recording-group', 'settingRecordingGroupTemplate', getDefaultRecordingGroupTemplate, 6]
+    ['recordingGroupTemplate', 'kodland-setting-recording-group-template', 'kodland-reset-recording-group', 'settingRecordingGroupTemplate', getDefaultRecordingGroupTemplate, 6],
+    ['pdfReportTemplate', 'kodland-setting-pdf-report-template', 'kodland-reset-pdf-report', 'settingPdfReportTemplate', getDefaultPdfReportTemplate, 5]
   ];
 
   const templateFieldsHtml = TEMPLATE_FIELDS.map(([settingsKey, textareaId, resetId, labelKey, , rows]) => `
@@ -6613,8 +7075,7 @@ function openSettingsModal() {
   languageSelect.addEventListener('change', () => {
     const selectedLanguage = normalizeMessageLanguage(languageSelect.value || currentLanguage);
     const templateLanguage = selectedLanguage === 'auto' ? detectPageLanguage() : selectedLanguage;
-    // Preview each template in the newly picked language, same as clicking
-    // "Reset" - the tutor can still edit before saving.
+
     TEMPLATE_FIELDS.forEach(([, textareaId, , , getDefaultForLanguage]) => {
       modal.querySelector(`#${textareaId}`).value = getDefaultForLanguage(templateLanguage);
     });
@@ -6651,7 +7112,8 @@ function openSettingsModal() {
       groupWelcomeTemplate: modal.querySelector('#kodland-setting-groupwelcome-template').value.trim() || DEFAULT_GROUP_WELCOME_TEMPLATE,
       firstClassTemplate: modal.querySelector('#kodland-setting-firstclass-template').value.trim() || DEFAULT_FIRST_CLASS_TEMPLATE,
       recordingStudentTemplate: modal.querySelector('#kodland-setting-recording-student-template').value.trim() || DEFAULT_RECORDING_STUDENT_TEMPLATE,
-      recordingGroupTemplate: modal.querySelector('#kodland-setting-recording-group-template').value.trim() || DEFAULT_RECORDING_GROUP_TEMPLATE
+      recordingGroupTemplate: modal.querySelector('#kodland-setting-recording-group-template').value.trim() || DEFAULT_RECORDING_GROUP_TEMPLATE,
+      pdfReportTemplate: modal.querySelector('#kodland-setting-pdf-report-template').value.trim() || DEFAULT_PDF_REPORT_TEMPLATE
     };
     saveExtensionSettings(newSettings);
     modal.remove();
@@ -6665,13 +7127,11 @@ function openSettingsModal() {
   });
 }
 
-// Function to build and download a CSV with contacts, ready to import into
-// phone/Google contacts: First Name / Last Name (= course + " Kodland") / Phone.
+
 async function exportContactsCSV() {
   const courseName = findCourseName() || 'Kodland';
 
-  // Build "Last Name" as {Día}{Hora}horas-Kodland (e.g. "Martes10horas-Kodland"),
-  // based on the course's first lesson (M1L1) day/time.
+
   const groupId = extractGroupId();
   const firstLesson = groupId ? await fetchFirstLessonForGroup(groupId) : null;
   const lessonDateInfo = firstLesson ? formatLessonDateForMessage(firstLesson.timetable_time) : null;
@@ -6685,8 +7145,7 @@ async function exportContactsCSV() {
     console.warn('[Export Contacts] ⚠️ No se pudo obtener el horario de la primera clase, usando "Kodland" como respaldo');
   }
 
-  // Google Contacts import format that's confirmed to work: semicolon-separated,
-  // with an empty "Name Prefix" column and phone as " +NUMBER" (one leading space).
+
   const rows = [['Name Prefix', 'First Name', 'Last Name', 'Phone 1 - Value']];
 
   Object.keys(studentGeneralInfoCache).forEach(studentId => {
@@ -6702,9 +7161,7 @@ async function exportContactsCSV() {
       return;
     }
 
-    // formatPhoneForWhatsApp may or may not include a leading "+" depending
-    // on which same-named function wins (several files define one) - strip
-    // it first so we always add exactly one, never two.
+
     const phoneDigitsOnly = String(formattedPhone).replace(/^\+/, '');
 
     rows.push(['', nombre, apellido, ` +${phoneDigitsOnly}`]);
@@ -6719,7 +7176,7 @@ async function exportContactsCSV() {
     .map(row => row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(';'))
     .join('\r\n');
 
-  // Add BOM so Excel/Sheets open accents correctly
+
   const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
 
@@ -6736,7 +7193,7 @@ async function exportContactsCSV() {
   console.log(`[Export Contacts] ✅ CSV descargado con ${rows.length - 1} contactos`);
 }
 
-// Function to inject the floating "Export contacts" button (once per group page)
+
 function injectExportContactsButton() {
   if (!isGroupPage()) return;
   if (!getExtensionSettings().showExportContacts) return;
@@ -6766,9 +7223,7 @@ function injectExportContactsButton() {
   console.log('[Group Students Info] ✅ Botón "Exportar contactos" inyectado');
 }
 
-// Function to inject the floating "WhatsApp group link" status button.
-// Shows whether the link has been captured for this group; clicking it
-// lets the tutor view or manually paste/correct the link.
+
 function injectWhatsAppGroupLinkButton() {
   if (!isGroupPage()) return;
   if (!getExtensionSettings().showWaGroupLink) return;
@@ -6802,7 +7257,7 @@ function injectWhatsAppGroupLinkButton() {
 
     const current = getGroupWhatsAppLink(groupId) || '';
     const input = prompt(uiText('waGroupLinkPrompt'), current);
-    if (input === null) return; // cancelled
+    if (input === null) return;
     if (input.trim() === '') {
       localStorage.removeItem(`kodland_wa_group_link_${groupId}`);
     } else {
@@ -6815,26 +7270,15 @@ function injectWhatsAppGroupLinkButton() {
   getOrCreateToolbar().appendChild(button);
   console.log('[Group Students Info] ✅ Botón de link de WhatsApp del grupo inyectado');
 
-  // Try to auto-detect the link (and cache the rest of the group info)
-  // in the background; update the button label once we know either way.
+
   if (groupId) {
     fetchGroupGeneralInfo(groupId).then(() => refreshLabel());
   }
 }
 
-// ---------------------------------------------------------------------
-// Attendance automation
-// ---------------------------------------------------------------------
-// Right-clicking the lesson chip (e.g. "L33") opens a floating menu with
-// 3 buttons: .btn-green ("Asistió"), .btn-red ("Ausente sin justificar"),
-// .btn-yellow ("Ausente justificada"). We simulate that interaction for
-// every student to bulk-mark attendance.
 
-// Find a student's lesson chip by exact lesson ID (e.g. class "lesson-25373"),
-// rather than relying on the "highlight" class (which may just reflect a
-// hover/interaction state rather than "today's lesson"). We still use the
-// row-scoped climbing technique: climb ancestors until we find the level
-// with exactly one matching chip (that's the student's own row).
+
+
 function findCurrentLessonChipForStudent(studentContainer, lessonId) {
   if (!lessonId) return null;
   const selector = `.v-chip.lesson-${lessonId}`;
@@ -6852,10 +7296,7 @@ function findCurrentLessonChipForStudent(studentContainer, lessonId) {
   return lastGood;
 }
 
-// Simulate a right-click (contextmenu event) on an element, which is what
-// the site listens for to open its floating attendance menu.
-// Simulate a normal left-click on an element (mousedown + mouseup + click),
-// which is what actually opens the attendance menu on the lesson chip.
+
 function simulateLeftClick(el) {
   const rect = el.getBoundingClientRect();
   const x = rect.left + rect.width / 2;
@@ -6889,8 +7330,7 @@ function simulateRightClick(el) {
   el.dispatchEvent(evt);
 }
 
-// Wait briefly for the ".custom-tooltip" menu to appear, then click the
-// button matching the requested status class ('btn-green' | 'btn-red' | 'btn-yellow').
+
 function clickAttendanceOption(statusClass, timeoutMs = 1200) {
   return new Promise((resolve) => {
     const start = Date.now();
@@ -6914,9 +7354,7 @@ function clickAttendanceOption(statusClass, timeoutMs = 1200) {
   });
 }
 
-// Detect whether a student is "Inscrito" (enrolled) using the same
-// row-scoped-search technique as the lesson chip finder: climb ancestors
-// until we find the level with exactly one ".v-chip.status" element.
+
 function isStudentEnrolled(studentContainer) {
   let el = studentContainer;
   let lastGood = null;
@@ -6929,19 +7367,16 @@ function isStudentEnrolled(studentContainer) {
     }
     el = el.parentElement;
   }
-  // If we couldn't find the status chip at all, default to true so we
-  // never silently skip everyone due to a selector mismatch.
+
   if (!lastGood) return true;
   return lastGood.classList.contains('text-success') || !!lastGood.querySelector('.ri-check-line');
 }
 
-// Mark attendance for every currently-loaded, ENROLLED student on the page.
-// statusClass: 'btn-green' (Asistió) | 'btn-red' (Ausente sin justificar) | 'btn-yellow' (Ausente justificada)
+
 async function markAttendanceForAllStudents(statusClass) {
   const students = findStudentElements();
 
-  // Get every currently-highlighted lesson chip on the page (one per
-  // student row, all in the same "current lesson" column).
+
   const highlightedChips = Array.from(document.querySelectorAll('.v-chip.highlight'));
 
   console.log(`[Attendance] ${students.length} estudiantes encontrados, ${highlightedChips.length} chips resaltados encontrados`);
@@ -6951,10 +7386,7 @@ async function markAttendanceForAllStudents(statusClass) {
     return { ok: [], failed: [], skipped: [] };
   }
 
-  // The student name column and the lesson chips can live in separate DOM
-  // branches that only line up visually (not through shared ancestry), so
-  // instead of climbing the DOM tree we pair them by vertical position:
-  // top-to-bottom order should match row-to-row.
+
   const getY = (el) => el.getBoundingClientRect().top + window.scrollY;
 
   const sortedStudents = [...students].sort((a, b) => getY(a.container) - getY(b.container));
@@ -6982,16 +7414,7 @@ async function markAttendanceForAllStudents(statusClass) {
       continue;
     }
 
-    // Right-click directly on the chip element itself. Events only bubble
-    // UP the DOM (child -> ancestors), so if the site's real click handler
-    // lives on the chip (likely, since it's the actual interactive
-    // "v-chip--link" element), dispatching on a parent wrapper would never
-    // reach it - we have to target the chip itself.
-    // Right-click directly on the chip element itself. Events only bubble
-    // UP the DOM (child -> ancestors), so if the site's real handler lives
-    // on the chip (likely, since it's the actual interactive
-    // "v-chip--link" element), dispatching on a parent wrapper would never
-    // reach it - we have to target the chip itself.
+
     const rightClickTarget = chip;
 
     simulateRightClick(rightClickTarget);
@@ -7005,14 +7428,14 @@ async function markAttendanceForAllStudents(statusClass) {
       results.failed.push(student.name);
     }
 
-    // Small delay between students so we don't overwhelm the page
+
     await new Promise(r => setTimeout(r, 400));
   }
 
   return results;
 }
 
-// Function to inject the floating "Take attendance" button
+
 function injectTakeAttendanceButton() {
   if (!isGroupPage()) return;
   if (!getExtensionSettings().showAttendance) return;
@@ -7052,37 +7475,19 @@ function injectTakeAttendanceButton() {
   console.log('[Group Students Info] ✅ Botón "Tomar asistencia" inyectado');
 }
 
-// Function to initialize the module
-// ---------------------------------------------------------------------
-// Broadcast messages to the WhatsApp GROUP (class starting, in class,
-// graduation, group welcome). Since a WhatsApp group link can't carry a
-// pre-filled message, we copy the text to the clipboard and open the
-// group chat so the tutor just has to paste and send.
-// ---------------------------------------------------------------------
 
-// Opens (or reuses) the WhatsApp tab for a group. IMPORTANT: call this
-// synchronously, as the very first thing in a click handler - before any
-// `await` - otherwise the delay from fetching lesson times etc. can push
-// window.open() outside the click's "user gesture" window and Chrome's
-// popup blocker silently swallows it (no tab, no error, looks like the
-// button "just doesn't work").
+
+
 function openGroupWhatsApp(groupIdOverride = null) {
   const groupId = groupIdOverride || extractGroupId();
   const cachedLink = getGroupWhatsAppLink(groupId);
 
-  // Open the tab synchronously no matter what, so it stays inside the
-  // click's "user gesture" window and Chrome doesn't block it. If we
-  // already have the link, great - open straight to the group's chat.
+
   const waWindow = window.open(cachedLink || 'https://web.whatsapp.com/', '_blank');
 
   if (cachedLink || !groupId) return waWindow;
 
-  // We didn't have the link cached yet (common right when the schedule
-  // modal opens on a page other than the group page itself, or if this
-  // fires before the group page's initial fetch finished). Fetch it now
-  // and redirect the tab we already opened once it resolves, instead of
-  // silently leaving the tutor on generic WhatsApp Web with no chat open
-  // (which is also why the queued message never gets pasted anywhere).
+
   fetchGroupGeneralInfo(groupId).then(() => {
     const link = getGroupWhatsAppLink(groupId);
     if (link && waWindow && !waWindow.closed) {
@@ -7093,20 +7498,16 @@ function openGroupWhatsApp(groupIdOverride = null) {
   return waWindow;
 }
 
-// Copies the message and queues it for the WhatsApp Web autopaste script.
-// Does NOT open any window - call openGroupWhatsApp() separately (and
-// first) for that.
+
 async function queueGroupBroadcastMessage(message) {
-  // Always copy to clipboard too, as a fallback in case the auto-paste
-  // script can't find WhatsApp Web's compose box (Ctrl+V still works then).
+
   try {
     await navigator.clipboard.writeText(message);
   } catch (error) {
     console.warn('[Broadcast] No se pudo copiar al portapapeles:', error);
   }
 
-  // Queue the message so the WhatsApp Web autopaste script picks it up
-  // and drops it into the compose box automatically.
+
   try {
     await chrome.storage.local.set({
       kodland_pending_wa_message: { message, timestamp: Date.now() }
@@ -7195,14 +7596,14 @@ async function sendGraduationBroadcast() {
   const language = getMessageLanguage();
 
   const lastLesson = groupId ? await fetchLastLessonForGroup(groupId) : null;
-  const lastLessonInfo = lastLesson ? formatLessonDateForMessage(lastLesson.timetable_time) : null;
+  const lastLessonInfo = lastLesson ? formatLessonDateForMessage(lastLesson.timetable_time, language) : null;
   const suggestedDate = lastLessonInfo ? `${lastLessonInfo.dayName} ${lastLessonInfo.fullDate}` : '';
   const suggestedTime = lastLessonInfo ? lastLessonInfo.time : '';
 
   const gradDate = prompt(uiText('promptGraduationDate'), suggestedDate);
-  if (gradDate === null) return; // cancelled
+  if (gradDate === null) return;
   const gradTime = prompt(uiText('promptGraduationTime'), suggestedTime);
-  if (gradTime === null) return; // cancelled
+  if (gradTime === null) return;
 
   const message = renderTemplate(getResolvedGraduationTemplate(language, settings), {
     courseName,
@@ -7214,9 +7615,7 @@ async function sendGraduationBroadcast() {
   await queueGroupBroadcastMessage(message);
 }
 
-// Pluralize a Spanish weekday name for recurring-schedule phrasing
-// ("domingo" -> "domingos", "sábado" -> "sábados", the rest stay the same:
-// "los lunes", "los martes", etc.)
+
 function pluralizeSpanishDay(dayName) {
   const lower = (dayName || '').toLowerCase();
   if (lower === 'sábado' || lower === 'sabado') return 'sábados';
@@ -7224,8 +7623,7 @@ function pluralizeSpanishDay(dayName) {
   return lower;
 }
 
-// Build a natural-language recurring schedule line from a lesson's ISO
-// date, e.g. "Domingos a las 8:00 a.m. (hora Colombia)"
+
 function buildScheduleLine(isoDateStr) {
   if (!isoDateStr) return null;
   try {
@@ -7234,7 +7632,7 @@ function buildScheduleLine(isoDateStr) {
     const pluralDay = pluralizeSpanishDay(dayNameRaw);
     const capitalizedDay = pluralDay.charAt(0).toUpperCase() + pluralDay.slice(1);
     const time12hRaw = new Intl.DateTimeFormat('es-CO', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' }).format(date);
-    // Spanish Intl output is "8:00 a. m." - collapse to "8:00 a.m."
+
     const time12h = time12hRaw.replace(/\s*([ap])\.?\s*m\.?/i, (m, ap) => ` ${ap.toLowerCase()}.m.`);
     return `${capitalizedDay} a las ${time12h} (hora Colombia)`;
   } catch (error) {
@@ -7256,17 +7654,10 @@ async function sendGroupWelcomeBroadcast() {
   await queueGroupBroadcastMessage(message);
 }
 
-// This runs on every bo.kodland.org page load, independent of group pages.
-// Start listening for the auth token immediately, so it's ready by the
-// time the tutor lands on a group page.
+
 captureAuthToken();
 
-// ---------------------------------------------------------------------
-// Schedule modal buttons ("Información de la clase" popup, shown from the
-// teacher's schedule/calendar tab: bo.kodland.org/teachers/{id}?tab=2).
-// Unlike the group page, this modal can appear on any bo.kodland.org page,
-// so we watch for it globally instead of gating on isGroupPage().
-// ---------------------------------------------------------------------
+
 
 function extractScheduleModalInfo(modalCard) {
   const groupLink = modalCard.querySelector('a[href^="/groups/"]');
@@ -7285,12 +7676,7 @@ function extractScheduleModalInfo(modalCard) {
     courseName = match ? match[1].trim() : fullText;
   }
 
-  // The "Hora de la clase:" row contains a span like "10:00 - 11:00", but
-  // relying on "the first <span> in the row" is fragile - if the label
-  // itself is also wrapped in a <span> (common with Vuetify), that grabs
-  // "Hora de la clase:" instead of the actual time. Strip the known label
-  // text out of the row's full text instead, so it doesn't matter which
-  // element holds the value.
+
   let time = null;
   modalCard.querySelectorAll('.v-row').forEach(row => {
     const rowText = row.textContent || '';
@@ -7311,12 +7697,9 @@ function injectScheduleModalButtons(modalCard) {
   if (!actionsRow) return;
 
   const info = extractScheduleModalInfo(modalCard);
-  if (!info.groupId) return; // nothing we can do without knowing the group
+  if (!info.groupId) return;
 
-  // This modal can appear on pages other than the group page itself (see
-  // watchForScheduleModal below), where the group-page init never ran - so
-  // the WhatsApp link might not be auto-detected yet. Kick it off here too
-  // (cheap no-op if already cached).
+
   fetchGroupGeneralInfo(info.groupId);
 
   const settings = getExtensionSettings();
@@ -7336,9 +7719,7 @@ function injectScheduleModalButtons(modalCard) {
 
     let timeOnly = (info.time || '').split('-')[0].trim();
     if (!timeOnly) {
-      // Same fallback the toolbar's "Aviso de clase" button uses: try the
-      // schedule API first, then just ask the tutor directly, instead of
-      // silently sending a message with a missing time.
+
       const nearestLesson = await fetchNearestLessonForGroup(info.groupId);
       const lessonDateInfo = nearestLesson ? formatLessonDateForMessage(nearestLesson.timetable_time) : null;
       timeOnly = lessonDateInfo
@@ -7371,21 +7752,11 @@ function injectScheduleModalButtons(modalCard) {
   wrapper.appendChild(classStartingBtn);
   wrapper.appendChild(inClassBtn);
 
-  // Put the buttons right above the "Cerrar / Completado" actions row
+
   actionsRow.parentElement.insertBefore(wrapper, actionsRow);
 }
 
-// ---------------------------------------------------------------------
-// Shared DOM watcher
-// ---------------------------------------------------------------------
-// Two different features used to each run their own MutationObserver on
-// the whole document.body (the schedule-modal watcher below, and the
-// student-row processor further down) - both reacting to literally every
-// mutation on the page, with no debounce. On a page with a lot of Vue
-// re-rendering (like the student list), that's two full callback passes
-// per tick, most of which find nothing new. This keeps ONE observer,
-// debounced so a burst of mutations from a single re-render only triggers
-// one pass, and fans out to whichever features are currently registered.
+
 const domWatchCallbacks = new Set();
 let sharedDomObserver = null;
 let sharedDomDebounceId = null;
@@ -7411,7 +7782,7 @@ function registerDomWatcher(callback) {
     sharedDomObserver.observe(document.body, { childList: true, subtree: true });
   }
 
-  // Run once immediately too, in case the relevant DOM is already there.
+
   try {
     callback();
   } catch (error) {
@@ -7437,10 +7808,10 @@ function watchForScheduleModal() {
     });
   };
 
-  registerDomWatcher(check); // also runs `check` once immediately
+  registerDomWatcher(check);
 }
 
-// This runs on every bo.kodland.org page load, independent of group pages
+
 watchForScheduleModal();
 
 function injectBroadcastButtons() {
@@ -7469,9 +7840,7 @@ function injectBroadcastButtons() {
     button.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      // Open the WhatsApp tab first, synchronously, so the popup blocker
-      // still counts this as a direct result of the click - the message
-      // gets queued for autopaste a moment later, once it's ready.
+
       openGroupWhatsApp();
       button.disabled = true;
       try {
@@ -7491,7 +7860,7 @@ function injectBroadcastButtons() {
 }
 
 function initGroupStudentsInfo() {
-  // Only run on group pages
+
   if (!isGroupPage()) {
     console.log('[Group Students Info] Not a group page, skipping');
     return;
@@ -7499,24 +7868,15 @@ function initGroupStudentsInfo() {
   
   console.log('[Group Students Info] Initializing on group page');
   
-  // (Auth token capture already started globally when the script loaded -
-  // no need to call captureAuthToken() again here.)
 
-  // Kick off the group general info fetch as early as possible - it's what
-  // auto-detects the WhatsApp chat_link, and backs up the course name and
-  // other data used further down. Buttons that need it (WA link button,
-  // schedule modal) just re-read the cache once this resolves.
+
+
   const initialGroupId = extractGroupId();
   if (initialGroupId) {
     fetchGroupGeneralInfo(initialGroupId);
   }
   
-  // All of the following share one toolbar (#kodland-broadcast-buttons)
-  // fixed at the top of the page. Order here = left-to-right order there.
-  // Each one is wrapped separately so that if one throws, it doesn't take
-  // down the rest of init (which previously meant one bad button could
-  // silently cancel every button after it - AND the student-row
-  // processing scheduled below, since that never got to run either).
+
   const safeInject = (label, fn) => {
     try {
       fn();
@@ -7525,25 +7885,25 @@ function initGroupStudentsInfo() {
     }
   };
 
-  // Broadcast buttons first (class starting, in class, graduation, group welcome)
+
   safeInject('broadcast', injectBroadcastButtons);
 
-  // Settings button (always visible, so the tutor can re-enable hidden buttons)
+
   safeInject('settings', injectSettingsButton);
 
-  // Export contacts
+
   safeInject('export contacts', injectExportContactsButton);
 
-  // Group grading report
+
   safeInject('grading report', injectGroupGradingReportButton);
 
-  // WhatsApp group link status/paste button
+
   safeInject('wa group link', injectWhatsAppGroupLinkButton);
 
-  // Take attendance
+
   safeInject('attendance', injectTakeAttendanceButton);
   
-  // Wait for DOM to be ready
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       setTimeout(processAllStudents, 1000);
@@ -7552,17 +7912,16 @@ function initGroupStudentsInfo() {
     setTimeout(processAllStudents, 1000);
   }
   
-  // Use the shared DOM watcher to detect when new students are added
-  // dynamically (see registerDomWatcher above)
+
   let intervalId = null;
 
   const studentWatchCheck = () => {
-    // Only process if not already processing
+
     if (isProcessingStudents) {
       return;
     }
     
-    // Check if new student elements were added or if buttons disappeared
+
     const currentStudents = findStudentElements();
     const unprocessedCount = currentStudents.filter(student => {
       const selector = `.kodland-student-buttons[data-student-id="${student.id}"]`;
@@ -7584,7 +7943,7 @@ function initGroupStudentsInfo() {
 
   registerDomWatcher(studentWatchCheck);
   
-  // Also try processing periodically for the first 30 seconds, but only if there are unprocessed students
+
   let attempts = 0;
   const maxAttempts = 20;
   intervalId = setInterval(() => {
@@ -7594,7 +7953,7 @@ function initGroupStudentsInfo() {
       return;
     }
     
-    // Don't process if already processing
+
     if (isProcessingStudents) {
       return;
     }
@@ -7615,10 +7974,7 @@ function initGroupStudentsInfo() {
       processAllStudents();
     }
     
-    // Stop interval only once we've actually found students and processed
-    // them all - NOT simply because the current check returned 0 (which
-    // can happen while the page is still rendering). Keep retrying until
-    // maxAttempts if nothing has been found yet.
+
     if ((students.length > 0 && unprocessedCount === 0) || attempts >= maxAttempts) {
       console.log('[Group Students Info] Stopping periodic check (all processed or max attempts reached)');
       clearInterval(intervalId);
@@ -7627,14 +7983,14 @@ function initGroupStudentsInfo() {
   }, 2000);
 }
 
-// Initialize when script loads
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initGroupStudentsInfo);
 } else {
   initGroupStudentsInfo();
 }
 
-// Export functions for external use
+
 if (typeof window !== 'undefined') {
   window.KodlandGroupStudentsInfo = {
     processAllStudents,

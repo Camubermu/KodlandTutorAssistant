@@ -1,12 +1,4 @@
-// Runs at document_start - BEFORE any of Kodland's own page scripts - so we
-// never miss the very first authenticated API call (which is where we grab
-// the Bearer token from). Everything else (buttons, modals, etc.) still
-// lives in group-students-info.js, loaded later at document_idle; this file
-// only does the network interception, as early as technically possible.
-//
-// `var` (not `let`/`const`) on purpose: top-level `var` attaches to the
-// shared global object, so `group-students-info.js` can keep reading/writing
-// the same `authToken` binding without any extra plumbing between the files.
+
 var authToken = (typeof authToken !== 'undefined' && authToken) ? authToken : null;
 
 (function installEarlyAuthTokenInterceptors() {
