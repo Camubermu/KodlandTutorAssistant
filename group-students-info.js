@@ -514,6 +514,25 @@ const UI_STRINGS = {
     fr: 'Nom du professeur :', tr: 'Öğretmen adı:', id: 'Nama tutor:', it: 'Nome del tutor:',
     pl: 'Imię nauczyciela:', pt: 'Nome do tutor:'
   },
+  settingGroqApiKey: {
+    es: 'Clave de IA (Groq) para comentarios:', en: 'AI (Groq) key for comments:',
+    ar: 'مفتاح الذكاء الاصطناعي (Groq) للتعليقات:', ru: 'Ключ ИИ (Groq) для комментариев:',
+    fr: "Clé IA (Groq) pour les commentaires :", tr: 'Yorumlar için yapay zeka (Groq) anahtarı:',
+    id: 'Kunci AI (Groq) untuk komentar:', it: 'Chiave IA (Groq) per i commenti:',
+    pl: 'Klucz AI (Groq) do komentarzy:', pt: 'Chave de IA (Groq) para comentários:'
+  },
+  settingGroqApiKeyHelp: {
+    es: 'Opcional, solo para el botón "Calificar y comentar (IA)":<br>1) Entra a <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">console.groq.com/keys</a> e inicia sesión (gratis, sin tarjeta).<br>2) Pulsa "Create API Key" y copia la clave (empieza con gsk_...).<br>3) Pégala arriba y guarda.',
+    en: 'Optional, only for the "Grade and comment (AI)" button:<br>1) Go to <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">console.groq.com/keys</a> and sign in (free, no card needed).<br>2) Click "Create API Key" and copy the key (starts with gsk_...).<br>3) Paste it above and save.',
+    ar: 'اختياري، فقط لزر "تصحيح وتعليق (ذكاء اصطناعي)":<br>1) ادخل إلى <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">console.groq.com/keys</a> وسجّل الدخول (مجاني، بدون بطاقة).<br>2) اضغط "Create API Key" وانسخ المفتاح (يبدأ بـ gsk_...).<br>3) الصقه في الأعلى واحفظ.',
+    ru: 'Необязательно, нужен только для кнопки «Проверить и прокомментировать (ИИ)»:<br>1) Перейдите на <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">console.groq.com/keys</a> и войдите (бесплатно, без карты).<br>2) Нажмите «Create API Key» и скопируйте ключ (начинается с gsk_...).<br>3) Вставьте его выше и сохраните.',
+    fr: 'Facultatif, uniquement pour le bouton « Corriger et commenter (IA) » :<br>1) Va sur <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">console.groq.com/keys</a> et connecte-toi (gratuit, sans carte).<br>2) Clique sur « Create API Key » et copie la clé (commence par gsk_...).<br>3) Colle-la ci-dessus et enregistre.',
+    tr: 'İsteğe bağlı, yalnızca "Notlandır ve yorum yap (YZ)" düğmesi için:<br>1) <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">console.groq.com/keys</a> adresine git ve giriş yap (ücretsiz, kart gerekmez).<br>2) "Create API Key"e tıkla ve anahtarı kopyala (gsk_... ile başlar).<br>3) Yukarı yapıştır ve kaydet.',
+    id: 'Opsional, hanya untuk tombol "Nilai dan beri komentar (AI)":<br>1) Buka <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">console.groq.com/keys</a> dan masuk (gratis, tanpa kartu).<br>2) Klik "Create API Key" lalu salin kuncinya (diawali gsk_...).<br>3) Tempel di atas lalu simpan.',
+    it: 'Facoltativo, solo per il pulsante "Correggi e commenta (IA)":<br>1) Vai su <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">console.groq.com/keys</a> e accedi (gratis, senza carta).<br>2) Clicca "Create API Key" e copia la chiave (inizia con gsk_...).<br>3) Incollala sopra e salva.',
+    pl: 'Opcjonalne, tylko dla przycisku „Oceń i skomentuj (AI)”:<br>1) Wejdź na <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">console.groq.com/keys</a> i zaloguj się (bezpłatnie, bez karty).<br>2) Kliknij „Create API Key” i skopiuj klucz (zaczyna się od gsk_...).<br>3) Wklej go powyżej i zapisz.',
+    pt: 'Opcional, apenas para o botão "Corrigir e comentar (IA)":<br>1) Acesse <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">console.groq.com/keys</a> e faça login (grátis, sem cartão).<br>2) Clique em "Create API Key" e copie a chave (começa com gsk_...).<br>3) Cole-a acima e salve.'
+  },
   settingLanguage: {
     es: 'Idioma de la interfaz y los mensajes:',
     en: 'Interface and message language:',
@@ -933,10 +952,78 @@ const UI_STRINGS = {
     tr: '↗ Notlandır', id: '↗ Nilai', it: '↗ Correggi', pl: '↗ Oceń', pt: '↗ Corrigir'
   },
 
-  calificarTodoButton: {
-    es: '✅ Calificar Todo', en: '✅ Grade All', ar: '✅ تصحيح الكل', ru: '✅ Проверить всё',
-    fr: '✅ Tout corriger', tr: '✅ Tümünü Notlandır', id: '✅ Nilai Semua', it: '✅ Correggi tutto',
-    pl: '✅ Oceń wszystko', pt: '✅ Corrigir tudo'
+  calificarMaxButton: {
+    es: '✅ Calificar (nota máxima)', en: '✅ Grade (max score)', ar: '✅ تصحيح (أعلى درجة)',
+    ru: '✅ Поставить максимум', fr: '✅ Corriger (note max)', tr: '✅ Notlandır (en yüksek puan)',
+    id: '✅ Nilai (skor maks)', it: '✅ Correggi (voto massimo)', pl: '✅ Oceń (maks. punktów)',
+    pt: '✅ Corrigir (nota máxima)'
+  },
+  calificarComentarButton: {
+    es: '💬 Calificar y comentar', en: '💬 Grade and comment', ar: '💬 تصحيح وتعليق',
+    ru: '💬 Проверить и прокомментировать', fr: '💬 Corriger et commenter', tr: '💬 Notlandır ve yorum yap',
+    id: '💬 Nilai dan beri komentar', it: '💬 Correggi e commenta', pl: '💬 Oceń i skomentuj',
+    pt: '💬 Corrigir e comentar'
+  },
+  calificarIaButton: {
+    es: '🤖 Calificar y comentar (IA)', en: '🤖 Grade and comment (AI)', ar: '🤖 تصحيح وتعليق (ذكاء اصطناعي)',
+    ru: '🤖 Проверить и прокомментировать (ИИ)', fr: '🤖 Corriger et commenter (IA)',
+    tr: '🤖 Notlandır ve yorum yap (YZ)', id: '🤖 Nilai dan beri komentar (AI)',
+    it: '🤖 Correggi e commenta (IA)', pl: '🤖 Oceń i skomentuj (AI)', pt: '🤖 Corrigir e comentar (IA)'
+  },
+  calificarConfirm: {
+    es: n => `Esto va a calificar ${n} tarea(s) pendientes de este grupo en Kodland. ¿Continuar?`,
+    en: n => `This will grade ${n} pending task(s) in this group on Kodland. Continue?`,
+    ar: n => `سيؤدي هذا إلى تصحيح ${n} مهمة معلّقة في هذه المجموعة على Kodland. هل تريد المتابعة؟`,
+    ru: n => `Будет выставлена оценка за ${n} ожидающих заданий этой группы в Kodland. Продолжить?`,
+    fr: n => `Cela va corriger ${n} tâche(s) en attente de ce groupe sur Kodland. Continuer ?`,
+    tr: n => `Bu, bu gruptaki ${n} bekleyen görevi Kodland'da notlandıracak. Devam edilsin mi?`,
+    id: n => `Ini akan menilai ${n} tugas tertunda di grup ini pada Kodland. Lanjutkan?`,
+    it: n => `Questo correggerà ${n} attività in sospeso di questo gruppo su Kodland. Continuare?`,
+    pl: n => `To oceni ${n} oczekujących zadań tej grupy w Kodland. Kontynuować?`,
+    pt: n => `Isso vai corrigir ${n} tarefa(s) pendente(s) deste grupo no Kodland. Continuar?`
+  },
+  calificarProgress: {
+    es: (c, t) => `Calificando ${c}/${t}…`, en: (c, t) => `Grading ${c}/${t}…`,
+    ar: (c, t) => `جارٍ التصحيح ${c}/${t}…`, ru: (c, t) => `Проверка ${c}/${t}…`,
+    fr: (c, t) => `Correction ${c}/${t}…`, tr: (c, t) => `Notlandırılıyor ${c}/${t}…`,
+    id: (c, t) => `Menilai ${c}/${t}…`, it: (c, t) => `Correggo ${c}/${t}…`,
+    pl: (c, t) => `Ocenianie ${c}/${t}…`, pt: (c, t) => `Corrigindo ${c}/${t}…`
+  },
+  calificarDone: {
+    es: (ok, t) => `Listo: ${ok} de ${t} tarea(s) calificada(s).`,
+    en: (ok, t) => `Done: ${ok} of ${t} task(s) graded.`,
+    ar: (ok, t) => `تم: ${ok} من ${t} مهمة تم تصحيحها.`,
+    ru: (ok, t) => `Готово: оценено ${ok} из ${t} заданий.`,
+    fr: (ok, t) => `Terminé : ${ok}/${t} tâche(s) corrigée(s).`,
+    tr: (ok, t) => `Tamamlandı: ${t} görevden ${ok} tanesi notlandırıldı.`,
+    id: (ok, t) => `Selesai: ${ok} dari ${t} tugas dinilai.`,
+    it: (ok, t) => `Fatto: ${ok} di ${t} attività corrette.`,
+    pl: (ok, t) => `Gotowe: oceniono ${ok} z ${t} zadań.`,
+    pt: (ok, t) => `Pronto: ${ok} de ${t} tarefa(s) corrigida(s).`
+  },
+  calificarAlreadyDone: {
+    es: 'ya comentada(s) antes', en: 'already commented before', ar: 'تم التعليق عليها سابقًا',
+    ru: 'уже прокомментировано ранее', fr: 'déjà commentée(s) avant', tr: 'daha önce yorumlanmış',
+    id: 'sudah dikomentari sebelumnya', it: 'già commentate in precedenza', pl: 'już wcześniej skomentowane',
+    pt: 'já comentada(s) antes'
+  },
+  calificarWithErrors: {
+    es: 'con error (ver consola)', en: 'with errors (see console)', ar: 'بها خطأ (راجع وحدة التحكم)',
+    ru: 'с ошибкой (см. консоль)', fr: 'en erreur (voir la console)', tr: 'hatalı (konsolu kontrol et)',
+    id: 'dengan error (lihat konsol)', it: 'con errore (vedi console)', pl: 'z błędem (zobacz konsolę)',
+    pt: 'com erro (veja o console)'
+  },
+  calificarIaNotConfigured: {
+    es: 'Falta configurar tu clave de IA (Groq) en Configuración antes de usar este botón.',
+    en: 'Set up your AI (Groq) key in Settings before using this button.',
+    ar: 'يجب إعداد مفتاح الذكاء الاصطناعي (Groq) في الإعدادات قبل استخدام هذا الزر.',
+    ru: 'Перед использованием этой кнопки настройте ключ ИИ (Groq) в Настройках.',
+    fr: "Configure ta clé IA (Groq) dans les Paramètres avant d'utiliser ce bouton.",
+    tr: 'Bu düğmeyi kullanmadan önce Ayarlar\'da yapay zeka (Groq) anahtarını yapılandır.',
+    id: 'Atur kunci AI (Groq) Anda di Pengaturan sebelum menggunakan tombol ini.',
+    it: "Configura la tua chiave IA (Groq) nelle Impostazioni prima di usare questo pulsante.",
+    pl: 'Skonfiguruj klucz AI (Groq) w Ustawieniach przed użyciem tego przycisku.',
+    pt: 'Configure sua chave de IA (Groq) em Configurações antes de usar este botão.'
   },
   pdfReportButtonTooltip: {
     es: 'Generar reporte PDF', en: 'Generate PDF report', ar: 'إنشاء تقرير PDF', ru: 'Создать PDF-отчёт',
@@ -2119,22 +2206,8 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
   
 
   const detectedLang = getMessageLanguage();
-  const langUrlMap = {
-    'es': 'es',
-    'en': 'en',
-    'ru': 'ru',
-    'fr': 'fr',
-    'tr': 'tr',
-    'id': 'id',
-    'it': 'it',
-    'pl': 'pl',
-    'pt': 'pt'
-  };
-  const langPath = langUrlMap[detectedLang] || 'es';
-
-
   const organizedData = organizeTasksByModules(modulesData, tasksData);
-  
+
 
   const studentName = document.querySelector(`a[href="/students/${studentId}"] h3`)?.textContent?.trim() || uiText('studentWithId', studentId);
 
@@ -2323,7 +2396,7 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
           classTasksSection.className = 'kodland-tasks-section kodland-class-tasks';
           classTasksSection.innerHTML = `<h4>${escapeHtml(uiTextForLanguage('classTasksHeading', detectedLang))}</h4>`;
 
-          const classTasksList = renderTasksList(lesson.classTasks, filterStatus, studentId, langPath);
+          const classTasksList = renderTasksList(lesson.classTasks, filterStatus, studentId);
           classTasksSection.appendChild(classTasksList);
           lessonCard.appendChild(classTasksSection);
         }
@@ -2334,7 +2407,7 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
           homeworkTasksSection.className = 'kodland-tasks-section kodland-homework-tasks';
           homeworkTasksSection.innerHTML = `<h4>${escapeHtml(uiTextForLanguage('homeworkTasksHeading', detectedLang))}</h4>`;
 
-          const homeworkTasksList = renderTasksList(lesson.homeworkTasks, filterStatus, studentId, langPath);
+          const homeworkTasksList = renderTasksList(lesson.homeworkTasks, filterStatus, studentId);
           homeworkTasksSection.appendChild(homeworkTasksList);
           lessonCard.appendChild(homeworkTasksSection);
         }
@@ -2547,7 +2620,7 @@ function showTasksModal(studentId, modulesData, tasksData, onRefresh = null) {
 }
 
 
-function renderTasksList(tasksData, filterStatus = null, studentId = null, langPath = 'es') {
+function renderTasksList(tasksData, filterStatus = null, studentId = null) {
   const list = document.createElement('div');
   list.className = 'kodland-tasks-list';
   
@@ -2625,7 +2698,7 @@ function renderTasksList(tasksData, filterStatus = null, studentId = null, langP
 
     let taskLinkHtml = '';
     if (task.task_id && studentId) {
-      const taskUrl = `https://learn.kodland.org/${langPath}/task/${task.task_id}/check/${studentId}`;
+      const taskUrl = `https://learn.kodland.org/task/${task.task_id}/check/${studentId}`;
       taskLinkHtml = `<a class="kodland-task-link" href="${taskUrl}" target="_blank" rel="noopener noreferrer">↗</a>`;
     }
 
@@ -4492,6 +4565,435 @@ async function fetchStudentTaskAlerts(studentId) {
   return result;
 }
 
+// ============================================================================
+// Motor de calificación/comentarios, 100% en el navegador — puerto fiel de
+// calificador/calificador_kodland.py, sin Python ni Playwright.
+//
+// La parte que el script original resolvía con scraping de color del DOM
+// (¿qué tareas están pendientes?) ya la resuelve fetchStudentTaskAlerts() de
+// arriba usando el campo task_status_key de la propia API de Kodland — así
+// que este motor solo necesita agregar el paso que faltaba: ESCRIBIR la nota
+// y el comentario sobre esas tareas, con el mismo authToken que ya captura
+// la extensión (PUT /api/v1/grade/{progress_id}/, confirmado en el propio
+// script original como el mismo endpoint que usa su modal nativo "Evalúe").
+//
+// Simplificaciones conscientes frente al original:
+// - No valida sintaxis Python con un parser (usaba ast.parse, que no existe
+//   en el navegador); si el código del alumno no corre, igual se detecta por
+//   similitud/construcciones faltantes y por lo que diga la IA (modo "ia").
+// - No reproduce los respaldos por UI (modal "Evalúe" / chat) si el PUT a la
+//   API falla: si falla, se reporta el error y se sigue con la siguiente
+//   tarea — igual que el original ante cualquier excepción, nunca frena todo
+//   el proceso por un alumno problemático.
+// - Cada acción se limita al grupo que el tutor tiene abierto (igual que el
+//   resto de los botones de esta extensión), en vez de recorrer todos los
+//   grupos activos del tutor en una sola pasada como hacía el script Python.
+// ============================================================================
+
+async function kodlandApiV2(path, { method = 'GET', body } = {}) {
+  const headers = { Accept: 'application/json' };
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  const response = await fetch(`https://backoffice.kodland.org/api/v2${path}`, {
+    method, credentials: 'include', headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined
+  });
+  const contentType = response.headers.get('content-type') || '';
+  const data = contentType.includes('application/json') ? await response.json().catch(() => null) : null;
+  return { ok: response.ok, status: response.status, data };
+}
+
+async function kodlandApiV1(path, { method = 'GET', body } = {}) {
+  const headers = { Accept: 'application/json' };
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  const response = await fetch(`https://backoffice.kodland.org/api/v1${path}`, {
+    method, credentials: 'include', headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined
+  });
+  const contentType = response.headers.get('content-type') || '';
+  const data = contentType.includes('application/json') ? await response.json().catch(() => null) : null;
+  return { ok: response.ok, status: response.status, data };
+}
+
+function gradingLimpiarInvisibles(s) {
+  if (!s) return s;
+  return String(s)
+    .replace(/ /g, ' ')
+    .replace(/[​﻿]/g, '')
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"');
+}
+
+function gradingTextoPlano(v) {
+  if (v === null || v === undefined) return null;
+  let s = String(v);
+  s = s.replace(/<br\s*\/?>/gi, '\n');
+  s = s.replace(/<\/(p|div|li)\s*>/gi, '\n');
+  s = s.replace(/<[^>]+>/g, '');
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = s;
+  s = textarea.value;
+  s = gradingLimpiarInvisibles(s);
+  s = s.trim();
+  return s || null;
+}
+
+function gradingNormalizarCodigo(txt) {
+  const lineas = [];
+  for (const lineaRaw of (txt || '').replace(/\r/g, '').split('\n')) {
+    const linea = lineaRaw.replace(/#.*/, '').replace(/\s+$/, '');
+    if (linea.trim()) lineas.push(linea.trim().replace(/\s+/g, ' '));
+  }
+  return lineas.join('\n');
+}
+
+const GRADING_CONSTRUCTOS = [
+  ['for ', 'un ciclo for'], ['while ', 'un ciclo while'],
+  ['def ', 'una función (def)'], ['if ', 'condicionales (if)'],
+  ['input(', 'input()'], ['int(', 'conversión con int()'],
+  ['append(', 'append() para la lista'], ['import ', 'el import que pide la tarea']
+];
+
+// Aproxima difflib.SequenceMatcher.ratio() de Python (2*coincidencias/total)
+// con la subsecuencia común más larga (LCS) — suficiente para el umbral de
+// similitud que usa calcularNota()/comentarioLocal(), sin depender de ninguna
+// librería externa.
+function gradingSimilarityRatio(a, b) {
+  const n = a.length, m = b.length;
+  if (!n && !m) return 1;
+  if (!n || !m) return 0;
+  let prev = new Array(m + 1).fill(0);
+  for (let i = 1; i <= n; i++) {
+    const curr = new Array(m + 1).fill(0);
+    const ca = a.charCodeAt(i - 1);
+    for (let j = 1; j <= m; j++) {
+      curr[j] = ca === b.charCodeAt(j - 1) ? prev[j - 1] + 1 : Math.max(prev[j], curr[j - 1]);
+    }
+    prev = curr;
+  }
+  return (2 * prev[m]) / (n + m);
+}
+
+function gradingAnalizarCodigo(codigo, solucion) {
+  const det = { similitud: null, faltantes: [], esPython: false, solEsPython: false, incompleto: false };
+  const cod = gradingLimpiarInvisibles(codigo || '').trim();
+  const sol = gradingLimpiarInvisibles(solucion || '').trim();
+  const rexPy = /\b(print|def|for|while|input|import|if)\b|=/;
+  det.esPython = rexPy.test(cod);
+  det.solEsPython = rexPy.test(sol);
+  if (cod && sol) {
+    const ncod = gradingNormalizarCodigo(cod);
+    const nsol = gradingNormalizarCodigo(sol);
+    det.similitud = gradingSimilarityRatio(ncod, nsol);
+    for (const [aguja, nombre] of GRADING_CONSTRUCTOS) {
+      if (nsol.includes(aguja) && !ncod.includes(aguja)) det.faltantes.push(nombre);
+    }
+    if (det.solEsPython) {
+      const diminuta = ncod.length < 20;
+      const muchoMenor = ncod.length < 0.25 * nsol.length;
+      det.incompleto = diminuta || (muchoMenor && det.faltantes.length >= 2);
+    }
+  }
+  return det;
+}
+
+function gradingCalcularNota(det, maximo, minimo) {
+  if (maximo == null) return [null, 'no conozco la nota máxima de la tarea'];
+  maximo = Math.round(maximo);
+  if (minimo == null) minimo = Math.round(maximo * 0.4);
+  minimo = Math.min(minimo, maximo);
+  const rango = maximo - minimo;
+  const nota = frac => Math.round(minimo + frac * rango);
+  if (!det.solEsPython) return [maximo, 'tarea sin código evaluable → nota máxima'];
+  if (!det.esPython) return [nota(0), 'no hay código en la entrega → nota mínima'];
+  if (det.incompleto) return [nota(0), 'entrega incompleta → nota mínima'];
+  return [maximo, 'sin problemas detectables → nota máxima'];
+}
+
+function gradingNotaDesdeFraccion(fraccion, maximo, minimo) {
+  if (maximo == null || fraccion == null) return null;
+  maximo = Math.round(maximo);
+  if (minimo == null) minimo = Math.round(maximo * 0.4);
+  minimo = Math.min(minimo, maximo);
+  fraccion = Math.max(0, Math.min(1, Number(fraccion)));
+  return Math.round(minimo + fraccion * (maximo - minimo));
+}
+
+const GRADING_PLANTILLAS_DEFECTO = {
+  bien: [
+    '¡Excelente trabajo, {nombre}! 🎉 Tu código hace justo lo que pedía la tarea. ¡Sigue así!',
+    '¡Muy bien, {nombre}! 👏 Tu solución está correcta y bien escrita. ¡Felicitaciones!',
+    '¡Genial, {nombre}! ✨ Resolviste la tarea tal como se esperaba. ¡Buen trabajo!'
+  ],
+  con_detalles: [
+    '¡Buen trabajo, {nombre}! 💪 Tu tarea está aprobada. Un consejo para mejorarla: {detalle}.',
+    '¡Bien hecho, {nombre}! 👍 Ya quedó calificada. Para la próxima, {detalle}.'
+  ],
+  sintaxis: [
+    '¡Buen intento, {nombre}! 💪 Tu tarea quedó calificada, pero revisa bien tu código para que corra perfecto.',
+    '¡Gracias por tu entrega, {nombre}! Quedó calificada 👍. Revisa tu código con calma, puede tener algún detalle.'
+  ],
+  neutro: [
+    '¡Gracias por tu entrega, {nombre}! 🙌 Ya quedó calificada. Compárala con la solución de la tarea para ver otro enfoque 😊',
+    '¡Buen trabajo, {nombre}! 👍 Tarea calificada. Si quieres, revisa la solución del curso para comparar ideas.'
+  ],
+  sin_codigo: [
+    '¡Gracias por tu entrega, {nombre}! 🙌 ¡Buen trabajo, sigue así!',
+    '¡Muy bien, {nombre}! 👏 Tu tarea quedó revisada y calificada. ¡Ánimo con la siguiente!'
+  ],
+  incompleto: [
+    '¡Gracias por tu entrega, {nombre}! 🙌 Aunque no encuentro tu código completo en la respuesta. Envíalo por el chat cuando puedas y así te doy una mejor revisión. ¡Tú puedes! 💪',
+    '¡Hola, {nombre}! Recibí tu entrega, pero parece que el código falta o está incompleto. Mándalo completo cuando puedas para revisarlo mejor 😊'
+  ]
+};
+
+let gradingPlantillasCache = null;
+async function gradingCargarPlantillas() {
+  if (gradingPlantillasCache) return gradingPlantillasCache;
+  try {
+    const response = await fetch(chrome.runtime.getURL('calificador/plantillas_comentarios.json'));
+    gradingPlantillasCache = response.ok ? await response.json() : GRADING_PLANTILLAS_DEFECTO;
+  } catch (error) {
+    gradingPlantillasCache = GRADING_PLANTILLAS_DEFECTO;
+  }
+  return gradingPlantillasCache;
+}
+
+async function gradingComentarioLocal(nombreCompleto, codigo, solucion, det) {
+  const nombre = nombreCompleto && !nombreCompleto.startsWith('(') ? nombreCompleto.split(' ')[0] : '';
+  let categoria, detalle = '';
+  if (!(codigo || '').trim() || !det.esPython) {
+    categoria = det.solEsPython ? 'incompleto' : 'sin_codigo';
+  } else if (det.incompleto) {
+    categoria = 'incompleto';
+  } else if (det.similitud !== null && det.similitud >= 0.75) {
+    categoria = 'bien';
+  } else if (det.faltantes.length) {
+    categoria = 'con_detalles';
+    detalle = 'podrías intentar usar ' + det.faltantes.slice(0, 2).join(' y ');
+  } else if (det.similitud !== null) {
+    categoria = 'neutro';
+  } else {
+    categoria = 'sin_codigo';
+  }
+  const plantillas = await gradingCargarPlantillas();
+  const opciones = plantillas[categoria] || GRADING_PLANTILLAS_DEFECTO[categoria];
+  let texto = opciones[Math.floor(Math.random() * opciones.length)];
+  texto = nombre ? texto.replace('{nombre}', nombre) : texto.replace(', {nombre}', '').replace('{nombre}', '');
+  texto = texto.replace('{detalle}', detalle);
+  texto = texto.replace(/\s+([!?.,])/g, '$1');
+  return texto.replace(/\s{2,}/g, ' ').trim();
+}
+
+function gradingConstruirPromptIa(enunciado, solucion, codigo) {
+  const system = 'Eres un profesor de programación de Kodland: cálido, motivador y cercano. ' +
+    'Revisas tareas de Python de adolescentes (13-17 años) y respondes en español ' +
+    'latinoamericano neutro. Devuelves SIEMPRE un único objeto JSON válido, sin texto extra.';
+  const user = `ENUNCIADO DE LA TAREA:
+${(enunciado || '(sin enunciado)').slice(0, 2500)}
+
+SOLUCIÓN ESPERADA (referencia del profesor):
+${(solucion || '(no hay solución de referencia)').slice(0, 2500)}
+
+CÓDIGO ENVIADO POR EL ESTUDIANTE:
+${(codigo || '(el estudiante no envió código)').slice(0, 2500)}
+
+Evalúa el código del estudiante. Fíjate en si REALMENTE resuelve lo que pide el
+ENUNCIADO (errores de lógica, condiciones mal puestas, textos equivocados), no solo
+en la sintaxis. El código pudo perder el formato al copiarse, así que NO penalices la
+indentación ni los espacios.
+
+Si NO hay solución de referencia, evalúa igualmente comparando el código con el
+ENUNCIADO: decide si cumple lo pedido y si no tiene errores que impidan ejecutarlo.
+Si cumple y no ves errores, márcalo correcto y felicita. Si falta algo o hay errores,
+señálalo con amabilidad.
+
+Responde SOLO con este JSON:
+{"correcto": true, "errores": [], "comentario": "comentario cálido de 2 a 4 frases en español; dirígete al estudiante escribiendo LITERALMENTE {nombre} donde iría su nombre (no inventes un nombre); menciona algo específico de SU código; si hay errores explícalos con amabilidad y una pista para corregir (sin dar la solución completa); incluye 1 o 2 emojis", "fraccion": 1.0}
+- "correcto": true si cumple lo que pide la tarea, false si no.
+- "errores": lista breve de problemas concretos (vacía si está bien).
+- "fraccion": número entre 0 y 1 según qué tan correcta y completa está (1 = perfecta).`;
+  return { system, user };
+}
+
+const gradingIaCache = new Map();
+function gradingClaveCacheIa(taskId, codigo) {
+  const normalizado = gradingNormalizarCodigo(gradingLimpiarInvisibles(codigo || ''));
+  let hash = 0;
+  for (let i = 0; i < normalizado.length; i++) {
+    hash = (Math.imul(31, hash) + normalizado.charCodeAt(i)) | 0;
+  }
+  return `${taskId}:${hash}`;
+}
+
+async function gradingLlamarIa(enunciado, solucion, codigo) {
+  const settings = getExtensionSettings();
+  if (!settings.groqApiKey) return null;
+  const { system, user } = gradingConstruirPromptIa(enunciado, solucion, codigo);
+  try {
+    const response = await new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({
+        tipo: 'groq-chat',
+        apiKey: settings.groqApiKey,
+        model: settings.groqModel || 'llama-3.3-70b-versatile',
+        system, user
+      }, result => {
+        if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
+        else resolve(result);
+      });
+    });
+    if (!response?.ok || !response.content) return null;
+    let datos;
+    try {
+      datos = JSON.parse(response.content);
+    } catch (error) {
+      const match = response.content.match(/\{[\s\S]*\}/);
+      datos = match ? JSON.parse(match[0]) : null;
+    }
+    if (!datos || !datos.comentario) return null;
+    const comentario = gradingTextoPlano(String(datos.comentario));
+    if (!comentario) return null;
+    let fraccion = null;
+    try { fraccion = Math.max(0, Math.min(1, Number(datos.fraccion))); } catch (error) { fraccion = null; }
+    return { comentario, fraccion, correcto: datos.correcto, errores: datos.errores };
+  } catch (error) {
+    console.error('[Calificador] Error llamando a la IA:', error);
+    return null;
+  }
+}
+
+async function gradingLedgerTiene(clave) {
+  const data = await chrome.storage.local.get('kodland_calificador_ledger');
+  return (data.kodland_calificador_ledger || []).includes(clave);
+}
+async function gradingLedgerAgregar(clave) {
+  const data = await chrome.storage.local.get('kodland_calificador_ledger');
+  const ledger = data.kodland_calificador_ledger || [];
+  if (!ledger.includes(clave)) {
+    ledger.push(clave);
+    await chrome.storage.local.set({ kodland_calificador_ledger: ledger.slice(-5000) });
+  }
+}
+
+async function gradingVerificarComentarioGuardado(studentId, taskId, comentario) {
+  await new Promise(resolve => setTimeout(resolve, 1200));
+  const { ok, data } = await kodlandApiV2(`/students/${studentId}/get_progress_by_task/${taskId}/`);
+  if (ok && data) {
+    const guardado = (gradingTextoPlano(data.comment) || '').toLowerCase();
+    const firma = comentario.trim().slice(0, 40).toLowerCase();
+    return !!(firma && guardado.includes(firma));
+  }
+  return null;
+}
+
+// mode: 'max' (solo nota máxima, sin comentar) | 'plantillas' | 'ia'
+async function gradeAndCommentTask(studentId, taskId, nombreCompleto, mode) {
+  try {
+    const progressRes = await kodlandApiV2(`/students/${studentId}/get_progress_by_task/${taskId}/`);
+    if (!progressRes.ok || !progressRes.data) {
+      return { ok: false, error: 'No pude obtener el progreso de la tarea.' };
+    }
+    const progress = progressRes.data;
+    const codigoAlumno = gradingTextoPlano(progress.solution);
+    const progressId = progress.progress_id || progress.id;
+
+    const taskRes = await kodlandApiV2(`/tasks/${taskId}/`);
+    const task = taskRes.ok ? taskRes.data || {} : {};
+    const solucion = gradingTextoPlano(task.solution);
+    const enunciado = gradingTextoPlano(task.unescaped_text_of_task || task.text_of_task);
+    const maximo = task.max_grade;
+    const minimo = task.min_grade;
+
+    if (!progressId || maximo == null) {
+      return { ok: false, error: 'Falta el ID de progreso o la nota máxima de la tarea.' };
+    }
+
+    if (mode === 'max') {
+      const put = await kodlandApiV1(`/grade/${progressId}/`, { method: 'PUT', body: { grade: Math.round(maximo), comment: progress.comment || '' } });
+      if (!put.ok) return { ok: false, error: `La API respondió ${put.status} al calificar.` };
+      return { ok: true, nota: Math.round(maximo), maximo };
+    }
+
+    const det = gradingAnalizarCodigo(codigoAlumno, solucion);
+    let comentario = null;
+    let fraccionIa = null;
+    let origen = 'plantillas';
+
+    if (mode === 'ia') {
+      const clave = gradingClaveCacheIa(taskId, codigoAlumno);
+      let resultado = gradingIaCache.get(clave);
+      const reciclado = !!resultado;
+      if (!resultado) {
+        resultado = await gradingLlamarIa(enunciado, solucion, codigoAlumno);
+        if (resultado?.comentario) gradingIaCache.set(clave, resultado);
+      }
+      if (resultado?.comentario) {
+        const nombre = nombreCompleto && !nombreCompleto.startsWith('(') ? nombreCompleto.split(' ')[0] : '';
+        let com = resultado.comentario;
+        com = nombre ? com.replace('{nombre}', nombre) : com.replace('{nombre}', '').replace(/^\s*[,;:¡!.\-]+\s*/, '');
+        comentario = com.replace(/\s{2,}/g, ' ').trim();
+        fraccionIa = resultado.fraccion;
+        origen = reciclado ? 'ia (reciclado)' : 'ia';
+      }
+    }
+    if (!comentario) comentario = await gradingComentarioLocal(nombreCompleto, codigoAlumno, solucion, det);
+
+    let notaFinal, motivoNota;
+    if (fraccionIa != null) {
+      notaFinal = gradingNotaDesdeFraccion(fraccionIa, maximo, minimo);
+      motivoNota = `evaluada por IA (calidad ${Math.round(fraccionIa * 100)}%)`;
+    } else {
+      [notaFinal, motivoNota] = gradingCalcularNota(det, maximo, minimo);
+    }
+    if (notaFinal == null) return { ok: false, error: 'No pude determinar la nota.' };
+
+    const claveEnvio = `${taskId}:${studentId}`;
+    if (await gradingLedgerTiene(claveEnvio)) {
+      return { ok: true, omitido: true, mensaje: 'Ya se había comentado antes.' };
+    }
+
+    const put = await kodlandApiV1(`/grade/${progressId}/`, { method: 'PUT', body: { grade: Math.round(notaFinal), comment: comentario } });
+    if (!put.ok) return { ok: false, error: `La API respondió ${put.status} al guardar la nota/comentario.` };
+
+    const verificado = await gradingVerificarComentarioGuardado(studentId, taskId, comentario);
+    if (verificado === false) {
+      return { ok: false, error: 'El comentario no quedó guardado (verificación falló).' };
+    }
+    await gradingLedgerAgregar(claveEnvio);
+    return { ok: true, nota: notaFinal, maximo, comentario, origen, motivoNota };
+  } catch (error) {
+    console.error('[Calificador] Error calificando tarea:', error);
+    return { ok: false, error: error.message || String(error) };
+  }
+}
+
+async function runGroupGrading(report, mode, onProgress) {
+  const tasks = [];
+  report.forEach(student => {
+    (student.pendingGradingTasks || []).forEach(task => {
+      tasks.push({ studentId: student.studentId, taskId: task.taskId, name: student.name });
+    });
+  });
+  const results = { total: tasks.length, ok: 0, omitidos: 0, errores: [] };
+  for (let i = 0; i < tasks.length; i++) {
+    const t = tasks[i];
+    if (onProgress) onProgress(i + 1, tasks.length, t.name);
+    if (!t.taskId) {
+      results.errores.push({ ...t, error: 'Sin ID de tarea' });
+      continue;
+    }
+    const res = await gradeAndCommentTask(t.studentId, t.taskId, t.name, mode);
+    if (res.ok) {
+      if (res.omitido) results.omitidos++; else results.ok++;
+    } else {
+      results.errores.push({ ...t, error: res.error });
+    }
+    if (i < tasks.length - 1) await new Promise(resolve => setTimeout(resolve, 400));
+  }
+  return results;
+}
+
 
 async function fetchGroupGradingReport(onProgress = null) {
   const students = findStudentElements();
@@ -4534,16 +5036,13 @@ function showGroupGradingReportModal(report) {
   const withPending = report.filter(r => r.pendingGradingCount > 0);
 
 
-  const langUrlMap = { es: 'es', en: 'en', ru: 'ru', fr: 'fr', tr: 'tr', id: 'id', it: 'it', pl: 'pl', pt: 'pt' };
-  const langPath = langUrlMap[getMessageLanguage()] || 'es';
-
   const rowsHtml = withPending.length === 0
     ? `<p class="kodland-no-tasks">${escapeHtml(uiText('gradingNobodyPending'))}</p>`
     : withPending.map(r => {
         const tasksList = r.pendingGradingTasks
           .map(t => {
             const link = t.taskId
-              ? `<a class="kodland-task-link" href="https://learn.kodland.org/${langPath}/task/${t.taskId}/check/${r.studentId}" target="_blank" rel="noopener noreferrer">${escapeHtml(uiText('gradeTaskLink'))}</a>`
+              ? `<a class="kodland-task-link" href="https://learn.kodland.org/task/${t.taskId}/check/${r.studentId}" target="_blank" rel="noopener noreferrer">${escapeHtml(uiText('gradeTaskLink'))}</a>`
               : '';
             return `<div class="kodland-task-item"><div class="kodland-task-info"><span class="kodland-task-name">${t.label}: ${t.name}</span>${link}</div></div>`;
           })
@@ -4564,10 +5063,17 @@ function showGroupGradingReportModal(report) {
     <div class="kodland-modal-content">
       <div class="kodland-modal-header">
         <h2>${escapeHtml(uiText('gradingReportTitle', totalPending))}</h2>
-        <button id="kodland-calificar-todo-btn" class="kodland-toolbar-btn">${escapeHtml(uiText('calificarTodoButton'))}</button>
         <button class="kodland-modal-close">&times;</button>
       </div>
       <div class="kodland-modal-body">
+        ${totalPending > 0 ? `
+        <div class="kodland-grading-actions" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+          <button id="kodland-calificar-max-btn" class="kodland-toolbar-btn">${escapeHtml(uiText('calificarMaxButton'))}</button>
+          <button id="kodland-calificar-comentar-btn" class="kodland-toolbar-btn">${escapeHtml(uiText('calificarComentarButton'))}</button>
+          <button id="kodland-calificar-ia-btn" class="kodland-toolbar-btn">${escapeHtml(uiText('calificarIaButton'))}</button>
+        </div>
+        <p id="kodland-calificar-status" style="font-size:12px; color:#666; min-height:16px; margin-bottom:10px;"></p>
+        ` : ''}
         ${rowsHtml}
       </div>
     </div>
@@ -4576,18 +5082,47 @@ function showGroupGradingReportModal(report) {
   document.body.appendChild(modal);
   modal.querySelector('.kodland-modal-close').addEventListener('click', () => modal.remove());
   modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
-  modal.querySelector('#kodland-calificar-todo-btn').addEventListener('click', async () => {
-    try {
-      if (!window.KodlandCalificador) {
-        alert(uiText('pdfReportBridgeError'));
+
+  if (totalPending > 0) {
+    const statusEl = modal.querySelector('#kodland-calificar-status');
+    const buttons = [
+      modal.querySelector('#kodland-calificar-max-btn'),
+      modal.querySelector('#kodland-calificar-comentar-btn'),
+      modal.querySelector('#kodland-calificar-ia-btn')
+    ];
+
+    const iniciarCalificacion = async mode => {
+      if (mode === 'ia' && !getExtensionSettings().groqApiKey) {
+        alert(uiText('calificarIaNotConfigured'));
         return;
       }
-      const respuesta = await window.KodlandCalificador.ejecutar('calificar');
-      console.log(respuesta);
-    } catch (error) {
-      console.error('[Group Grading Report] Calificador bridge error:', error);
-    }
-  });
+      if (!confirm(uiText('calificarConfirm', totalPending))) return;
+
+      buttons.forEach(b => { b.disabled = true; });
+      statusEl.textContent = uiText('calificarProgress', 0, totalPending);
+      try {
+        const results = await runGroupGrading(withPending, mode, (current, total, name) => {
+          statusEl.textContent = uiText('calificarProgress', current, total) + ` (${name})`;
+        });
+        let summary = uiText('calificarDone', results.ok, results.total);
+        if (results.omitidos) summary += ` · ${results.omitidos} ${uiText('calificarAlreadyDone')}`;
+        if (results.errores.length) {
+          summary += ` · ${results.errores.length} ${uiText('calificarWithErrors')}`;
+          console.error('[Calificador] Tareas con error:', results.errores);
+        }
+        statusEl.textContent = summary;
+      } catch (error) {
+        console.error('[Calificador] Error general:', error);
+        statusEl.textContent = error?.message || uiText('pdfReportGenerateError');
+      } finally {
+        buttons.forEach(b => { b.disabled = false; });
+      }
+    };
+
+    modal.querySelector('#kodland-calificar-max-btn').addEventListener('click', () => iniciarCalificacion('max'));
+    modal.querySelector('#kodland-calificar-comentar-btn').addEventListener('click', () => iniciarCalificacion('plantillas'));
+    modal.querySelector('#kodland-calificar-ia-btn').addEventListener('click', () => iniciarCalificacion('ia'));
+  }
 }
 
 
@@ -4892,6 +5427,862 @@ async function loadStudentReportData(studentId, studentData, parentPhone) {
   return { course, report };
 }
 
+// ============================================================================
+// Generador del PDF "Reporte de Desarrollo", 100% en el navegador.
+//
+// Puerto fiel de calificador/generar_reporte.py: mismo HTML/CSS (el diseño de
+// Kodland), pero sin Python ni Playwright. En vez de generar el PDF fuera de
+// proceso con page.pdf(), abrimos el mismo HTML en una pestaña nueva y usamos
+// la función de impresión nativa del navegador (window.print -> "Guardar como
+// PDF"), que corre sobre el mismo motor que usaba Playwright por debajo. Así
+// cualquier tutor lo usa con solo instalar la extensión, en Windows o Mac.
+//
+// Simplificación consciente respecto al original: el original medía en dos
+// pasadas cuántos módulos entraban en cada hoja (para no dejar hojas a medias)
+// porque Playwright corre headless y no hay forma de "dejar que fluya". Acá sí
+// hay un navegador real: los módulos fluyen en una sola sección con
+// page-break-inside:avoid en cada tarjeta, y es la propia vista de impresión
+// la que decide los saltos de página — nunca parte una tarjeta a la mitad.
+// ============================================================================
+
+const REPORT_CSS = `
+:root{
+  --lima:#c8ea4f; --lima-osc:#b6db3f; --oscuro:#1b1b1b; --texto:#2b2b2b;
+  --otimo:#a8d84a; --bom:#efb03e; --dev:#ef7373;
+  --card:#f5f7ee; --card2:#f0f3e6; --borde:#e4e8d8;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:"Segoe UI",Arial,Helvetica,sans-serif; color:var(--texto); font-size:12px;}
+.pagina{width:210mm; min-height:297mm; padding:14mm 13mm 16mm; position:relative;
+  page-break-after:always; background:#fff;}
+.pagina:last-child{page-break-after:auto;}
+h1,h2,h3{font-weight:800;}
+.mut{color:#8a9078; font-size:9px; letter-spacing:.10em; font-weight:700; text-transform:uppercase;}
+.cab{background:var(--lima); border-radius:16px; padding:18px 22px; display:flex;
+  justify-content:space-between; align-items:center;}
+.cab .logo{font-size:30px; font-weight:800; color:var(--oscuro); letter-spacing:-.5px;}
+.cab .tit{text-align:right; color:var(--oscuro);}
+.cab .tit h1{font-size:20px; line-height:1.1;}
+.cab .tit p{font-size:10px; font-weight:700; margin-top:3px;}
+.fila{display:flex; gap:12px; margin-top:12px;}
+.tarj{flex:1; border:1px solid var(--borde); border-radius:12px; padding:12px 14px; background:#fff;}
+.tarj.oscuro{background:var(--oscuro); border-color:var(--oscuro);}
+.tarj.oscuro .mut{color:#c8ea4f;}
+.tarj.oscuro .val{color:#fff;}
+.tarj .val{font-size:15px; font-weight:800; margin-top:4px;}
+.stats{display:flex; gap:12px; margin-top:12px;}
+.stat{flex:1; border:1px solid var(--borde); border-radius:12px; padding:14px 8px;
+  text-align:center; background:var(--card);}
+.stat.oscuro{background:var(--oscuro);}
+.stat .num{font-size:30px; font-weight:800; color:var(--oscuro);}
+.stat.oscuro .num{color:var(--lima);}
+.stat .num small{font-size:15px;}
+.stat .lbl{font-size:8.5px; letter-spacing:.06em; font-weight:700; text-transform:uppercase;
+  color:#8a9078; margin-top:2px;}
+.stat.oscuro .lbl{color:#c8ea4f;}
+.seccion{display:flex; align-items:center; gap:10px; margin:20px 0 10px;}
+.seccion .cuad{width:20px; height:20px; background:var(--lima); border-radius:5px;}
+.seccion h2{font-size:15px; color:var(--oscuro); letter-spacing:.02em;}
+.intro{background:var(--card); border-left:5px solid var(--lima); border-radius:0 10px 10px 0;
+  padding:12px 16px; font-size:11.5px; line-height:1.55;}
+.intro b{color:var(--oscuro);}
+.banner{width:100%; display:block; border-radius:16px;}
+.dbasicos{width:100%; border-collapse:collapse; border:1px solid var(--borde);
+  border-radius:12px; overflow:hidden;}
+.dbasicos th{background:var(--card2); color:#6a7358; font-size:9px; letter-spacing:.06em;
+  text-transform:uppercase; text-align:left; padding:9px 10px; width:20%; font-weight:700;
+  border-bottom:1px solid var(--borde); border-right:1px solid var(--borde);}
+.dbasicos td{padding:9px 12px; font-size:11.5px; font-weight:700; color:var(--oscuro);
+  width:30%; border-bottom:1px solid var(--borde); border-right:1px solid var(--borde);
+  background:#fff;}
+.dbasicos td:last-child, .dbasicos th:last-child{border-right:none;}
+.dbasicos tr:last-child th, .dbasicos tr:last-child td{border-bottom:none;}
+.dbasicos td.vacio{color:#b3b9a6; font-weight:600;}
+.modo{background:var(--card); border-left:5px solid var(--lima); border-radius:0 10px 10px 0;
+  padding:12px 16px 12px 20px;}
+.modo ol{margin:0; padding-left:18px;}
+.modo li{font-size:11.5px; line-height:1.6; margin-bottom:2px;}
+.modo li b{color:var(--oscuro);}
+.modo .pie-modo{margin-top:10px; padding-top:9px; border-top:1px dashed #cdd6b8;
+  font-size:11px; line-height:1.5;}
+.chart{margin-top:16px; border:1px solid var(--borde); border-radius:12px; padding:16px 14px 8px;}
+.barras{display:flex; align-items:flex-end; gap:10px; height:210px; position:relative;
+  border-bottom:1px solid #ddd;}
+.col{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;}
+.col .pct{font-size:11px; font-weight:800; margin-bottom:4px; color:var(--oscuro);}
+.col .barra{width:70%; border-radius:6px 6px 0 0;}
+.col.otimo .barra{background:var(--otimo);}
+.col.bom .barra{background:var(--bom);}
+.col.dev .barra{background:var(--dev);}
+.ejes{display:flex; gap:10px; margin-top:6px;}
+.ejes .e{flex:1; text-align:center; font-size:10px; font-weight:700; color:#6a6a6a;}
+.media-linea{position:absolute; left:0; right:0; border-top:2px dashed #b9b9b9;}
+.media-lbl{position:absolute; right:2px; font-size:10px; font-weight:800; color:#555;
+  background:#fff; padding:0 3px;}
+.leyenda{display:flex; gap:18px; justify-content:center; margin-top:12px; font-size:10px; color:#555;}
+.leyenda span{display:inline-flex; align-items:center; gap:6px;}
+.punto{width:10px; height:10px; border-radius:50%; display:inline-block;}
+.punto.otimo{background:var(--otimo);} .punto.bom{background:var(--bom);} .punto.dev{background:var(--dev);}
+.mod{border:1px solid var(--borde); border-radius:14px; padding:11px 15px; margin-bottom:8px;
+  page-break-inside:avoid;}
+.mod-cab{display:flex; align-items:center; gap:12px;}
+.badge{width:34px; height:34px; background:var(--oscuro); color:#fff; border-radius:8px;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; flex:none;}
+.mod-cab .t{flex:1;}
+.mod-cab .t .n{font-size:9px; letter-spacing:.1em; color:#9aa08c; font-weight:700;}
+.mod-cab .t h3{font-size:15px; color:var(--oscuro); margin-top:1px;}
+.mod-cab .p{text-align:right;}
+.mod-cab .p .g{font-size:24px; font-weight:800; color:var(--oscuro);}
+.mod-cab .p .g small{font-size:13px;}
+.pill{display:inline-block; font-size:9px; font-weight:800; padding:3px 9px; border-radius:20px;
+  letter-spacing:.03em; margin-top:2px;}
+.pill.otimo{background:#e7f6c8; color:#5e7a1a;}
+.pill.bom{background:#fbecc9; color:#8a5e10;}
+.pill.dev{background:#fbd7d7; color:#a23434;}
+.progreso{height:7px; border-radius:5px; background:#eee; margin:9px 0 9px; overflow:hidden;}
+.progreso i{display:block; height:100%; border-radius:5px;}
+.progreso i.otimo{background:var(--otimo);} .progreso i.bom{background:var(--bom);} .progreso i.dev{background:var(--dev);}
+.mod .desc{font-size:11px; margin-bottom:8px;}
+.mod-cols{display:flex; gap:18px;}
+.mod-cols .izq{flex:1.3;}
+.mod-cols .der{flex:1;}
+.sublbl{font-size:9px; letter-spacing:.08em; font-weight:700; color:#9aa08c; text-transform:uppercase; margin-bottom:5px;}
+.apr{list-style:none;}
+.apr li{font-size:10.5px; padding:2px 0 2px 16px; position:relative;}
+.apr li:before{content:"▸"; position:absolute; left:0; color:var(--lima-osc); font-weight:800;}
+.proy{background:var(--card); border:1px solid var(--borde); border-radius:10px; padding:12px;
+  font-weight:800; color:#4d6a12; font-size:12px;}
+.comp{display:flex; flex-wrap:wrap; gap:10px; margin-top:12px;}
+.comp .c{width:calc(50% - 5px); background:var(--card); border:1px solid var(--borde); border-radius:10px;
+  padding:11px 14px; font-weight:700; font-size:11px; color:var(--oscuro);}
+.comp .c b{color:var(--otimo); margin-right:6px;}
+.paso{background:var(--oscuro); border-radius:14px; padding:18px 20px; margin-top:16px; color:#eee;}
+.paso .k{font-size:9px; letter-spacing:.1em; color:var(--lima); font-weight:700;}
+.paso h2{font-size:20px; color:var(--lima); margin:2px 0 8px;}
+.paso p{font-size:11px; line-height:1.55;}
+.pie{position:absolute; left:13mm; right:13mm; bottom:8mm;}
+.pie .barra{background:var(--oscuro); border-radius:12px; padding:12px 18px; display:flex;
+  justify-content:space-between; align-items:center; color:#fff;}
+.pie .barra .l{color:var(--lima); font-weight:800; font-size:16px;}
+.pie .barra .c{font-size:10px; letter-spacing:.15em; color:#cfcfcf;}
+.pie-num{text-align:center; font-size:8.5px; color:#b8b8b8; position:absolute;
+  left:0; right:0; bottom:4mm;}
+.mensaje{background:var(--oscuro); color:#eee; border-radius:14px; padding:16px 20px; margin-top:14px;}
+.mensaje .k{font-size:9px; letter-spacing:.1em; color:var(--lima); font-weight:700;}
+.mensaje p{font-size:12px; line-height:1.6; margin-top:6px;}
+table.calif{width:100%; border-collapse:collapse; margin-top:6px; font-size:11px;}
+table.calif th{background:var(--card); color:#8a9078; text-transform:uppercase; font-size:8.5px;
+  letter-spacing:.05em; text-align:left; padding:8px 10px; border-bottom:2px solid var(--borde);}
+table.calif td{padding:9px 10px; border-bottom:1px solid #eef0e6;}
+table.calif td.n, table.calif th.n{text-align:center;}
+table.calif tr.total td{font-weight:800; background:#fbfdf5; border-top:2px solid var(--borde);}
+.mini{display:inline-block; height:7px; width:56px; border-radius:4px; background:#eee;
+  overflow:hidden; vertical-align:middle; margin-right:6px;}
+.mini i{display:block; height:100%;}
+.mini i.otimo{background:var(--otimo);} .mini i.bom{background:var(--bom);} .mini i.dev{background:var(--dev);}
+.asis-grid{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+.ses{width:calc(20% - 7px); border:1px solid var(--borde); border-radius:9px; padding:8px 6px; text-align:center;}
+.ses .f{font-size:9px; color:#8a9078; font-weight:700;}
+.ses .e{font-size:10px; font-weight:800; margin-top:3px;}
+.ses.pres{background:#eef7d8;} .ses.pres .e{color:#5e7a1a;}
+.ses.aus{background:#fbe0e0;} .ses.aus .e{color:#a23434;}
+.ses.just{background:#fbecc9;} .ses.just .e{color:#8a5e10;}
+.firmas{display:flex; justify-content:space-around; align-items:flex-end; gap:30px; margin:22px 0 18px; padding:0 10px;}
+.col-firma{flex:1; max-width:300px; text-align:center;}
+.col-firma .linea{border-top:1.5px solid var(--oscuro); margin-top:30px;}
+.col-firma .fnombre{font-weight:800; font-size:13px; color:var(--oscuro); margin-top:6px;}
+.frol{font-size:8.5px; letter-spacing:.1em; color:#8a9078; font-weight:700; text-transform:uppercase; margin-top:3px;}
+.col-sello{text-align:center;}
+.sello-caja{width:108px; height:108px; margin:0 auto; border:2px dashed #c4c8b4; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; color:#bcc0ac; font-size:9px;
+  letter-spacing:.08em; font-weight:700; text-transform:uppercase; text-align:center; line-height:1.3;}
+@media print{
+  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+}
+`;
+
+const REPORT_UI = {
+  es: {
+    titulo: 'REPORTE DE DESARROLLO', aluno: 'ALUMNO', curso: 'CURSO', profesor: 'PROFESOR(A)',
+    area: 'ÁREA DE INTERÉS', proximo: 'PRÓXIMO NIVEL RECOMENDADO',
+    aprov: 'APROVECHAMIENTO PROMEDIO', proyectos: 'PROYECTOS COMPLETADOS',
+    mejor: 'MEJOR MÓDULO', modulos: 'MÓDULOS CURSADOS',
+    vision: 'VISIÓN GENERAL DEL DESEMPEÑO', media: 'Promedio',
+    bandas: ['Óptimo (≥70%)', 'Bueno (50–69%)', 'En desarrollo (<50%)'],
+    detalle: 'DETALLE POR MÓDULO', modulo: 'MÓDULO',
+    aprendizajes: 'PRINCIPALES APRENDIZAJES', proyecto: 'PROYECTO DESARROLLADO',
+    consideraciones: 'CONSIDERACIONES FINALES', paso: 'PRÓXIMO PASO RECOMENDADO',
+    pie_lema: 'EDUCAR · INSPIRAR · TRANSFORMAR', pagina: 'Página',
+    et_otimo: 'ÓPTIMO', et_bom: 'BUENO', et_dev: 'EN DESARROLLO',
+    calif: 'CALIFICACIONES Y ASISTENCIA', tareas: 'TAREAS ENVIADAS', asist: 'ASISTENCIA',
+    th_modulo: 'Módulo', th_tareas: 'Tareas', th_puntos: 'Puntos', th_avance: 'Avance',
+    asis_titulo: 'ASISTENCIA A CLASES', est_pres: 'Presente', est_aus: 'Ausente', est_just: 'Justif.',
+    msg: 'MENSAJE PARA TI', firma: 'FIRMA DEL TUTOR(A)', sello: 'SELLO KODLAND',
+    datos: 'DATOS BÁSICOS DEL ESTUDIANTE',
+    f_alumno: 'Nombre del estudiante', f_acu: 'Nombre del acudiente',
+    f_mail: 'E-mail', f_tel: 'Teléfono', f_pais: 'País de residencia',
+    f_cod: 'Código del grupo', f_tipo: 'Tipo de grupo',
+    f_dia: 'Día y hora de clase', f_mod: 'Módulo del informe',
+    objetivo: 'OBJETIVO DEL INFORME',
+    objetivo_def: 'Presentar de forma clara el avance de {alumno} en el curso {curso}, describiendo los aprendizajes alcanzados en cada módulo, su nivel de aprovechamiento y los aspectos a reforzar.',
+    modo: 'CÓMO INTERPRETAR ESTE INFORME',
+    modo_items: [
+      ['Aprovechamiento', 'porcentaje alcanzado en cada módulo sobre el puntaje máximo.'],
+      ['Bandas de color', 'Óptimo (≥70%), Bueno (50–69%) y En desarrollo (<50%).'],
+      ['Visión general', 'gráfico comparativo con todos los módulos del curso.'],
+      ['Calificaciones y asistencia', 'tareas enviadas, puntos obtenidos y asistencia por módulo.'],
+      ['Detalle por módulo', 'principales aprendizajes y proyecto desarrollado.'],
+      ['Consideraciones finales', 'valoración del proceso y próximo paso recomendado.']
+    ],
+    modo_pie: 'Al final del informe se incluye una valoración del proceso formativo de {alumno}, destacando aspectos relevantes de su desempeño.',
+    mensajes: {
+      excelente: (nombre, mejor) => `¡Felicitaciones, ${nombre}! Tu desempeño es excelente: demuestras dominio y constancia a lo largo del curso. Destacas especialmente en «${mejor}». ¡Sigue así, vas por un camino sobresaliente!`,
+      bueno: (nombre, mejor) => `¡Muy bien, ${nombre}! Tienes un desempeño sólido y parejo. Tu mejor módulo fue «${mejor}». Con un poco más de práctica en los temas que se te resistieron, llegarás al nivel más alto.`,
+      regular: (nombre, mejor, peor, peorPct) => `¡Buen trabajo, ${nombre}! Vas construyendo una base firme. Brillaste en «${mejor}». Hay una buena oportunidad de mejorar reforzando «${peor}» (${peorPct}%); ¡con dedicación lo vas a lograr!`,
+      inicial: (nombre, mejor, peor, peorPct) => `${nombre}, estás dando tus primeros pasos y cada avance cuenta. Tu punto más fuerte fue «${mejor}». Te animamos a reforzar los módulos con menor avance, sobre todo «${peor}» (${peorPct}%). ¡Con práctica y apoyo vas a progresar mucho!`
+    }
+  },
+  pt: {
+    titulo: 'RELATÓRIO DE DESENVOLVIMENTO', aluno: 'ALUNO', curso: 'CURSO', profesor: 'PROFESSOR(A)',
+    area: 'ÁREA DE INTERESSE', proximo: 'PRÓXIMO NÍVEL RECOMENDADO',
+    aprov: 'APROVEITAMENTO MÉDIO', proyectos: 'PROJETOS CONCLUÍDOS',
+    mejor: 'MELHOR MÓDULO', modulos: 'MÓDULOS CURSADOS',
+    vision: 'VISÃO GERAL DO DESEMPENHO', media: 'Média',
+    bandas: ['Ótimo (≥70%)', 'Bom (50–69%)', 'Em desenvolvimento (<50%)'],
+    detalle: 'DETALHAMENTO POR MÓDULO', modulo: 'MÓDULO',
+    aprendizajes: 'PRINCIPAIS APRENDIZADOS', proyecto: 'PROJETO DESENVOLVIDO',
+    consideraciones: 'CONSIDERAÇÕES FINAIS', paso: 'PRÓXIMO PASSO RECOMENDADO',
+    pie_lema: 'EDUCAR · INSPIRAR · TRANSFORMAR', pagina: 'Página',
+    et_otimo: 'ÓTIMO', et_bom: 'BOM', et_dev: 'EM DESENVOLVIMENTO',
+    calif: 'NOTAS E PRESENÇA', tareas: 'TAREFAS ENVIADAS', asist: 'PRESENÇA',
+    th_modulo: 'Módulo', th_tareas: 'Tarefas', th_puntos: 'Pontos', th_avance: 'Progresso',
+    asis_titulo: 'PRESENÇA NAS AULAS', est_pres: 'Presente', est_aus: 'Ausente', est_just: 'Justif.',
+    msg: 'MENSAGEM PARA VOCÊ', firma: 'ASSINATURA DO PROFESSOR(A)', sello: 'SELO KODLAND',
+    datos: 'DADOS BÁSICOS DO ESTUDANTE',
+    f_alumno: 'Nome do estudante', f_acu: 'Nome do responsável',
+    f_mail: 'E-mail', f_tel: 'Telefone', f_pais: 'País de residência',
+    f_cod: 'Código do grupo', f_tipo: 'Tipo de grupo',
+    f_dia: 'Dia e hora da aula', f_mod: 'Módulo do relatório',
+    objetivo: 'OBJETIVO DO RELATÓRIO',
+    objetivo_def: 'Apresentar de forma clara o avanço de {alumno} no curso {curso}, descrevendo os aprendizados alcançados em cada módulo, seu nível de aproveitamento e os aspectos a reforçar.',
+    modo: 'COMO INTERPRETAR ESTE RELATÓRIO',
+    modo_items: [
+      ['Aproveitamento', 'porcentagem alcançada em cada módulo sobre a pontuação máxima.'],
+      ['Faixas de cor', 'Ótimo (≥70%), Bom (50–69%) e Em desenvolvimento (<50%).'],
+      ['Visão geral', 'gráfico comparativo com todos os módulos do curso.'],
+      ['Notas e presença', 'tarefas enviadas, pontos obtidos e presença por módulo.'],
+      ['Detalhamento por módulo', 'principais aprendizados e projeto desenvolvido.'],
+      ['Considerações finais', 'avaliação do processo e próximo passo recomendado.']
+    ],
+    modo_pie: 'No fim do relatório inclui-se uma valoração do processo formativo de {alumno}, destacando aspectos relevantes do seu desempenho.',
+    mensajes: {
+      excelente: (nombre, mejor) => `Parabéns, ${nombre}! Seu desempenho é excelente: você demonstra domínio e constância ao longo do curso. Você se destaca especialmente em «${mejor}». Continue assim, você está em um caminho excepcional!`,
+      bueno: (nombre, mejor) => `Muito bem, ${nombre}! Você tem um desempenho sólido e equilibrado. Seu melhor módulo foi «${mejor}». Com um pouco mais de prática nos temas que ofereceram mais resistência, você vai alcançar o nível mais alto.`,
+      regular: (nombre, mejor, peor, peorPct) => `Bom trabalho, ${nombre}! Você está construindo uma base firme. Você brilhou em «${mejor}». Há uma boa oportunidade de melhorar reforçando «${peor}» (${peorPct}%); com dedicação você vai conseguir!`,
+      inicial: (nombre, mejor, peor, peorPct) => `${nombre}, você está dando os primeiros passos e cada avanço conta. Seu ponto mais forte foi «${mejor}». Te incentivamos a reforçar os módulos com menor avanço, especialmente «${peor}» (${peorPct}%). Com prática e apoio você vai progredir muito!`
+    }
+  },
+  en: {
+    titulo: 'DEVELOPMENT REPORT', aluno: 'STUDENT', curso: 'COURSE', profesor: 'TEACHER',
+    area: 'AREA OF INTEREST', proximo: 'RECOMMENDED NEXT LEVEL',
+    aprov: 'AVERAGE PERFORMANCE', proyectos: 'PROJECTS COMPLETED',
+    mejor: 'BEST MODULE', modulos: 'MODULES TAKEN',
+    vision: 'PERFORMANCE OVERVIEW', media: 'Average',
+    bandas: ['Excellent (≥70%)', 'Good (50–69%)', 'Developing (<50%)'],
+    detalle: 'MODULE DETAIL', modulo: 'MODULE',
+    aprendizajes: 'KEY LEARNINGS', proyecto: 'PROJECT DEVELOPED',
+    consideraciones: 'FINAL REMARKS', paso: 'RECOMMENDED NEXT STEP',
+    pie_lema: 'EDUCATE · INSPIRE · TRANSFORM', pagina: 'Page',
+    et_otimo: 'EXCELLENT', et_bom: 'GOOD', et_dev: 'DEVELOPING',
+    calif: 'GRADES AND ATTENDANCE', tareas: 'TASKS SUBMITTED', asist: 'ATTENDANCE',
+    th_modulo: 'Module', th_tareas: 'Tasks', th_puntos: 'Points', th_avance: 'Progress',
+    asis_titulo: 'CLASS ATTENDANCE', est_pres: 'Present', est_aus: 'Absent', est_just: 'Justified',
+    msg: 'A MESSAGE FOR YOU', firma: "TUTOR'S SIGNATURE", sello: 'KODLAND SEAL',
+    datos: 'STUDENT BASIC INFORMATION',
+    f_alumno: 'Student name', f_acu: 'Parent/guardian name',
+    f_mail: 'Email', f_tel: 'Phone', f_pais: 'Country of residence',
+    f_cod: 'Group code', f_tipo: 'Group type',
+    f_dia: 'Class day and time', f_mod: 'Report module',
+    objetivo: 'REPORT OBJECTIVE',
+    objetivo_def: "Clearly present {alumno}'s progress in the {curso} course, describing the learning achieved in each module, their performance level, and the areas to reinforce.",
+    modo: 'HOW TO READ THIS REPORT',
+    modo_items: [
+      ['Performance', 'percentage achieved in each module out of the maximum score.'],
+      ['Color bands', 'Excellent (≥70%), Good (50–69%) and Developing (<50%).'],
+      ['Overview', "comparative chart with all of the course's modules."],
+      ['Grades and attendance', 'tasks submitted, points earned and attendance per module.'],
+      ['Module detail', 'key learnings and the project developed.'],
+      ['Final remarks', 'assessment of the process and recommended next step.']
+    ],
+    modo_pie: "At the end of the report there's an assessment of {alumno}'s learning process, highlighting relevant aspects of their performance.",
+    mensajes: {
+      excelente: (nombre, mejor) => `Congratulations, ${nombre}! Your performance is excellent — you show mastery and consistency throughout the course. You especially stand out in "${mejor}". Keep it up, you're on an outstanding path!`,
+      bueno: (nombre, mejor) => `Great job, ${nombre}! You have a solid, steady performance. Your best module was "${mejor}". With a bit more practice on the topics that gave you trouble, you'll reach the highest level.`,
+      regular: (nombre, mejor, peor, peorPct) => `Good work, ${nombre}! You're building a solid foundation. You shined in "${mejor}". There's a good opportunity to improve by reinforcing "${peor}" (${peorPct}%) — with dedication you'll get there!`,
+      inicial: (nombre, mejor, peor, peorPct) => `${nombre}, you're taking your first steps and every bit of progress counts. Your strongest point was "${mejor}". We encourage you to reinforce the modules with less progress, especially "${peor}" (${peorPct}%). With practice and support you'll make great progress!`
+    }
+  },
+  ar: {
+    titulo: 'تقرير التطور', aluno: 'الطالب', curso: 'الدورة', profesor: 'المعلم(ة)',
+    area: 'مجال الاهتمام', proximo: 'المستوى التالي الموصى به',
+    aprov: 'متوسط الأداء', proyectos: 'المشاريع المكتملة',
+    mejor: 'أفضل وحدة', modulos: 'الوحدات المنجزة',
+    vision: 'نظرة عامة على الأداء', media: 'المتوسط',
+    bandas: ['ممتاز (≥70%)', 'جيد (50–69%)', 'قيد التطور (<50%)'],
+    detalle: 'تفاصيل الوحدات', modulo: 'الوحدة',
+    aprendizajes: 'أهم المكتسبات', proyecto: 'المشروع المنجز',
+    consideraciones: 'ملاحظات ختامية', paso: 'الخطوة التالية الموصى بها',
+    pie_lema: 'تعليم · إلهام · تحويل', pagina: 'صفحة',
+    et_otimo: 'ممتاز', et_bom: 'جيد', et_dev: 'قيد التطور',
+    calif: 'الدرجات والحضور', tareas: 'المهام المرسلة', asist: 'الحضور',
+    th_modulo: 'الوحدة', th_tareas: 'المهام', th_puntos: 'النقاط', th_avance: 'التقدم',
+    asis_titulo: 'الحضور في الحصص', est_pres: 'حاضر', est_aus: 'غائب', est_just: 'مبرر',
+    msg: 'رسالة لك', firma: 'توقيع المعلم(ة)', sello: 'ختم Kodland',
+    datos: 'البيانات الأساسية للطالب',
+    f_alumno: 'اسم الطالب', f_acu: 'اسم ولي الأمر',
+    f_mail: 'البريد الإلكتروني', f_tel: 'الهاتف', f_pais: 'بلد الإقامة',
+    f_cod: 'رمز المجموعة', f_tipo: 'نوع المجموعة',
+    f_dia: 'يوم ووقت الحصة', f_mod: 'وحدة التقرير',
+    objetivo: 'هدف التقرير',
+    objetivo_def: 'عرض تقدم {alumno} بوضوح في دورة {curso}، مع وصف ما تم تعلمه في كل وحدة، ومستوى الأداء، والجوانب التي يجب تعزيزها.',
+    modo: 'كيفية قراءة هذا التقرير',
+    modo_items: [
+      ['الأداء', 'النسبة المئوية المحققة في كل وحدة من أصل الدرجة القصوى.'],
+      ['نطاقات الألوان', 'ممتاز (≥70%)، جيد (50–69%)، وقيد التطور (<50%).'],
+      ['نظرة عامة', 'رسم بياني مقارن لجميع وحدات الدورة.'],
+      ['الدرجات والحضور', 'المهام المرسلة والنقاط المحصلة والحضور لكل وحدة.'],
+      ['تفاصيل الوحدات', 'أهم المكتسبات والمشروع المنجز.'],
+      ['ملاحظات ختامية', 'تقييم العملية والخطوة التالية الموصى بها.']
+    ],
+    modo_pie: 'في نهاية التقرير، يتم تضمين تقييم لمسار تعلم {alumno}، مع إبراز الجوانب المهمة في أدائه.',
+    mensajes: {
+      excelente: (nombre, mejor) => `تهانينا، ${nombre}! أداؤك ممتاز: تُظهر إتقانًا واستمرارية طوال الدورة. تتميز بشكل خاص في «${mejor}». استمر هكذا، أنت في طريق رائع!`,
+      bueno: (nombre, mejor) => `أحسنت، ${nombre}! أداؤك قوي ومتوازن. كانت أفضل وحدة لك هي «${mejor}». بقليل من التدريب الإضافي على المواضيع الصعبة، ستصل إلى أعلى مستوى.`,
+      regular: (nombre, mejor, peor, peorPct) => `عمل جيد، ${nombre}! أنت تبني أساسًا متينًا. تألقت في «${mejor}». هناك فرصة جيدة للتحسن بتعزيز «${peor}» (${peorPct}%)؛ بالتفاني ستحققه!`,
+      inicial: (nombre, mejor, peor, peorPct) => `${nombre}، أنت تخطو خطواتك الأولى وكل تقدم مهم. نقطة قوتك كانت «${mejor}». نشجعك على تعزيز الوحدات ذات التقدم الأقل، خصوصًا «${peor}» (${peorPct}%). بالممارسة والدعم ستحقق تقدمًا كبيرًا!`
+    }
+  },
+  ru: {
+    titulo: 'ОТЧЁТ О РАЗВИТИИ', aluno: 'УЧЕНИК', curso: 'КУРС', profesor: 'ПРЕПОДАВАТЕЛЬ',
+    area: 'ОБЛАСТЬ ИНТЕРЕСОВ', proximo: 'РЕКОМЕНДУЕМЫЙ СЛЕДУЮЩИЙ УРОВЕНЬ',
+    aprov: 'СРЕДНЯЯ УСПЕВАЕМОСТЬ', proyectos: 'ЗАВЕРШЁННЫЕ ПРОЕКТЫ',
+    mejor: 'ЛУЧШИЙ МОДУЛЬ', modulos: 'ПРОЙДЕННЫЕ МОДУЛИ',
+    vision: 'ОБЩИЙ ОБЗОР УСПЕВАЕМОСТИ', media: 'Среднее',
+    bandas: ['Отлично (≥70%)', 'Хорошо (50–69%)', 'В развитии (<50%)'],
+    detalle: 'ДЕТАЛИЗАЦИЯ ПО МОДУЛЯМ', modulo: 'МОДУЛЬ',
+    aprendizajes: 'ОСНОВНЫЕ ЗНАНИЯ', proyecto: 'РАЗРАБОТАННЫЙ ПРОЕКТ',
+    consideraciones: 'ЗАКЛЮЧИТЕЛЬНЫЕ ЗАМЕЧАНИЯ', paso: 'РЕКОМЕНДУЕМЫЙ СЛЕДУЮЩИЙ ШАГ',
+    pie_lema: 'ОБУЧАТЬ · ВДОХНОВЛЯТЬ · ПРЕОБРАЖАТЬ', pagina: 'Страница',
+    et_otimo: 'ОТЛИЧНО', et_bom: 'ХОРОШО', et_dev: 'В РАЗВИТИИ',
+    calif: 'ОЦЕНКИ И ПОСЕЩАЕМОСТЬ', tareas: 'ОТПРАВЛЕННЫЕ ЗАДАНИЯ', asist: 'ПОСЕЩАЕМОСТЬ',
+    th_modulo: 'Модуль', th_tareas: 'Задания', th_puntos: 'Баллы', th_avance: 'Прогресс',
+    asis_titulo: 'ПОСЕЩАЕМОСТЬ ЗАНЯТИЙ', est_pres: 'Присутствовал', est_aus: 'Отсутствовал', est_just: 'Уважительная',
+    msg: 'СООБЩЕНИЕ ДЛЯ ТЕБЯ', firma: 'ПОДПИСЬ ПРЕПОДАВАТЕЛЯ', sello: 'ПЕЧАТЬ KODLAND',
+    datos: 'ОСНОВНЫЕ ДАННЫЕ УЧЕНИКА',
+    f_alumno: 'Имя ученика', f_acu: 'Имя родителя/опекуна',
+    f_mail: 'Эл. почта', f_tel: 'Телефон', f_pais: 'Страна проживания',
+    f_cod: 'Код группы', f_tipo: 'Тип группы',
+    f_dia: 'День и время занятий', f_mod: 'Модуль отчёта',
+    objetivo: 'ЦЕЛЬ ОТЧЁТА',
+    objetivo_def: 'Ясно представить прогресс {alumno} на курсе {curso}, описав знания, полученные в каждом модуле, уровень успеваемости и аспекты, которые стоит закрепить.',
+    modo: 'КАК ЧИТАТЬ ЭТОТ ОТЧЁТ',
+    modo_items: [
+      ['Успеваемость', 'процент, достигнутый в каждом модуле от максимального балла.'],
+      ['Цветовые категории', 'Отлично (≥70%), Хорошо (50–69%) и В развитии (<50%).'],
+      ['Общий обзор', 'сравнительный график по всем модулям курса.'],
+      ['Оценки и посещаемость', 'отправленные задания, набранные баллы и посещаемость по модулям.'],
+      ['Детализация по модулям', 'основные знания и разработанный проект.'],
+      ['Заключительные замечания', 'оценка процесса и рекомендуемый следующий шаг.']
+    ],
+    modo_pie: 'В конце отчёта приводится оценка учебного процесса {alumno} с указанием значимых аспектов его успеваемости.',
+    mensajes: {
+      excelente: (nombre, mejor) => `Поздравляем, ${nombre}! Твои результаты отличные: ты показываешь мастерство и постоянство на протяжении всего курса. Особенно ты отличился в «${mejor}». Так держать, ты на выдающемся пути!`,
+      bueno: (nombre, mejor) => `Отлично, ${nombre}! У тебя стабильные и ровные результаты. Твой лучший модуль — «${mejor}». Немного больше практики по темам, которые давались сложнее, и ты достигнешь высшего уровня.`,
+      regular: (nombre, mejor, peor, peorPct) => `Хорошая работа, ${nombre}! Ты строишь крепкую основу. Ты блеснул в «${mejor}». Есть хорошая возможность улучшить результат, закрепив «${peor}» (${peorPct}%); с усердием у тебя получится!`,
+      inicial: (nombre, mejor, peor, peorPct) => `${nombre}, ты делаешь первые шаги, и каждый прогресс важен. Твоя сильная сторона — «${mejor}». Советуем закрепить модули с меньшим прогрессом, особенно «${peor}» (${peorPct}%). С практикой и поддержкой ты сильно продвинешься!`
+    }
+  },
+  fr: {
+    titulo: 'RAPPORT DE DÉVELOPPEMENT', aluno: 'ÉLÈVE', curso: 'COURS', profesor: 'PROFESSEUR(E)',
+    area: "DOMAINE D'INTÉRÊT", proximo: 'PROCHAIN NIVEAU RECOMMANDÉ',
+    aprov: 'PERFORMANCE MOYENNE', proyectos: 'PROJETS TERMINÉS',
+    mejor: 'MEILLEUR MODULE', modulos: 'MODULES SUIVIS',
+    vision: "VUE D'ENSEMBLE DE LA PERFORMANCE", media: 'Moyenne',
+    bandas: ['Excellent (≥70%)', 'Bien (50–69%)', 'En développement (<50%)'],
+    detalle: 'DÉTAIL PAR MODULE', modulo: 'MODULE',
+    aprendizajes: 'PRINCIPAUX APPRENTISSAGES', proyecto: 'PROJET DÉVELOPPÉ',
+    consideraciones: 'REMARQUES FINALES', paso: 'PROCHAINE ÉTAPE RECOMMANDÉE',
+    pie_lema: 'ÉDUQUER · INSPIRER · TRANSFORMER', pagina: 'Page',
+    et_otimo: 'EXCELLENT', et_bom: 'BIEN', et_dev: 'EN DÉVELOPPEMENT',
+    calif: 'NOTES ET PRÉSENCE', tareas: 'DEVOIRS ENVOYÉS', asist: 'PRÉSENCE',
+    th_modulo: 'Module', th_tareas: 'Devoirs', th_puntos: 'Points', th_avance: 'Progression',
+    asis_titulo: 'PRÉSENCE AUX COURS', est_pres: 'Présent', est_aus: 'Absent', est_just: 'Justifié',
+    msg: 'UN MESSAGE POUR TOI', firma: 'SIGNATURE DU PROFESSEUR(E)', sello: 'SCEAU KODLAND',
+    datos: "INFORMATIONS DE BASE DE L'ÉLÈVE",
+    f_alumno: "Nom de l'élève", f_acu: 'Nom du parent/tuteur',
+    f_mail: 'E-mail', f_tel: 'Téléphone', f_pais: 'Pays de résidence',
+    f_cod: 'Code du groupe', f_tipo: 'Type de groupe',
+    f_dia: 'Jour et heure du cours', f_mod: 'Module du rapport',
+    objetivo: 'OBJECTIF DU RAPPORT',
+    objetivo_def: "Présenter clairement les progrès de {alumno} dans le cours {curso}, en décrivant les apprentissages réalisés dans chaque module, son niveau de performance et les aspects à renforcer.",
+    modo: 'COMMENT LIRE CE RAPPORT',
+    modo_items: [
+      ['Performance', 'pourcentage atteint dans chaque module par rapport au score maximal.'],
+      ['Catégories de couleur', 'Excellent (≥70%), Bien (50–69%) et En développement (<50%).'],
+      ["Vue d'ensemble", "graphique comparatif de tous les modules du cours."],
+      ['Notes et présence', 'devoirs envoyés, points obtenus et présence par module.'],
+      ['Détail par module', 'principaux apprentissages et projet développé.'],
+      ['Remarques finales', 'évaluation du processus et prochaine étape recommandée.']
+    ],
+    modo_pie: "À la fin du rapport figure une évaluation du parcours d'apprentissage de {alumno}, mettant en avant les aspects pertinents de sa performance.",
+    mensajes: {
+      excelente: (nombre, mejor) => `Félicitations, ${nombre} ! Ta performance est excellente : tu fais preuve de maîtrise et de constance tout au long du cours. Tu te distingues particulièrement en « ${mejor} ». Continue ainsi, tu es sur une voie exceptionnelle !`,
+      bueno: (nombre, mejor) => `Très bien, ${nombre} ! Tu as une performance solide et régulière. Ton meilleur module était « ${mejor} ». Avec un peu plus de pratique sur les sujets qui t'ont posé des difficultés, tu atteindras le niveau le plus élevé.`,
+      regular: (nombre, mejor, peor, peorPct) => `Bon travail, ${nombre} ! Tu construis une base solide. Tu as brillé en « ${mejor} ». Il y a une belle opportunité de progresser en renforçant « ${peor} » (${peorPct}%) ; avec de la persévérance tu vas y arriver !`,
+      inicial: (nombre, mejor, peor, peorPct) => `${nombre}, tu fais tes premiers pas et chaque progrès compte. Ton point fort était « ${mejor} ». Nous t'encourageons à renforcer les modules avec moins de progression, surtout « ${peor} » (${peorPct}%). Avec de la pratique et du soutien, tu vas beaucoup progresser !`
+    }
+  },
+  tr: {
+    titulo: 'GELİŞİM RAPORU', aluno: 'ÖĞRENCİ', curso: 'KURS', profesor: 'ÖĞRETMEN',
+    area: 'İLGİ ALANI', proximo: 'ÖNERİLEN SONRAKİ SEVİYE',
+    aprov: 'ORTALAMA PERFORMANS', proyectos: 'TAMAMLANAN PROJELER',
+    mejor: 'EN İYİ MODÜL', modulos: 'TAMAMLANAN MODÜLLER',
+    vision: 'PERFORMANS GENEL BAKIŞI', media: 'Ortalama',
+    bandas: ['Mükemmel (≥70%)', 'İyi (50–69%)', 'Gelişmekte (<50%)'],
+    detalle: 'MODÜL DETAYI', modulo: 'MODÜL',
+    aprendizajes: 'TEMEL ÖĞRENİMLER', proyecto: 'GELİŞTİRİLEN PROJE',
+    consideraciones: 'SON DEĞERLENDİRMELER', paso: 'ÖNERİLEN SONRAKİ ADIM',
+    pie_lema: 'EĞİT · İLHAM VER · DÖNÜŞTÜR', pagina: 'Sayfa',
+    et_otimo: 'MÜKEMMEL', et_bom: 'İYİ', et_dev: 'GELİŞMEKTE',
+    calif: 'NOTLAR VE DEVAM', tareas: 'GÖNDERİLEN ÖDEVLER', asist: 'DEVAM',
+    th_modulo: 'Modül', th_tareas: 'Ödevler', th_puntos: 'Puanlar', th_avance: 'İlerleme',
+    asis_titulo: 'DERS DEVAMI', est_pres: 'Mevcut', est_aus: 'Devamsız', est_just: 'Mazeretli',
+    msg: 'SANA BİR MESAJ', firma: 'ÖĞRETMEN İMZASI', sello: 'KODLAND MÜHRÜ',
+    datos: 'ÖĞRENCİ TEMEL BİLGİLERİ',
+    f_alumno: 'Öğrenci adı', f_acu: 'Veli adı',
+    f_mail: 'E-posta', f_tel: 'Telefon', f_pais: 'İkamet ülkesi',
+    f_cod: 'Grup kodu', f_tipo: 'Grup türü',
+    f_dia: 'Ders günü ve saati', f_mod: 'Rapor modülü',
+    objetivo: 'RAPORUN AMACI',
+    objetivo_def: "{curso} kursunda {alumno}'nın ilerlemesini açıkça sunmak; her modülde kazanılan öğrenimleri, performans düzeyini ve güçlendirilmesi gereken yönleri açıklamak.",
+    modo: 'BU RAPOR NASIL OKUNUR',
+    modo_items: [
+      ['Performans', 'her modülde maksimum puana göre elde edilen yüzde.'],
+      ['Renk kategorileri', 'Mükemmel (≥70%), İyi (50–69%) ve Gelişmekte (<50%).'],
+      ['Genel bakış', 'kursun tüm modüllerini karşılaştıran grafik.'],
+      ['Notlar ve devam', 'modül başına gönderilen ödevler, kazanılan puanlar ve devam.'],
+      ['Modül detayı', 'temel öğrenimler ve geliştirilen proje.'],
+      ['Son değerlendirmeler', 'sürecin değerlendirilmesi ve önerilen sonraki adım.']
+    ],
+    modo_pie: "Raporun sonunda, {alumno}'nın öğrenim sürecine ilişkin, performansının önemli yönlerini vurgulayan bir değerlendirme yer almaktadır.",
+    mensajes: {
+      excelente: (nombre, mejor) => `Tebrikler, ${nombre}! Performansın mükemmel: kurs boyunca ustalık ve istikrar gösteriyorsun. Özellikle «${mejor}» konusunda öne çıkıyorsun. Böyle devam et, olağanüstü bir yoldasın!`,
+      bueno: (nombre, mejor) => `Çok iyi, ${nombre}! Sağlam ve istikrarlı bir performansın var. En iyi modülün «${mejor}» oldu. Zorlandığın konularda biraz daha pratik yaparak en üst seviyeye ulaşacaksın.`,
+      regular: (nombre, mejor, peor, peorPct) => `Güzel iş, ${nombre}! Sağlam bir temel oluşturuyorsun. «${mejor}» konusunda parladın. «${peor}» (%${peorPct}) konusunu güçlendirerek gelişmek için iyi bir fırsat var; azimle başaracaksın!`,
+      inicial: (nombre, mejor, peor, peorPct) => `${nombre}, ilk adımlarını atıyorsun ve her ilerleme önemli. En güçlü yönün «${mejor}» oldu. İlerlemesi daha az olan modülleri, özellikle «${peor}» (%${peorPct}) konusunu güçlendirmeni öneririz. Pratik ve destekle çok ilerleyeceksin!`
+    }
+  },
+  id: {
+    titulo: 'LAPORAN PERKEMBANGAN', aluno: 'SISWA', curso: 'KURSUS', profesor: 'GURU',
+    area: 'BIDANG MINAT', proximo: 'TINGKAT SELANJUTNYA YANG DIREKOMENDASIKAN',
+    aprov: 'RATA-RATA PENCAPAIAN', proyectos: 'PROYEK SELESAI',
+    mejor: 'MODUL TERBAIK', modulos: 'MODUL YANG DIIKUTI',
+    vision: 'GAMBARAN UMUM KINERJA', media: 'Rata-rata',
+    bandas: ['Sangat baik (≥70%)', 'Baik (50–69%)', 'Masih berkembang (<50%)'],
+    detalle: 'DETAIL PER MODUL', modulo: 'MODUL',
+    aprendizajes: 'PEMBELAJARAN UTAMA', proyecto: 'PROYEK YANG DIKEMBANGKAN',
+    consideraciones: 'CATATAN AKHIR', paso: 'LANGKAH SELANJUTNYA YANG DIREKOMENDASIKAN',
+    pie_lema: 'MENDIDIK · MENGINSPIRASI · MENGUBAH', pagina: 'Halaman',
+    et_otimo: 'SANGAT BAIK', et_bom: 'BAIK', et_dev: 'MASIH BERKEMBANG',
+    calif: 'NILAI DAN KEHADIRAN', tareas: 'TUGAS TERKIRIM', asist: 'KEHADIRAN',
+    th_modulo: 'Modul', th_tareas: 'Tugas', th_puntos: 'Poin', th_avance: 'Kemajuan',
+    asis_titulo: 'KEHADIRAN KELAS', est_pres: 'Hadir', est_aus: 'Tidak hadir', est_just: 'Izin',
+    msg: 'PESAN UNTUKMU', firma: 'TANDA TANGAN GURU', sello: 'STEMPEL KODLAND',
+    datos: 'DATA DASAR SISWA',
+    f_alumno: 'Nama siswa', f_acu: 'Nama orang tua/wali',
+    f_mail: 'Email', f_tel: 'Telepon', f_pais: 'Negara domisili',
+    f_cod: 'Kode grup', f_tipo: 'Jenis grup',
+    f_dia: 'Hari dan jam kelas', f_mod: 'Modul laporan',
+    objetivo: 'TUJUAN LAPORAN',
+    objetivo_def: 'Menyajikan dengan jelas kemajuan {alumno} dalam kursus {curso}, menjelaskan pembelajaran yang dicapai di setiap modul, tingkat pencapaiannya, dan aspek yang perlu diperkuat.',
+    modo: 'CARA MEMBACA LAPORAN INI',
+    modo_items: [
+      ['Pencapaian', 'persentase yang dicapai di setiap modul dari skor maksimum.'],
+      ['Kategori warna', 'Sangat baik (≥70%), Baik (50–69%), dan Masih berkembang (<50%).'],
+      ['Gambaran umum', 'grafik perbandingan semua modul kursus.'],
+      ['Nilai dan kehadiran', 'tugas terkirim, poin yang diperoleh, dan kehadiran per modul.'],
+      ['Detail per modul', 'pembelajaran utama dan proyek yang dikembangkan.'],
+      ['Catatan akhir', 'penilaian proses dan langkah selanjutnya yang direkomendasikan.']
+    ],
+    modo_pie: 'Di akhir laporan terdapat penilaian proses belajar {alumno}, menyoroti aspek-aspek penting dari kinerjanya.',
+    mensajes: {
+      excelente: (nombre, mejor) => `Selamat, ${nombre}! Performamu luar biasa: kamu menunjukkan penguasaan dan konsistensi sepanjang kursus. Kamu menonjol khususnya di «${mejor}». Terus semangat, kamu berada di jalur yang luar biasa!`,
+      bueno: (nombre, mejor) => `Bagus sekali, ${nombre}! Performamu solid dan stabil. Modul terbaikmu adalah «${mejor}». Dengan sedikit lagi latihan pada topik yang sulit, kamu akan mencapai level tertinggi.`,
+      regular: (nombre, mejor, peor, peorPct) => `Kerja bagus, ${nombre}! Kamu sedang membangun fondasi yang kuat. Kamu bersinar di «${mejor}». Ada peluang bagus untuk meningkat dengan memperkuat «${peor}» (${peorPct}%); dengan dedikasi kamu pasti berhasil!`,
+      inicial: (nombre, mejor, peor, peorPct) => `${nombre}, kamu sedang mengambil langkah pertama dan setiap kemajuan berarti. Poin terkuatmu adalah «${mejor}». Kami mendorongmu untuk memperkuat modul dengan kemajuan lebih sedikit, terutama «${peor}» (${peorPct}%). Dengan latihan dan dukungan kamu akan banyak berkembang!`
+    }
+  },
+  it: {
+    titulo: 'REPORT DI SVILUPPO', aluno: 'STUDENTE', curso: 'CORSO', profesor: 'INSEGNANTE',
+    area: "AREA DI INTERESSE", proximo: 'PROSSIMO LIVELLO CONSIGLIATO',
+    aprov: 'RENDIMENTO MEDIO', proyectos: 'PROGETTI COMPLETATI',
+    mejor: 'MIGLIOR MODULO', modulos: 'MODULI SVOLTI',
+    vision: 'PANORAMICA DEL RENDIMENTO', media: 'Media',
+    bandas: ['Ottimo (≥70%)', 'Buono (50–69%)', 'In sviluppo (<50%)'],
+    detalle: 'DETTAGLIO PER MODULO', modulo: 'MODULO',
+    aprendizajes: 'PRINCIPALI APPRENDIMENTI', proyecto: 'PROGETTO SVILUPPATO',
+    consideraciones: 'CONSIDERAZIONI FINALI', paso: 'PROSSIMO PASSO CONSIGLIATO',
+    pie_lema: 'EDUCARE · ISPIRARE · TRASFORMARE', pagina: 'Pagina',
+    et_otimo: 'OTTIMO', et_bom: 'BUONO', et_dev: 'IN SVILUPPO',
+    calif: 'VOTI E PRESENZA', tareas: 'COMPITI INVIATI', asist: 'PRESENZA',
+    th_modulo: 'Modulo', th_tareas: 'Compiti', th_puntos: 'Punti', th_avance: 'Avanzamento',
+    asis_titulo: 'PRESENZA ALLE LEZIONI', est_pres: 'Presente', est_aus: 'Assente', est_just: 'Giustificata',
+    msg: 'UN MESSAGGIO PER TE', firma: "FIRMA DELL'INSEGNANTE", sello: 'TIMBRO KODLAND',
+    datos: 'DATI DI BASE DELLO STUDENTE',
+    f_alumno: 'Nome dello studente', f_acu: 'Nome del genitore/tutore',
+    f_mail: 'E-mail', f_tel: 'Telefono', f_pais: 'Paese di residenza',
+    f_cod: 'Codice del gruppo', f_tipo: 'Tipo di gruppo',
+    f_dia: 'Giorno e orario della lezione', f_mod: 'Modulo del report',
+    objetivo: 'OBIETTIVO DEL REPORT',
+    objetivo_def: "Presentare chiaramente i progressi di {alumno} nel corso {curso}, descrivendo gli apprendimenti raggiunti in ogni modulo, il suo livello di rendimento e gli aspetti da rafforzare.",
+    modo: 'COME LEGGERE QUESTO REPORT',
+    modo_items: [
+      ['Rendimento', 'percentuale raggiunta in ogni modulo rispetto al punteggio massimo.'],
+      ['Fasce di colore', 'Ottimo (≥70%), Buono (50–69%) e In sviluppo (<50%).'],
+      ['Panoramica', 'grafico comparativo di tutti i moduli del corso.'],
+      ['Voti e presenza', 'compiti inviati, punti ottenuti e presenza per modulo.'],
+      ['Dettaglio per modulo', 'principali apprendimenti e progetto sviluppato.'],
+      ['Considerazioni finali', 'valutazione del percorso e prossimo passo consigliato.']
+    ],
+    modo_pie: 'Alla fine del report è inclusa una valutazione del percorso formativo di {alumno}, evidenziando aspetti rilevanti del suo rendimento.',
+    mensajes: {
+      excelente: (nombre, mejor) => `Complimenti, ${nombre}! Il tuo rendimento è eccellente: dimostri padronanza e costanza durante tutto il corso. Ti distingui in particolare in «${mejor}». Continua così, sei su un percorso straordinario!`,
+      bueno: (nombre, mejor) => `Molto bene, ${nombre}! Hai un rendimento solido e costante. Il tuo modulo migliore è stato «${mejor}». Con un po' più di pratica sugli argomenti più difficili, raggiungerai il livello più alto.`,
+      regular: (nombre, mejor, peor, peorPct) => `Bel lavoro, ${nombre}! Stai costruendo una base solida. Hai brillato in «${mejor}». C'è una buona opportunità di migliorare rafforzando «${peor}» (${peorPct}%); con dedizione ce la farai!`,
+      inicial: (nombre, mejor, peor, peorPct) => `${nombre}, stai muovendo i primi passi e ogni progresso conta. Il tuo punto di forza è stato «${mejor}». Ti incoraggiamo a rafforzare i moduli con minor progresso, soprattutto «${peor}» (${peorPct}%). Con pratica e supporto farai grandi progressi!`
+    }
+  },
+  pl: {
+    titulo: 'RAPORT ROZWOJU', aluno: 'UCZEŃ', curso: 'KURS', profesor: 'NAUCZYCIEL(KA)',
+    area: 'OBSZAR ZAINTERESOWAŃ', proximo: 'ZALECANY NASTĘPNY POZIOM',
+    aprov: 'ŚREDNI WYNIK', proyectos: 'UKOŃCZONE PROJEKTY',
+    mejor: 'NAJLEPSZY MODUŁ', modulos: 'UKOŃCZONE MODUŁY',
+    vision: 'OGÓLNY PRZEGLĄD WYNIKÓW', media: 'Średnia',
+    bandas: ['Świetnie (≥70%)', 'Dobrze (50–69%)', 'W trakcie rozwoju (<50%)'],
+    detalle: 'SZCZEGÓŁY WEDŁUG MODUŁU', modulo: 'MODUŁ',
+    aprendizajes: 'GŁÓWNE UMIEJĘTNOŚCI', proyecto: 'ZREALIZOWANY PROJEKT',
+    consideraciones: 'UWAGI KOŃCOWE', paso: 'ZALECANY NASTĘPNY KROK',
+    pie_lema: 'EDUKOWAĆ · INSPIROWAĆ · PRZEKSZTAŁCAĆ', pagina: 'Strona',
+    et_otimo: 'ŚWIETNIE', et_bom: 'DOBRZE', et_dev: 'W TRAKCIE ROZWOJU',
+    calif: 'OCENY I FREKWENCJA', tareas: 'PRZESŁANE ZADANIA', asist: 'FREKWENCJA',
+    th_modulo: 'Moduł', th_tareas: 'Zadania', th_puntos: 'Punkty', th_avance: 'Postęp',
+    asis_titulo: 'FREKWENCJA NA ZAJĘCIACH', est_pres: 'Obecność', est_aus: 'Nieobecność', est_just: 'Usprawiedliwiona',
+    msg: 'WIADOMOŚĆ DLA CIEBIE', firma: 'PODPIS NAUCZYCIELA(KI)', sello: 'PIECZĘĆ KODLAND',
+    datos: 'PODSTAWOWE DANE UCZNIA',
+    f_alumno: 'Imię ucznia', f_acu: 'Imię rodzica/opiekuna',
+    f_mail: 'E-mail', f_tel: 'Telefon', f_pais: 'Kraj zamieszkania',
+    f_cod: 'Kod grupy', f_tipo: 'Typ grupy',
+    f_dia: 'Dzień i godzina zajęć', f_mod: 'Moduł raportu',
+    objetivo: 'CEL RAPORTU',
+    objetivo_def: 'Jasno przedstawić postępy {alumno} na kursie {curso}, opisując umiejętności zdobyte w każdym module, poziom wyników i aspekty do wzmocnienia.',
+    modo: 'JAK CZYTAĆ TEN RAPORT',
+    modo_items: [
+      ['Wyniki', 'procent osiągnięty w każdym module w stosunku do maksymalnej punktacji.'],
+      ['Kategorie kolorów', 'Świetnie (≥70%), Dobrze (50–69%) i W trakcie rozwoju (<50%).'],
+      ['Przegląd ogólny', 'wykres porównawczy wszystkich modułów kursu.'],
+      ['Oceny i frekwencja', 'przesłane zadania, zdobyte punkty i frekwencja w module.'],
+      ['Szczegóły według modułu', 'główne umiejętności i zrealizowany projekt.'],
+      ['Uwagi końcowe', 'ocena procesu i zalecany następny krok.']
+    ],
+    modo_pie: 'Na końcu raportu zamieszczona jest ocena procesu nauki {alumno}, podkreślająca istotne aspekty jego/jej wyników.',
+    mensajes: {
+      excelente: (nombre, mejor) => `Gratulacje, ${nombre}! Twoje wyniki są znakomite: wykazujesz się biegłością i konsekwencją przez cały kurs. Szczególnie wyróżniasz się w «${mejor}». Tak trzymaj, jesteś na wspaniałej drodze!`,
+      bueno: (nombre, mejor) => `Bardzo dobrze, ${nombre}! Masz solidne i wyrównane wyniki. Twoim najlepszym modułem był «${mejor}». Z odrobiną dodatkowej praktyki w trudniejszych tematach osiągniesz najwyższy poziom.`,
+      regular: (nombre, mejor, peor, peorPct) => `Dobra robota, ${nombre}! Budujesz solidne podstawy. Zabłysnąłeś/zabłysnęłaś w «${mejor}». Jest dobra okazja, by się poprawić, wzmacniając «${peor}» (${peorPct}%); z zaangażowaniem na pewno ci się uda!`,
+      inicial: (nombre, mejor, peor, peorPct) => `${nombre}, stawiasz pierwsze kroki i każdy postęp się liczy. Twoją najmocniejszą stroną był «${mejor}». Zachęcamy do wzmocnienia modułów z mniejszym postępem, zwłaszcza «${peor}» (${peorPct}%). Dzięki praktyce i wsparciu zrobisz duże postępy!`
+    }
+  }
+};
+
+function getReportUi(language) {
+  return REPORT_UI[language] || REPORT_UI.es;
+}
+
+function reportBanda(pct, ui) {
+  if (pct >= 70) return [ui.et_otimo, 'otimo'];
+  if (pct >= 50) return [ui.et_bom, 'bom'];
+  return [ui.et_dev, 'dev'];
+}
+
+function reportSustituir(texto, nombre) {
+  return (texto || '').split('{alumno}').join(nombre);
+}
+
+function reportMensajeDesempeno(promedio, nombre, mods, pcts, ui) {
+  const n = pcts.length;
+  const idx = [];
+  for (let i = 0; i < n; i++) if (pcts[i] > 0) idx.push(i);
+  const cursados = idx.length ? idx : Array.from({ length: n }, (_, i) => i);
+  if (!cursados.length) return '';
+  const mejorI = cursados.reduce((best, i) => (pcts[i] > pcts[best] ? i : best), cursados[0]);
+  const peorI = cursados.reduce((worst, i) => (pcts[i] < pcts[worst] ? i : worst), cursados[0]);
+  const mejor = mods[mejorI].titulo;
+  const peor = mods[peorI].titulo;
+  const peorPct = pcts[peorI];
+  if (promedio >= 85) return ui.mensajes.excelente(nombre, mejor);
+  if (promedio >= 70) return ui.mensajes.bueno(nombre, mejor);
+  if (promedio >= 50) return ui.mensajes.regular(nombre, mejor, peor, peorPct);
+  return ui.mensajes.inicial(nombre, mejor, peor, peorPct);
+}
+
+function tituloCase(s) {
+  return String(s || '').toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
+}
+
+let reportBannerDataUriPromise = null;
+function getReportBannerDataUri() {
+  if (!reportBannerDataUriPromise) {
+    reportBannerDataUriPromise = (async () => {
+      try {
+        const response = await fetch(chrome.runtime.getURL('calificador/reportes/img/banner_kodland.png'));
+        if (!response.ok) return '';
+        const blob = await response.blob();
+        return await new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result || '');
+          reader.onerror = () => resolve('');
+          reader.readAsDataURL(blob);
+        });
+      } catch (error) {
+        console.warn('[PDF Report] No se pudo cargar el banner:', error);
+        return '';
+      }
+    })();
+  }
+  return reportBannerDataUriPromise;
+}
+
+// curso: el JSON de calificador/reportes/curso_*.json (ya filtrado a los
+// módulos cursados por loadStudentReportData). alumno: {alumno, profesor,
+// pct[], puntos:[[cur,max]], tareas:[[env,tot]], asistencia:{asistidas,total,
+// sesiones:[{fecha,estado:'present'|'absent'|'justified'}]}, datos:{...}}.
+async function buildStudentReportHtml(curso, alumno, language) {
+  const ui = getReportUi(language);
+  const nombre = alumno.alumno;
+  const mods = curso.modulos;
+  const n = Math.min(mods.length, alumno.pct.length);
+  const modsSlice = mods.slice(0, n);
+  const pctsSlice = alumno.pct.slice(0, n).map(p => Math.max(0, Math.min(100, Math.round(p))));
+
+  const cursadosIdx = [];
+  for (let i = 0; i < n; i++) if (pctsSlice[i] > 0) cursadosIdx.push(i);
+  const cursados = cursadosIdx.length ? cursadosIdx : Array.from({ length: n }, (_, i) => i);
+  const promedio = cursados.length
+    ? Math.round(cursados.reduce((sum, i) => sum + pctsSlice[i], 0) / cursados.length)
+    : 0;
+  const mejorI = cursados.length ? cursados.reduce((best, i) => (pctsSlice[i] > pctsSlice[best] ? i : best), cursados[0]) : 0;
+  const mejorPct = n ? pctsSlice[mejorI] : 0;
+  const mejorMod = n ? modsSlice[mejorI].numero : 0;
+
+  const tareas = alumno.tareas;
+  const puntos = alumno.puntos;
+  const asis = alumno.asistencia;
+  const combinado = !!(asis || tareas);
+  const tEnv = tareas ? tareas.reduce((sum, par) => sum + par[0], 0) : 0;
+  const tTot = tareas ? tareas.reduce((sum, par) => sum + par[1], 0) : 0;
+  const aSi = asis ? asis.asistidas : 0;
+  const aTot = asis ? asis.total : 0;
+
+  const statsHtml = combinado
+    ? `<div class="stat oscuro"><div class="num">${promedio}<small>%</small></div><div class="lbl">${ui.aprov}</div></div>
+       <div class="stat"><div class="num">${tEnv}<small>/${tTot}</small></div><div class="lbl">${ui.tareas}</div></div>
+       <div class="stat"><div class="num">${aSi}<small>/${aTot}</small></div><div class="lbl">${ui.asist}</div></div>
+       <div class="stat"><div class="num">${mejorPct}<small>%</small></div><div class="lbl">${ui.mejor} (M${mejorMod})</div></div>`
+    : `<div class="stat oscuro"><div class="num">${promedio}<small>%</small></div><div class="lbl">${ui.aprov}</div></div>
+       <div class="stat"><div class="num">${n}</div><div class="lbl">${ui.proyectos}</div></div>
+       <div class="stat"><div class="num">${mejorPct}<small>%</small></div><div class="lbl">${ui.mejor} (M${mejorMod})</div></div>
+       <div class="stat"><div class="num">${n}</div><div class="lbl">${ui.modulos}</div></div>`;
+
+  const msg = n ? reportMensajeDesempeno(promedio, nombre, modsSlice, pctsSlice, ui) : '';
+  const mensajeHtml = msg ? `<div class="mensaje"><div class="k">${ui.msg}</div><p>${escapeHtml(msg)}</p></div>` : '';
+
+  const d = alumno.datos || {};
+  const modInf = d.modulo_informe || (n && cursados.length ? `M${modsSlice[cursados[cursados.length - 1]].numero}` : '');
+  const celda = v => {
+    v = String(v || '').trim();
+    return v ? `<td>${escapeHtml(v)}</td>` : '<td class="vacio">—</td>';
+  };
+  const filasDb = [
+    [ui.f_alumno, nombre, ui.f_cod, d.codigo_grupo || ''],
+    [ui.f_acu, d.acudiente || '', ui.f_tipo, d.tipo_grupo || ''],
+    [ui.f_mail, d.email || '', ui.f_dia, d.dia_hora || ''],
+    [ui.f_tel, d.telefono || '', ui.f_mod, modInf],
+    [ui.f_pais, d.pais || '', ui.curso, curso.curso || '']
+  ];
+  const tablaDb = filasDb.map(([a, b, c, e]) => `<tr><th>${escapeHtml(a)}</th>${celda(b)}<th>${escapeHtml(c)}</th>${celda(e)}</tr>`).join('');
+
+  const obj = reportSustituir(curso.objetivo_informe || ui.objetivo_def, nombre).split('{curso}').join(curso.curso || '');
+  const items = ui.modo_items.map(([t, x]) => `<li><b>${escapeHtml(t)}</b> — ${escapeHtml(x)}</li>`).join('');
+  const ban = await getReportBannerDataUri();
+
+  const caratula = `
+<div class="pagina">
+  ${ban ? `<img class="banner" src="${ban}">` : ''}
+  <div class="seccion"><div class="cuad"></div><h2>${ui.datos}</h2></div>
+  <table class="dbasicos">${tablaDb}</table>
+  <div class="seccion"><div class="cuad"></div><h2>${ui.objetivo}</h2></div>
+  <div class="intro">${escapeHtml(obj)}</div>
+  <div class="seccion"><div class="cuad"></div><h2>${ui.modo}</h2></div>
+  <div class="modo">
+    <ol>${items}</ol>
+    <div class="pie-modo">${escapeHtml(reportSustituir(ui.modo_pie, nombre))}</div>
+  </div>
+  <div class="pie-num">Kodland · ${tituloCase(ui.titulo)} · ${ui.pagina} 1</div>
+</div>`;
+
+  let barras = '';
+  const maxAlto = 175;
+  modsSlice.forEach((m, i) => {
+    const p = pctsSlice[i];
+    const [, cls] = reportBanda(p, ui);
+    barras += `<div class="col ${cls}"><div class="pct">${p}%</div><div class="barra" style="height:${Math.round(maxAlto * p / 100)}px"></div></div>`;
+  });
+  const ejes = modsSlice.map(m => `<div class="e">M${m.numero}</div>`).join('');
+  const mediaTop = Math.round(210 - (175 * promedio / 100));
+  const nombreEsc = escapeHtml(nombre);
+  const visionHtml = escapeHtml(reportSustituir(curso.vision_general || '', nombre)).split(nombreEsc).join(`<b>${nombreEsc}</b>`);
+
+  const portada = `
+<div class="pagina">
+  <div class="cab">
+    <div class="logo">kodland</div>
+    <div class="tit"><h1>${ui.titulo}</h1><p>${nombreEsc} · ${escapeHtml(curso.curso)}</p></div>
+  </div>
+  <div class="fila">
+    <div class="tarj"><div class="mut">${ui.area}</div><div class="val">${escapeHtml(curso.area_interes || '')}</div></div>
+    <div class="tarj"><div class="mut">${ui.proximo}</div><div class="val">${escapeHtml(curso.proximo_nivel || '')}</div></div>
+  </div>
+  <div class="stats">${statsHtml}</div>
+  <div class="seccion"><div class="cuad"></div><h2>${ui.vision}</h2></div>
+  <div class="intro">${visionHtml}</div>
+  <div class="chart">
+    <div class="barras">
+      ${barras}
+      <div class="media-linea" style="top:${mediaTop}px"></div>
+      <div class="media-lbl" style="top:${mediaTop - 14}px">${ui.media} ${promedio}%</div>
+    </div>
+    <div class="ejes">${ejes}</div>
+    <div class="leyenda">
+      <span><i class="punto otimo"></i>${ui.bandas[0]}</span>
+      <span><i class="punto bom"></i>${ui.bandas[1]}</span>
+      <span><i class="punto dev"></i>${ui.bandas[2]}</span>
+    </div>
+  </div>
+  ${mensajeHtml}
+  <div class="pie-num">Kodland · ${tituloCase(ui.titulo)} · ${ui.pagina} 2</div>
+</div>`;
+
+  let califHtml = '';
+  if (combinado) {
+    let filas = '';
+    modsSlice.forEach((m, i) => {
+      const p = pctsSlice[i];
+      const [, cls] = reportBanda(p, ui);
+      const [te, tt] = (tareas && tareas[i]) || [0, 0];
+      const [pc, px] = (puntos && puntos[i]) || [0, 0];
+      filas += `<tr><td>M${m.numero} · ${escapeHtml(m.titulo)}</td><td class="n">${te}/${tt}</td><td class="n">${pc}/${px}</td><td><span class="mini"><i class="${cls}" style="width:${p}%"></i></span>${p}%</td></tr>`;
+    });
+    const totPc = puntos ? puntos.reduce((sum, par) => sum + par[0], 0) : 0;
+    const totPx = puntos ? puntos.reduce((sum, par) => sum + par[1], 0) : 0;
+    filas += `<tr class="total"><td>TOTAL</td><td class="n">${tEnv}/${tTot}</td><td class="n">${totPc}/${totPx}</td><td>${promedio}%</td></tr>`;
+    const et = { present: ['pres', ui.est_pres], absent: ['aus', ui.est_aus], justified: ['just', ui.est_just] };
+    let sesHtml = '';
+    (asis && asis.sesiones ? asis.sesiones : []).forEach(s => {
+      const [c, txt] = et[s.estado] || ['aus', s.estado];
+      sesHtml += `<div class="ses ${c}"><div class="f">${escapeHtml(s.fecha)}</div><div class="e">${txt}</div></div>`;
+    });
+    const asisBloque = asis
+      ? `<div class="seccion"><div class="cuad"></div><h2>${ui.asis_titulo}</h2></div><div class="asis-grid">${sesHtml}</div>`
+      : '';
+    califHtml = `
+<div class="pagina">
+  <div class="seccion"><div class="cuad"></div><h2>${ui.calif}</h2></div>
+  <table class="calif">
+    <tr><th>${ui.th_modulo}</th><th class="n">${ui.th_tareas}</th><th class="n">${ui.th_puntos}</th><th>${ui.th_avance}</th></tr>
+    ${filas}
+  </table>
+  ${asisBloque}
+  <div class="pie-num">Kodland · ${ui.pagina}</div>
+</div>`;
+  }
+
+  let modsHtml = '';
+  modsSlice.forEach((m, i) => {
+    const p = pctsSlice[i];
+    const [lbl, cls] = reportBanda(p, ui);
+    const aprs = (m.aprendizajes || []).map(a => `<li>${escapeHtml(a)}</li>`).join('');
+    const desc = escapeHtml(reportSustituir(m.descripcion || '', nombre));
+    modsHtml += `
+  <div class="mod">
+    <div class="mod-cab">
+      <div class="badge">${String(m.numero).padStart(2, '0')}</div>
+      <div class="t"><div class="n">${ui.modulo} ${m.numero}</div><h3>${escapeHtml(m.titulo)}</h3></div>
+      <div class="p"><div class="g">${p}<small>%</small></div><span class="pill ${cls}">${lbl}</span></div>
+    </div>
+    <div class="progreso"><i class="${cls}" style="width:${p}%"></i></div>
+    <div class="desc">${desc}</div>
+    <div class="mod-cols">
+      <div class="izq"><div class="sublbl">${ui.aprendizajes}</div><ul class="apr">${aprs}</ul></div>
+      <div class="der"><div class="sublbl">${ui.proyecto}</div><div class="proy">${escapeHtml(m.proyecto || '')}</div></div>
+    </div>
+  </div>`;
+  });
+  const paginasMod = n
+    ? `<div class="pagina"><div class="seccion"><div class="cuad"></div><h2>${ui.detalle}</h2></div>${modsHtml}</div>`
+    : '';
+
+  const comp = (curso.competencias || []).map(c => `<div class="c"><b>✓</b>${escapeHtml(c)}</div>`).join('');
+  const paso = curso.proximo_paso || {};
+  const considHtml = escapeHtml(reportSustituir(curso.consideraciones || '', nombre)).split(nombreEsc).join(`<b>${nombreEsc}</b>`);
+  const cierre = `
+<div class="pagina">
+  <div class="seccion"><div class="cuad"></div><h2>${ui.consideraciones}</h2></div>
+  <div class="intro">${considHtml}</div>
+  <div class="comp">${comp}</div>
+  <div class="paso">
+    <div class="k">${ui.paso}</div>
+    <h2>→ ${escapeHtml(paso.titulo || '')}</h2>
+    <p>${escapeHtml(reportSustituir(paso.texto || '', nombre))}</p>
+  </div>
+  <div class="firmas">
+    <div class="col-firma">
+      <div class="linea"></div>
+      <div class="fnombre">${escapeHtml(alumno.profesor || '') || '&nbsp;'}</div>
+      <div class="frol">${ui.firma}</div>
+    </div>
+    <div class="col-sello">
+      <div class="sello-caja">${ui.sello}</div>
+    </div>
+  </div>
+  <div class="pie">
+    <div class="barra"><span class="l">kodland</span><span class="c">${ui.pie_lema}</span><span style="color:#fff;font-weight:700;font-size:11px">kodland.org</span></div>
+  </div>
+  <div class="pie-num">Kodland · ${ui.pagina}</div>
+</div>`;
+
+  const htmlDir = isRtlLanguage(language) ? 'rtl' : 'ltr';
+  return `<!doctype html><html lang="${language}" dir="${htmlDir}"><head><meta charset="utf-8"><title>${escapeHtml(nombre)} · ${escapeHtml(ui.titulo)}</title><style>${REPORT_CSS}</style></head><body>${caratula}${portada}${califHtml}${paginasMod}${cierre}</body></html>`;
+}
+
+function openPrintableReportWindow(html) {
+  const win = window.open('about:blank', '_blank');
+  if (!win) return null;
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  return win;
+}
+
 function createStudentReportButton(container, studentId, studentData, parentPhone) {
   const button = document.createElement('button');
   button.className = 'kodland-wa-btn kodland-report-btn';
@@ -4950,48 +6341,129 @@ function showStudentReportModal(studentId, studentData, parentPhone) {
   const moduleSelect = modal.querySelector('#kodland-report-module');
   const pythonModuleButton = modal.querySelector('.kodland-report-python-module');
 
-  const generateWithPython = async selectedModule => {
-    if (!window.KodlandCalificador) {
-      status.textContent = uiText('pdfReportBridgeError');
-      return;
+  const MODULE_OVERRIDE_TEXT = {
+    es: {
+      vision: (num, titulo, pct) => `En el módulo ${num}, {alumno} trabajó ${titulo}. El aprovechamiento registrado fue ${pct}%.`,
+      consideraciones: num => `Durante el módulo ${num}, {alumno} trabajó los aprendizajes descritos en este informe y desarrolló el proyecto correspondiente.`,
+      pasoTitulo: num => `Continuar con el módulo ${num + 1}`,
+      pasoTexto: num => `Consolidar lo aprendido en el módulo ${num} y continuar con el siguiente proyecto del curso.`
+    },
+    pt: {
+      vision: (num, titulo, pct) => `No módulo ${num}, {alumno} trabalhou ${titulo}. O aproveitamento registrado foi de ${pct}%.`,
+      consideraciones: num => `Durante o módulo ${num}, {alumno} trabalhou os aprendizados descritos neste relatório e desenvolveu o projeto correspondente.`,
+      pasoTitulo: num => `Continuar com o módulo ${num + 1}`,
+      pasoTexto: num => `Consolidar o que foi aprendido no módulo ${num} e continuar com o próximo projeto do curso.`
+    },
+    en: {
+      vision: (num, titulo, pct) => `In module ${num}, {alumno} worked on ${titulo}. The recorded performance was ${pct}%.`,
+      consideraciones: num => `During module ${num}, {alumno} worked through the learnings described in this report and developed the corresponding project.`,
+      pasoTitulo: num => `Continue with module ${num + 1}`,
+      pasoTexto: num => `Consolidate what was learned in module ${num} and move on to the course's next project.`
+    },
+    ar: {
+      vision: (num, titulo, pct) => `في الوحدة ${num}، عمل {alumno} على ${titulo}. كان الأداء المسجل ${pct}%.`,
+      consideraciones: num => `خلال الوحدة ${num}، عمل {alumno} على المكتسبات الموضحة في هذا التقرير وطوّر المشروع المقابل.`,
+      pasoTitulo: num => `المتابعة مع الوحدة ${num + 1}`,
+      pasoTexto: num => `ترسيخ ما تم تعلمه في الوحدة ${num} والمتابعة مع المشروع التالي للدورة.`
+    },
+    ru: {
+      vision: (num, titulo, pct) => `В модуле ${num} {alumno} работал(а) над темой «${titulo}». Зафиксированная успеваемость составила ${pct}%.`,
+      consideraciones: num => `В ходе модуля ${num} {alumno} освоил(а) знания, описанные в этом отчёте, и разработал(а) соответствующий проект.`,
+      pasoTitulo: num => `Продолжить модулем ${num + 1}`,
+      pasoTexto: num => `Закрепить изученное в модуле ${num} и перейти к следующему проекту курса.`
+    },
+    fr: {
+      vision: (num, titulo, pct) => `Dans le module ${num}, {alumno} a travaillé sur ${titulo}. La performance enregistrée était de ${pct}%.`,
+      consideraciones: num => `Pendant le module ${num}, {alumno} a travaillé sur les apprentissages décrits dans ce rapport et a développé le projet correspondant.`,
+      pasoTitulo: num => `Continuer avec le module ${num + 1}`,
+      pasoTexto: num => `Consolider ce qui a été appris dans le module ${num} et poursuivre avec le prochain projet du cours.`
+    },
+    tr: {
+      vision: (num, titulo, pct) => `${num}. modülde {alumno}, ${titulo} üzerinde çalıştı. Kaydedilen performans %${pct} oldu.`,
+      consideraciones: num => `${num}. modül boyunca {alumno}, bu raporda açıklanan öğrenimler üzerinde çalıştı ve ilgili projeyi geliştirdi.`,
+      pasoTitulo: num => `${num + 1}. modül ile devam et`,
+      pasoTexto: num => `${num}. modülde öğrenilenleri pekiştir ve kursun bir sonraki projesine geç.`
+    },
+    id: {
+      vision: (num, titulo, pct) => `Pada modul ${num}, {alumno} mengerjakan ${titulo}. Pencapaian yang tercatat adalah ${pct}%.`,
+      consideraciones: num => `Selama modul ${num}, {alumno} mengerjakan pembelajaran yang dijelaskan dalam laporan ini dan mengembangkan proyek terkait.`,
+      pasoTitulo: num => `Lanjutkan dengan modul ${num + 1}`,
+      pasoTexto: num => `Memperkuat apa yang dipelajari pada modul ${num} dan melanjutkan ke proyek berikutnya dari kursus.`
+    },
+    it: {
+      vision: (num, titulo, pct) => `Nel modulo ${num}, {alumno} ha lavorato su ${titulo}. Il rendimento registrato è stato del ${pct}%.`,
+      consideraciones: num => `Durante il modulo ${num}, {alumno} ha lavorato sugli apprendimenti descritti in questo report e ha sviluppato il progetto corrispondente.`,
+      pasoTitulo: num => `Continuare con il modulo ${num + 1}`,
+      pasoTexto: num => `Consolidare quanto appreso nel modulo ${num} e proseguire con il prossimo progetto del corso.`
+    },
+    pl: {
+      vision: (num, titulo, pct) => `W module ${num} {alumno} pracował(a) nad ${titulo}. Odnotowany wynik to ${pct}%.`,
+      consideraciones: num => `Podczas modułu ${num} {alumno} pracował(a) nad umiejętnościami opisanymi w tym raporcie i zrealizował(a) odpowiedni projekt.`,
+      pasoTitulo: num => `Kontynuować moduł ${num + 1}`,
+      pasoTexto: num => `Utrwalić to, czego nauczono się w module ${num}, i przejść do kolejnego projektu kursu.`
     }
+  };
+
+  const generateReport = async selectedModule => {
     const reportData = modal.reportData;
     const phone = reportData?.report.whatsappPhone;
     const whatsappWindow = phone ? window.open('about:blank', '_blank') : null;
     [pythonGeneralButton, pythonModuleButton].forEach(button => { button.disabled = true; });
     status.textContent = uiText('pdfReportGenerating');
 
-    const modules = selectedModule == null
-      ? reportData.report.modules
-      : reportData.report.modules.filter(module => Number(module.numero) === Number(selectedModule));
-    const payload = {
-      course_file: reportData.course._template_file,
-      module_number: selectedModule == null ? null : Number(selectedModule),
-      student: {
+    try {
+      const language = getMessageLanguage();
+      const overrideText = MODULE_OVERRIDE_TEXT[language] || MODULE_OVERRIDE_TEXT.es;
+
+      const statModules = selectedModule == null
+        ? reportData.report.modules
+        : reportData.report.modules.filter(module => Number(module.numero) === Number(selectedModule));
+      const sortedStats = [...statModules].sort((a, b) => Number(a.numero) - Number(b.numero));
+      const numeros = new Set(sortedStats.map(module => Number(module.numero)));
+      const templateModules = reportData.course.modulos
+        .filter(module => numeros.has(Number(module.numero)))
+        .sort((a, b) => Number(a.numero) - Number(b.numero));
+
+      const curso = { ...reportData.course, modulos: templateModules };
+      if (selectedModule != null && templateModules.length) {
+        const moduleNum = Number(selectedModule);
+        const moduleTemplate = templateModules[0];
+        const moduleStat = sortedStats[0];
+        curso.vision_general = overrideText.vision(moduleNum, moduleTemplate.titulo, moduleStat.pct);
+        curso.consideraciones = overrideText.consideraciones(moduleNum);
+        curso.competencias = moduleTemplate.aprendizajes || [];
+        curso.proximo_paso = { titulo: overrideText.pasoTitulo(moduleNum), texto: overrideText.pasoTexto(moduleNum) };
+      }
+
+      const alumno = {
         alumno: reportData.report.studentName,
         profesor: reportData.report.teacher,
-        modules: modules.map(module => ({
-          numero: module.numero,
-          pct: module.pct,
-          points: module.points,
-          maxPoints: module.maxPoints,
-          tasksSent: module.tasksSent,
-          tasksTotal: module.tasksTotal,
-          attendance: module.attendance
-        })),
-        attendance: reportData.report.attendance,
+        pct: sortedStats.map(module => module.pct),
+        puntos: sortedStats.map(module => [module.points, module.maxPoints]),
+        tareas: sortedStats.map(module => [module.tasksSent, module.tasksTotal]),
+        asistencia: reportData.report.attendance
+          ? {
+              asistidas: reportData.report.attendance.attended,
+              total: reportData.report.attendance.total,
+              sesiones: reportData.report.attendance.sessions.map(s => ({ fecha: s.label, estado: s.status }))
+            }
+          : null,
         datos: reportData.report.data
-      }
-    };
+      };
 
-    try {
-      const response = await new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({ tipo: 'calificador', action: 'generar_reporte_python', payload }, result => {
-          if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
-          else resolve(result);
-        });
-      });
-      if (!response?.ok) throw new Error(response?.error || uiText('pdfReportBridgeError'));
+      const html = await buildStudentReportHtml(curso, alumno, language);
+      const printWindow = openPrintableReportWindow(html);
+      if (!printWindow) {
+        throw new Error(uiText('pdfReportGenerateError'));
+      }
+      setTimeout(() => {
+        try {
+          printWindow.focus();
+          printWindow.print();
+        } catch (printError) {
+          console.error('[PDF Report] Error al imprimir:', printError);
+        }
+      }, 300);
 
       const scope = selectedModule == null ? uiText('pdfReportScopeGeneral') : uiText('pdfReportScopeModule', selectedModule);
       status.textContent = uiText('pdfReportDoneStatus', scope) + (phone ? uiText('pdfReportWhatsappNote') : '');
@@ -5000,7 +6472,7 @@ function showStudentReportModal(studentId, studentData, parentPhone) {
         const selected = selectedModule == null
           ? null
           : reportData.report.modules.find(module => Number(module.numero) === Number(selectedModule));
-        const message = renderTemplate(getResolvedPdfReportTemplate(getMessageLanguage(), settings), {
+        const message = renderTemplate(getResolvedPdfReportTemplate(language, settings), {
           studentName: reportData.report.studentName,
           tutorName: settings.tutorName,
           courseName: reportData.course.curso,
@@ -5010,15 +6482,29 @@ function showStudentReportModal(studentId, studentData, parentPhone) {
         whatsappWindow.location.href = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
       }
     } catch (error) {
-      whatsappWindow?.close();
-      status.textContent = error.message || uiText('pdfReportGenerateError');
+      console.error('[PDF Report] Error generando el reporte:', error);
+      const message = error?.message || uiText('pdfReportGenerateError');
+      status.textContent = message;
+      // No cerramos whatsappWindow en silencio: si se queda en about:blank el
+      // tutor piensa que "no pasó nada" porque su atención está en esa
+      // ventana, no en el modal de atrás. Mejor escribimos el error ahí mismo.
+      if (whatsappWindow && !whatsappWindow.closed) {
+        try {
+          whatsappWindow.document.title = 'Error';
+          whatsappWindow.document.body.style.cssText = 'font-family:sans-serif; padding:24px; color:#b91c1c; white-space:pre-wrap;';
+          whatsappWindow.document.body.textContent = '❌ ' + message;
+        } catch (writeError) {
+          whatsappWindow.close();
+        }
+      }
+      alert(message);
     } finally {
       [pythonGeneralButton, pythonModuleButton].forEach(button => { button.disabled = false; });
     }
   };
 
-  pythonGeneralButton.addEventListener('click', () => generateWithPython(null));
-  pythonModuleButton.addEventListener('click', () => generateWithPython(Number(moduleSelect.value)));
+  pythonGeneralButton.addEventListener('click', () => generateReport(null));
+  pythonModuleButton.addEventListener('click', () => generateReport(Number(moduleSelect.value)));
 
   loadStudentReportData(studentId, studentData, parentPhone).then(data => {
     if (!document.body.contains(modal)) return;
@@ -6891,7 +8377,9 @@ const DEFAULT_KODLAND_SETTINGS = {
   firstClassTemplate: DEFAULT_FIRST_CLASS_TEMPLATE,
   recordingStudentTemplate: DEFAULT_RECORDING_STUDENT_TEMPLATE,
   recordingGroupTemplate: DEFAULT_RECORDING_GROUP_TEMPLATE,
-  pdfReportTemplate: DEFAULT_PDF_REPORT_TEMPLATE
+  pdfReportTemplate: DEFAULT_PDF_REPORT_TEMPLATE,
+  groqApiKey: '',
+  groqModel: 'llama-3.3-70b-versatile'
 };
 
 function getExtensionSettings() {
@@ -7027,6 +8515,12 @@ function openSettingsModal() {
         <label id="kodland-setting-tutorname-label" style="${labelStyle}">${escapeHtml(uiTextForLanguage('settingTutorName', currentLanguage))}</label>
         <input type="text" id="kodland-setting-tutorname" value="${escapeHtml(settings.tutorName)}" style="${fieldStyle}"/>
 
+        <label id="kodland-setting-groq-label" style="${labelStyle}">${escapeHtml(uiTextForLanguage('settingGroqApiKey', currentLanguage))}</label>
+        <input type="text" id="kodland-setting-groq" value="${escapeHtml(settings.groqApiKey)}" placeholder="gsk_..." style="${fieldStyle}"/>
+        <p id="kodland-setting-groq-help" style="font-size:11px; color:#888; line-height:1.6; margin:-12px 0 20px;">
+          ${uiTextForLanguage('settingGroqApiKeyHelp', currentLanguage)}
+        </p>
+
         <hr style="border-color:#333; margin: 16px 0;"/>
         <p id="kodland-instructions-text" style="font-size:12px; color:#999; margin-bottom:16px;">
           ${escapeHtml(uiTextForLanguage('settingsTemplatesHelp', currentLanguage))}
@@ -7063,6 +8557,8 @@ function openSettingsModal() {
     modal.querySelector('#kodland-setting-broadcast-label').textContent = uiTextForLanguage('settingShowBroadcast', previewLanguage);
     modal.querySelector('#kodland-setting-language-label').textContent = uiTextForLanguage('settingLanguage', previewLanguage);
     modal.querySelector('#kodland-setting-tutorname-label').textContent = uiTextForLanguage('settingTutorName', previewLanguage);
+    modal.querySelector('#kodland-setting-groq-label').textContent = uiTextForLanguage('settingGroqApiKey', previewLanguage);
+    modal.querySelector('#kodland-setting-groq-help').innerHTML = uiTextForLanguage('settingGroqApiKeyHelp', previewLanguage);
     modal.querySelector('#kodland-instructions-text').textContent = uiTextForLanguage('settingsTemplatesHelp', previewLanguage);
     modal.querySelector('#kodland-settings-save').textContent = uiTextForLanguage('settingsSave', previewLanguage);
 
@@ -7104,6 +8600,8 @@ function openSettingsModal() {
       showBroadcastButtons: modal.querySelector('#kodland-setting-broadcast').checked,
       messageLanguage: rawLanguage,
       tutorName: modal.querySelector('#kodland-setting-tutorname').value.trim() || DEFAULT_KODLAND_SETTINGS.tutorName,
+      groqApiKey: modal.querySelector('#kodland-setting-groq').value.trim(),
+      groqModel: DEFAULT_KODLAND_SETTINGS.groqModel,
       welcomeTemplate: modal.querySelector('#kodland-setting-welcome-template').value.trim() || DEFAULT_WELCOME_TEMPLATE,
       absenceTemplate: modal.querySelector('#kodland-setting-absence-template').value.trim() || DEFAULT_ABSENCE_TEMPLATE,
       classStartingTemplate: modal.querySelector('#kodland-setting-classstarting-template').value.trim() || DEFAULT_CLASS_STARTING_TEMPLATE,

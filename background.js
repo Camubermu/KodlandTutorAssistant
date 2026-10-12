@@ -38,34 +38,44 @@ function applyIcons() {
 chrome.runtime.onInstalled.addListener(applyIcons);
 chrome.runtime.onStartup.addListener(applyIcons);
 
-// --- Puente con el calificador de Python (Native Messaging) ---
-// Los content scripts no pueden hablar directamente con un host nativo, así que
-// nos envían la etiqueta de acción y nosotros la reenviamos al puente local.
-const NOMBRE_PUENTE = 'com.kodland.puente';
-
+// --- Puente para la IA de comentarios (Groq) ---
+// El content script no puede hacer fetch de otro origen de forma fiable (lo
+// bloquea la política de la página en bo.kodland.org), así que el service
+// worker -que sí tiene permiso de host para api.groq.com- hace la llamada y
+// devuelve solo el texto de la respuesta.
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (!msg || msg.tipo !== 'calificador') return;  // no es para nosotros
-  try {
-    const nativeMessage = { action: msg.action };
-    if (msg.action === 'generar_reporte_python') {
-      const senderUrl = new URL(sender.url || '');
-      if (senderUrl.origin !== 'https://bo.kodland.org' || !senderUrl.pathname.startsWith('/groups/')) {
-        sendResponse({ ok: false, error: 'El reporte Python solo se puede solicitar desde un grupo de Kodland.' });
-        return false;
+  if (!msg || msg.tipo !== 'groq-chat') return; // no es para nosotros
+  (async () => {
+    try {
+      const response = await fetch(msg.endpoint || 'https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${msg.apiKey}`
+        },
+        body: JSON.stringify({
+          model: msg.model || 'llama-3.3-70b-versatile',
+          temperature: 0.4,
+          messages: [
+            { role: 'system', content: msg.system },
+            { role: 'user', content: msg.user }
+          ],
+          response_format: { type: 'json_object' }
+        })
+      });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) {
+        const detail = body?.error?.message || JSON.stringify(body || {}).slice(0, 140);
+        sendResponse({ ok: false, error: `Groq respondió ${response.status}: ${detail}` });
+        return;
       }
-      nativeMessage.payload = msg.payload;
+      const content = body?.choices?.[0]?.message?.content || null;
+      sendResponse({ ok: true, content });
+    } catch (error) {
+      console.error('[Groq] Error llamando a la IA:', error);
+      sendResponse({ ok: false, error: String(error) });
     }
-
-    chrome.runtime.sendNativeMessage(NOMBRE_PUENTE, nativeMessage, (respuesta) => {
-      if (chrome.runtime.lastError) {
-        sendResponse({ ok: false, error: chrome.runtime.lastError.message });
-      } else {
-        sendResponse(respuesta || { ok: false, error: 'El puente no respondió.' });
-      }
-    });
-  } catch (e) {
-    sendResponse({ ok: false, error: String(e) });
-  }
-  return true;  // la respuesta llega de forma asíncrona
+  })();
+  return true; // la respuesta llega de forma asíncrona
 });
 

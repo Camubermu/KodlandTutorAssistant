@@ -919,18 +919,7 @@
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.35);
 }
 
-/* Botón "Calificar" (dispara el calificador de Python vía Native Messaging),
-   tanto dentro del modal de reporte de calificación como en la página de
-   profesor (teacher-page-buttons.js) */
-.kodland-modal-content .kodland-modal-header #kodland-calificar-todo-btn,
-.kodland-toolbar-btn-calificar {
-  background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
-}
-
-.kodland-modal-content .kodland-modal-header #kodland-calificar-todo-btn:hover,
-.kodland-toolbar-btn-calificar:hover {
-  background: linear-gradient(90deg, #d53369 0%, #daae51 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(252, 70, 107, 0.35);
+#kodland-setting-groq-help a {
+  color: #25D366;
 }
 

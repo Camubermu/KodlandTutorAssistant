@@ -84,14 +84,14 @@ Icons (`icon16.png`, `icon48.png`, `icon128.png`) are optional. If you want to a
 
 ## Additional tools (ported from KodlandTutorAssistant)
 
-These were merged in from the other team's fork so this project contains every available feature:
+These were merged in from the other team's fork so this project contains every available feature. Everything below runs **entirely inside the extension** — no Python, no local install, no per-OS setup. Just load the extension and use it.
 
-- 🎓 **PDF report button** (per student, "PDF" icon next to the WhatsApp buttons): generates a general or per-module PDF progress report via a local Python tool and optionally opens WhatsApp with it attached. Requires the calificador + Native Messaging bridge below to be installed.
-- 🐍 **`calificador/`**: a separate Python + Playwright tool to grade pending tasks, post templated/AI comments, and generate PDF reports and group boletines. It talks to the extension through a Native Messaging bridge (`calificador/puente/`), not through the Chrome APIs — see [`calificador/INSTRUCCIONES.md`](calificador/INSTRUCCIONES.md) and [`calificador/puente/README_PUENTE.md`](calificador/puente/README_PUENTE.md) for setup. The floating "🎓 Calificador" panel (`calificador-buttons.js`) and the "✅ Calificar Todo" button on teacher pages (`teacher-page-buttons.js`) both depend on this bridge being installed locally; without it they'll report "El puente no respondió."
+- 🎓 **PDF report button** (per student, "PDF" icon next to the WhatsApp buttons): builds a general or per-module progress report as real HTML/CSS (same design as the original tool) and opens it in a new tab, triggering the browser's own print-to-PDF so the tutor saves it directly — no backend involved.
+- ✅ **Grading engine**, inside the existing "📊 Reporte calificación" modal: once it lists a group's pending tasks, three buttons let the tutor grade them for real — **Calificar (nota máxima)** (grade-only), **Calificar y comentar** (free, template-based comments picked from `calificador/plantillas_comentarios.json`), and **Calificar y comentar (IA)** (AI-written comments via Groq — needs a free API key pasted into Settings; see `settings.groqApiKey`). It calls the same Kodland API endpoints the original Python tool used internally (`get_progress_by_task`, `tasks/{id}`, `PUT grade/{progress_id}`), scoped to whatever group page the tutor currently has open.
 - 🎮 **Send ME Credential** (student page): same flow as "Send Credential" but for Minecraft Education accounts.
 - 🧪 **`retention-radar/`**: early, in-progress experiment to flag students at risk of not renewing. Currently just fetches a group's schedule and logs it to the console — not a finished feature yet.
 
-⚠️ These files (`calificador/`, `calificador-buttons.js`, `teacher-page-buttons.js`, `send-me-credential-button.js`, `retention-radar/`) came from a different, independently-developed codebase. They're wired into `manifest.json`/`background.js` but haven't been exercised end-to-end in this project yet — test them manually before relying on them with real students.
+⚠️ The grading engine and PDF report are fresh ports from a ~4500-line Python tool, written without the ability to test live against Kodland — verify both carefully (ideally with `plantillas`/grade-only mode before trusting AI-written comments) before relying on them with real students. Known simplification: unlike the original, it doesn't run a real Python syntax check on the student's code (the browser has no Python parser) — the AI-comment mode isn't affected by this, only the free template mode's heuristics.
 
 ## License
 
