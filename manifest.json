@@ -35,16 +35,6 @@
       "matches": ["https://web.whatsapp.com/*"],
       "js": ["whatsapp-autopaste.js"],
       "run_at": "document_idle"
-    },
-    {
-      "matches": ["https://bo.kodland.org/groups/*"],
-      "js": ["retention-radar/main.js"],
-      "run_at": "document_idle"
-    },
-    {
-      "matches": ["https://bo.kodland.org/groups/*"],
-      "js": ["retention-radar/groupSchedule.js"],
-      "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
