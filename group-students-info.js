@@ -533,6 +533,50 @@ const UI_STRINGS = {
     pl: 'Opcjonalne, tylko dla przycisku „Oceń i skomentuj (AI)”:<br>1) Wejdź na <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">console.groq.com/keys</a> i zaloguj się (bezpłatnie, bez karty).<br>2) Kliknij „Create API Key” i skopiuj klucz (zaczyna się od gsk_...).<br>3) Wklej go powyżej i zapisz.',
     pt: 'Opcional, apenas para o botão "Corrigir e comentar (IA)":<br>1) Acesse <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">console.groq.com/keys</a> e faça login (grátis, sem cartão).<br>2) Clique em "Create API Key" e copie a chave (começa com gsk_...).<br>3) Cole-a acima e salve.'
   },
+  allGroupsAskTeacherId: {
+    es: 'No pude detectar tu ID de tutor automáticamente. Escríbelo (es el número que aparece en la dirección de tu perfil del BO):',
+    en: "Couldn't detect your tutor ID automatically. Type it in (it's the number shown in your BO profile's address):",
+    ar: 'تعذّر اكتشاف رقم المعلّم تلقائيًا. اكتبه (هو الرقم الظاهر في عنوان صفحة ملفك في BO):',
+    ru: 'Не удалось определить ваш ID преподавателя автоматически. Введите его (это номер в адресе вашего профиля в BO):',
+    fr: "Impossible de détecter automatiquement ton ID de tuteur. Saisis-le (c'est le numéro dans l'adresse de ton profil BO) :",
+    tr: 'Öğretmen ID\'niz otomatik algılanamadı. Elle yazın (BO profilinizin adresinde görünen sayı):',
+    id: 'Tidak dapat mendeteksi ID tutor secara otomatis. Ketik secara manual (angka yang muncul di alamat profil BO Anda):',
+    it: 'Non sono riuscito a rilevare automaticamente il tuo ID tutor. Scrivilo (è il numero nell\'indirizzo del tuo profilo BO):',
+    pl: 'Nie udało się automatycznie wykryć Twojego ID nauczyciela. Wpisz je (to numer widoczny w adresie Twojego profilu BO):',
+    pt: 'Não consegui detectar seu ID de tutor automaticamente. Digite-o (é o número que aparece no endereço do seu perfil no BO):'
+  },
+  settingCalendarTitle: {
+    es: '📅 Google Calendar (opcional)', en: '📅 Google Calendar (optional)', ar: '📅 تقويم Google (اختياري)',
+    ru: '📅 Google Календарь (необязательно)', fr: '📅 Google Agenda (facultatif)', tr: '📅 Google Takvim (isteğe bağlı)',
+    id: '📅 Google Kalender (opsional)', it: '📅 Google Calendar (facoltativo)', pl: '📅 Kalendarz Google (opcjonalnie)',
+    pt: '📅 Google Agenda (opcional)'
+  },
+  settingCalendarHelp: {
+    es: 'Agrega tus clases a TU calendario de Google automáticamente (solo el nombre del grupo y el horario — nada de alumnos), con aviso 1 hora antes. Requiere crear un pequeño script gratis en tu cuenta de Google, una sola vez: sigue <code>calendario-google/PASOS.md</code> en el repo. Pega aquí la URL que te da el último paso.',
+    en: 'Automatically adds your classes to YOUR Google calendar (just the group name and time — no student data), with a reminder 1 hour before. Requires creating a small free script in your own Google account, once: follow <code>calendario-google/PASOS.md</code> in the repo. Paste the URL from the last step here.',
+    ar: 'يضيف حصصك تلقائيًا إلى تقويم Google الخاص بك (فقط اسم المجموعة والوقت، بلا بيانات طلاب)، مع تنبيه قبل ساعة. يتطلب إنشاء سكربت صغير مجاني في حسابك في Google مرة واحدة: اتبع <code>calendario-google/PASOS.md</code> في المستودع. الصق هنا الرابط من الخطوة الأخيرة.',
+    ru: 'Автоматически добавляет твои занятия в ТВОЙ календарь Google (только название группы и время — без данных об учениках), с напоминанием за 1 час. Нужно один раз создать небольшой бесплатный скрипт в своём аккаунте Google: следуй <code>calendario-google/PASOS.md</code> в репозитории. Вставь сюда ссылку с последнего шага.',
+    fr: "Ajoute automatiquement tes cours à TON agenda Google (juste le nom du groupe et l'horaire — aucune donnée d'élève), avec un rappel 1 heure avant. Nécessite de créer une seule fois un petit script gratuit sur ton compte Google : suis <code>calendario-google/PASOS.md</code> dans le dépôt. Colle ici l'URL de la dernière étape.",
+    tr: 'Derslerini otomatik olarak KENDİ Google takvimine ekler (sadece grup adı ve saat — öğrenci verisi yok), 1 saat önceden hatırlatma ile. Google hesabınızda bir kez küçük ücretsiz bir script oluşturmanız gerekir: depodaki <code>calendario-google/PASOS.md</code> dosyasını izleyin. Son adımdaki URL\'yi buraya yapıştırın.',
+    id: 'Menambahkan kelasmu secara otomatis ke kalender Google MILIKMU (hanya nama grup dan waktu — tanpa data siswa), dengan pengingat 1 jam sebelumnya. Perlu membuat skrip kecil gratis di akun Google-mu sendiri, sekali saja: ikuti <code>calendario-google/PASOS.md</code> di repo. Tempel URL dari langkah terakhir di sini.',
+    it: 'Aggiunge automaticamente le tue lezioni al TUO calendario Google (solo nome del gruppo e orario — nessun dato sugli studenti), con promemoria 1 ora prima. Richiede di creare uno piccolo script gratuito nel tuo account Google, una sola volta: segui <code>calendario-google/PASOS.md</code> nel repository. Incolla qui l\'URL dell\'ultimo passaggio.',
+    pl: 'Automatycznie dodaje Twoje zajęcia do TWOJEGO kalendarza Google (tylko nazwa grupy i godzina — bez danych uczniów), z przypomnieniem godzinę wcześniej. Wymaga jednorazowego utworzenia małego, darmowego skryptu na Twoim koncie Google: postępuj zgodnie z <code>calendario-google/PASOS.md</code> w repozytorium. Wklej tutaj adres URL z ostatniego kroku.',
+    pt: 'Adiciona suas aulas automaticamente ao SEU calendário do Google (só o nome do grupo e o horário — nenhum dado de aluno), com aviso 1 hora antes. Requer criar um pequeno script grátis na sua própria conta do Google, uma única vez: siga <code>calendario-google/PASOS.md</code> no repositório. Cole aqui a URL do último passo.'
+  },
+  settingCalendarUrl: {
+    es: 'URL de tu aplicación web (termina en /exec):', en: 'Your web app URL (ends in /exec):',
+    ar: 'رابط تطبيق الويب الخاص بك (ينتهي بـ /exec):', ru: 'URL твоего веб-приложения (заканчивается на /exec):',
+    fr: 'URL de ton application web (se termine par /exec) :', tr: 'Web uygulaması URL\'niz (/exec ile biter):',
+    id: 'URL aplikasi web Anda (diakhiri /exec):', it: 'URL della tua app web (termina con /exec):',
+    pl: 'Adres URL Twojej aplikacji internetowej (kończy się na /exec):', pt: 'URL do seu aplicativo da web (termina em /exec):'
+  },
+  settingCalendarKey: {
+    es: 'Tu clave (pégala en el script):', en: 'Your key (paste it into the script):',
+    ar: 'مفتاحك (الصقه في السكربت):', ru: 'Твой ключ (вставь его в скрипт):',
+    fr: 'Ta clé (colle-la dans le script) :', tr: 'Anahtarınız (betiğe yapıştırın):',
+    id: 'Kunci Anda (tempel ke dalam skrip):', it: 'La tua chiave (incollala nello script):',
+    pl: 'Twój klucz (wklej go do skryptu):', pt: 'Sua chave (cole no script):'
+  },
   settingLanguage: {
     es: 'Idioma de la interfaz y los mensajes:',
     en: 'Interface and message language:',
@@ -4616,6 +4660,166 @@ async function kodlandApiV1(path, { method = 'GET', body } = {}) {
   return { ok: response.ok, status: response.status, data };
 }
 
+// ============================================================================
+// Grupos activos del tutor logueado, vía API real (sin scraping): descubierto
+// por un tutor del equipo e incorporado aquí porque resuelve algo que no
+// habíamos logrado por nuestra cuenta ("¿qué grupos tiene este tutor?").
+// Se usa para la sincronización con Google Calendar de abajo; también es la
+// base para portar más adelante "revisar todos mis grupos" y el radar de
+// retención.
+// ============================================================================
+
+function findArrayInResponse(data, preferredKeys) {
+  if (Array.isArray(data)) return data;
+  if (!data || typeof data !== 'object') return [];
+  for (const key of preferredKeys) if (Array.isArray(data[key])) return data[key];
+  return Object.values(data).find(Array.isArray) || [];
+}
+
+function getMyTeacherId() {
+  const saved = localStorage.getItem('kodland_ext_teacher_id');
+  if (saved) return saved;
+  // El token del BO es un JWT: su parte central suele traer el id del usuario.
+  try {
+    const payload = JSON.parse(atob(authToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    const id = payload.user_id || payload.userId || payload.id || payload.sub;
+    if (id && /^\d+$/.test(String(id))) return String(id);
+  } catch (error) {
+    // no es un JWT o no trae el id
+  }
+  return null;
+}
+
+// Lista de grupos ACTIVOS (con próxima lección) del tutor, sin preguntarle
+// nada: el ID de tutor sale del propio token. Si por algo no se puede leer
+// del token, se deja sin resolver (noPrompt=true para los procesos
+// automáticos, que no deben interrumpir al tutor con un prompt()).
+async function fetchMyActiveGroups({ noPrompt = true } = {}) {
+  const teacherId = getMyTeacherId();
+  if (!teacherId) {
+    if (noPrompt) return null;
+    const typed = (prompt(uiText('allGroupsAskTeacherId')) || '').trim();
+    if (!/^\d+$/.test(typed)) return null;
+    localStorage.setItem('kodland_ext_teacher_id', typed);
+    return fetchMyActiveGroups({ noPrompt: true });
+  }
+  const res = await kodlandApiV2(`/student_groups/?page=1&page_size=100&ordering=-id&teacher=${teacherId}`);
+  if (!res.ok) {
+    console.warn('[Grupos] La lista de grupos respondió', res.status);
+    return null;
+  }
+  const groups = findArrayInResponse(res.data, ['results', 'data', 'groups']);
+  if (!groups.length) {
+    if (noPrompt) return [];
+    // El ID detectado probablemente no era el de tutor: se pregunta una vez.
+    localStorage.removeItem('kodland_ext_teacher_id');
+    return fetchMyActiveGroups({ noPrompt: false });
+  }
+  const nextKey = Object.keys(groups[0]).find(k => /next.?lesson/i.test(k));
+  const hasNext = g => !nextKey || (g[nextKey] && g[nextKey] !== '-');
+  return groups.filter(hasNext).map(g => ({ id: g.id, title: g.title || g.name || `#${g.id}` }));
+}
+
+// ============================================================================
+// Sincronización automática con Google Calendar. Cada tutor conecta SU PROPIA
+// cuenta (un script de Google Apps Script que crea una sola vez, ver
+// calendario-google/PASOS.md) — la extensión nunca ve ni pide permisos de
+// Google, solo le manda el horario de sus clases a una URL que el propio
+// tutor pegó en Configuración. A propósito se manda lo mínimo: solo el
+// nombre del grupo y el horario de la clase, nada de alumnos ni de datos
+// personales. Corre sola cada vez que el tutor abre una página de grupo (sin
+// botón), como mucho una vez por hora.
+// ============================================================================
+
+const CALENDAR_SYNC_EVERY_MS = 60 * 60 * 1000;
+const CALENDAR_BATCH_SIZE = 15;
+const CALENDAR_DAYS_AHEAD = 30;
+const CALENDAR_DEFAULT_MINUTES = 60;
+
+async function getCalendarConfig() {
+  const data = await chrome.storage.local.get(['kodland_calendar_url', 'kodland_calendar_key', 'kodland_calendar_last_sync']);
+  let key = data.kodland_calendar_key;
+  if (!key) {
+    key = Array.from(crypto.getRandomValues(new Uint8Array(12)), b => b.toString(16).padStart(2, '0')).join('');
+    await chrome.storage.local.set({ kodland_calendar_key: key });
+  }
+  return { url: data.kodland_calendar_url || '', key, lastSync: data.kodland_calendar_last_sync || null };
+}
+
+async function fetchGroupScheduleForCalendar(groupId) {
+  const res = await kodlandApiV2(`/student_groups/${groupId}/schedule_view/`);
+  return res.ok && Array.isArray(res.data) ? res.data : [];
+}
+
+// Un evento por clase, con SOLO el nombre del grupo como título (sin curso,
+// lección ni enlaces) — lo único que hace falta para que Calendar avise al
+// tutor antes de que empiece. El id es el de Kodland (timetable_id), para que
+// el script de Google no duplique eventos si se sincroniza varias veces.
+async function buildCalendarClasses() {
+  const groups = await fetchMyActiveGroups();
+  if (!groups) return null;
+  const now = Date.now();
+  const from = now - 24 * 3600 * 1000;
+  const to = now + CALENDAR_DAYS_AHEAD * 24 * 3600 * 1000;
+  const classes = [];
+  for (const group of groups) {
+    const schedule = await fetchGroupScheduleForCalendar(group.id);
+    schedule.forEach(lesson => {
+      const start = new Date(lesson.timetable_time).getTime();
+      if (Number.isNaN(start) || start < from || start > to) return;
+      if (/cancel/i.test(String(lesson.timetable_status || ''))) return;
+      const minutes = Number(String(lesson.course_title || '').match(/\[(\d+)\s*min\]/i)?.[1]) || CALENDAR_DEFAULT_MINUTES;
+      classes.push({
+        id: lesson.timetable_id,
+        titulo: group.title,
+        inicio: new Date(start).toISOString(),
+        fin: new Date(start + minutes * 60000).toISOString()
+      });
+    });
+  }
+  return { classes, from, to };
+}
+
+let calendarSyncRunning = false;
+
+async function syncCalendarIfDue() {
+  if (calendarSyncRunning) return;
+  if (!extensionContextAlive()) return;
+  const config = await getCalendarConfig();
+  if (!config.url) return; // el tutor aún no pegó la URL de su script
+  if (!getMyTeacherId()) return; // nunca se le pidió el ID; no interrumpir con un prompt
+  if (config.lastSync && Date.now() - config.lastSync < CALENDAR_SYNC_EVERY_MS) return;
+
+  calendarSyncRunning = true;
+  try {
+    await waitForAuthToken();
+    const built = await buildCalendarClasses();
+    if (!built) return;
+    const { classes, from, to } = built;
+    const send = payload => new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({ tipo: 'calendar-sync', url: config.url, payload }, result => {
+        if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
+        else if (!result?.ok) reject(new Error(result?.error || 'sin respuesta'));
+        else resolve(result.result);
+      });
+    });
+    const base = { clave: config.key, desde: new Date(from).toISOString(), hasta: new Date(to).toISOString() };
+    const vigentes = classes.map(c => String(c.id));
+    let limitado = false;
+    for (let i = 0; i < classes.length && !limitado; i += CALENDAR_BATCH_SIZE) {
+      const result = await send({ ...base, clases: classes.slice(i, i + CALENDAR_BATCH_SIZE), vigentes });
+      limitado = limitado || !!result?.limitado;
+    }
+    if (!limitado) await send({ ...base, clases: [], limpiar: true, vigentes });
+    await chrome.storage.local.set({ kodland_calendar_last_sync: Date.now() });
+    console.log(`[Calendario] Sincronizadas ${classes.length} clases.`);
+  } catch (error) {
+    console.warn('[Calendario] No se pudo sincronizar:', error.message);
+  } finally {
+    calendarSyncRunning = false;
+  }
+}
+
 function gradingLimpiarInvisibles(s) {
   if (!s) return s;
   return String(s)
@@ -7293,6 +7497,17 @@ function displayStudentInfo(container, studentData, studentId) {
 }
 
 
+// true si el content script sigue conectado a la extensión (si la extensión
+// se recargó mientras esta pestaña ya estaba abierta, leer chrome.runtime.id
+// lanza "Extension context invalidated" en vez de devolver algo).
+function extensionContextAlive() {
+  try {
+    return !!chrome.runtime?.id;
+  } catch (error) {
+    return false;
+  }
+}
+
 async function waitForAuthToken(maxWaitTime = 10000) {
   const startTime = Date.now();
   
@@ -8552,6 +8767,15 @@ function openSettingsModal() {
           ${uiTextForLanguage('settingGroqApiKeyHelp', currentLanguage)}
         </p>
 
+        <label id="kodland-setting-calendar-title" style="${labelStyle}">${escapeHtml(uiTextForLanguage('settingCalendarTitle', currentLanguage))}</label>
+        <p id="kodland-setting-calendar-help" style="font-size:11px; color:#888; line-height:1.6; margin:0 0 10px;">
+          ${uiTextForLanguage('settingCalendarHelp', currentLanguage)}
+        </p>
+        <label id="kodland-setting-calendar-url-label" style="${labelStyle}">${escapeHtml(uiTextForLanguage('settingCalendarUrl', currentLanguage))}</label>
+        <input type="text" id="kodland-setting-calendar-url" placeholder="https://script.google.com/macros/s/.../exec" style="${fieldStyle}"/>
+        <label id="kodland-setting-calendar-key-label" style="${labelStyle}">${escapeHtml(uiTextForLanguage('settingCalendarKey', currentLanguage))}</label>
+        <input type="text" id="kodland-setting-calendar-key" readonly value="…" style="${fieldStyle} font-family:monospace;"/>
+
         <hr style="border-color:#333; margin: 16px 0;"/>
         <p id="kodland-instructions-text" style="font-size:12px; color:#999; margin-bottom:16px;">
           ${escapeHtml(uiTextForLanguage('settingsTemplatesHelp', currentLanguage))}
@@ -8565,6 +8789,12 @@ function openSettingsModal() {
   `;
 
   document.body.appendChild(modal);
+
+  getCalendarConfig().then(config => {
+    if (!document.body.contains(modal)) return;
+    modal.querySelector('#kodland-setting-calendar-url').value = config.url;
+    modal.querySelector('#kodland-setting-calendar-key').value = config.key;
+  });
 
   modal.querySelector('.kodland-modal-close').addEventListener('click', () => modal.remove());
   modal.addEventListener('click', (e) => {
@@ -8590,6 +8820,10 @@ function openSettingsModal() {
     modal.querySelector('#kodland-setting-tutorname-label').textContent = uiTextForLanguage('settingTutorName', previewLanguage);
     modal.querySelector('#kodland-setting-groq-label').textContent = uiTextForLanguage('settingGroqApiKey', previewLanguage);
     modal.querySelector('#kodland-setting-groq-help').innerHTML = uiTextForLanguage('settingGroqApiKeyHelp', previewLanguage);
+    modal.querySelector('#kodland-setting-calendar-title').textContent = uiTextForLanguage('settingCalendarTitle', previewLanguage);
+    modal.querySelector('#kodland-setting-calendar-help').innerHTML = uiTextForLanguage('settingCalendarHelp', previewLanguage);
+    modal.querySelector('#kodland-setting-calendar-url-label').textContent = uiTextForLanguage('settingCalendarUrl', previewLanguage);
+    modal.querySelector('#kodland-setting-calendar-key-label').textContent = uiTextForLanguage('settingCalendarKey', previewLanguage);
     modal.querySelector('#kodland-instructions-text').textContent = uiTextForLanguage('settingsTemplatesHelp', previewLanguage);
     modal.querySelector('#kodland-settings-save').textContent = uiTextForLanguage('settingsSave', previewLanguage);
 
@@ -8645,6 +8879,7 @@ function openSettingsModal() {
       pdfReportTemplate: modal.querySelector('#kodland-setting-pdf-report-template').value.trim() || DEFAULT_PDF_REPORT_TEMPLATE
     };
     saveExtensionSettings(newSettings);
+    chrome.storage.local.set({ kodland_calendar_url: modal.querySelector('#kodland-setting-calendar-url').value.trim() });
     modal.remove();
     setTimeout(() => {
       try {
@@ -9431,6 +9666,12 @@ function initGroupStudentsInfo() {
 
 
   safeInject('attendance', injectTakeAttendanceButton);
+
+
+  // Sincronización con Google Calendar: automática, sin botón, con su propio
+  // límite de una vez por hora (ver syncCalendarIfDue). No hace nada hasta
+  // que el tutor pega la URL de su script en Configuración.
+  safeInject('calendar sync', () => { syncCalendarIfDue(); });
   
 
   if (document.readyState === 'loading') {

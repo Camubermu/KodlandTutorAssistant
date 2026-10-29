@@ -79,3 +79,46 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   return true; // la respuesta llega de forma asíncrona
 });
 
+// --- Puente para Google Calendar ---
+// Cada tutor pega la URL de SU PROPIO Apps Script (ver calendario-google/).
+// El service worker solo reenvía el payload (nombre del grupo y horario) a
+// esa URL; nunca ve ni pide permisos de la cuenta de Google del tutor.
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (!msg || msg.tipo !== 'calendar-sync') return; // no es para nosotros
+  (async () => {
+    try {
+      if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(msg.url || '')) {
+        sendResponse({ ok: false, error: 'La URL no parece de una aplicación web de Apps Script (debe terminar en /exec).' });
+        return;
+      }
+      const response = await fetch(msg.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(msg.payload),
+        redirect: 'follow'
+      });
+      const text = await response.text();
+      let body = null;
+      try { body = JSON.parse(text); } catch (error) { /* no es JSON */ }
+      if (!body) {
+        // Google devuelve una página HTML (no JSON) si la implementación no
+        // está abierta a "Cualquier usuario" o si el script falló.
+        const hint = /accounts\.google|signin|ServiceLogin/i.test(text)
+          ? 'Google pide iniciar sesión: en tu implementación, "Quién tiene acceso" debe ser "Cualquier usuario".'
+          : `El script respondió algo inesperado (${response.status}).`;
+        sendResponse({ ok: false, error: hint });
+        return;
+      }
+      if (!body.ok) {
+        sendResponse({ ok: false, error: body.error || 'Error del script.' });
+        return;
+      }
+      sendResponse({ ok: true, result: body });
+    } catch (error) {
+      console.error('[Calendar] Error sincronizando:', error);
+      sendResponse({ ok: false, error: String(error) });
+    }
+  })();
+  return true; // la respuesta llega de forma asíncrona
+});
+

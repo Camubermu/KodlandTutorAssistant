@@ -10,7 +10,9 @@
     "https://bo.kodland.org/*",
     "https://backoffice.kodland.org/*",
     "https://web.whatsapp.com/*",
-    "https://api.groq.com/*"
+    "https://api.groq.com/*",
+    "https://script.google.com/*",
+    "https://script.googleusercontent.com/*"
   ],
   "action": {
     "default_title": "Kodland Tutor Assistant"
