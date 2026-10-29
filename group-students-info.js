@@ -5203,23 +5203,51 @@ const REPORT_COURSE_FILES = [
   'curso_roblox_2.json', 'curso_scratch.json', 'curso_unity.json', 'curso_web.json'
 ];
 
+// Palabras en español/portugués que los tutores usan para nombrar sus grupos,
+// pero que no coinciden con el nombre en inglés del archivo de plantilla
+// (p. ej. título real: "[1627]Dibujo[2025][8-9][60 min]..." no matchea
+// curso_drawing.json porque "dibujo" != "drawing"). Se aplica DESPUÉS de
+// quitar tildes, así "diseño"/"gráfico"/"ilustración" ya llegan sin acentos.
+const REPORT_COURSE_WORD_SYNONYMS = {
+  dibujo: 'drawing', desenho: 'drawing',
+  ilustracion: 'illustration', ilustracao: 'illustration',
+  diseno: 'design', grafico: 'graphic'
+};
+
+// Cursos que Kodland repite en dos niveles con el MISMO nombre (Roblox,
+// Minecraft, Creatividad Digital) y que, cuando el título del grupo no dice
+// "Lvl"/"Nivel" explícito, solo se distinguen por el rango de edad entre
+// corchetes del nombre del grupo (p. ej. "[10-12]" ya es Nivel 2). Confirmado
+// con un caso real: un grupo de Roblox "10-12" generaba el reporte del
+// Nivel 1 (su primer módulo no correspondía al curso real del alumno).
+const REPORT_LEVELED_COURSES = ['roblox', 'minecraft', 'creatividad'];
+const REPORT_LEVEL2_MIN_AGE = 10;
+
 async function loadReportCourse(courseTitle) {
-  const normalize = value => String(value || '').toLowerCase()
+  const stripAccents = value => value.normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const normalize = value => stripAccents(String(value || '').toLowerCase())
     .replace(/([a-z])(\d)/g, '$1 $2').replace(/(\d)([a-z])/g, '$1 $2')
-    .split(/[^a-z0-9]+/).filter(Boolean);
+    .split(/[^a-z0-9]+/).filter(Boolean)
+    .map(word => REPORT_COURSE_WORD_SYNONYMS[word] || word);
   const titleWords = new Set(normalize(courseTitle));
   const words = [...titleWords];
-  const levelIndex = words.findIndex(word => word === 'lvl' || word === 'level');
-  const level = levelIndex >= 0 ? words[levelIndex + 1] : null;
+  const levelIndex = words.findIndex(word => word === 'lvl' || word === 'level' || word === 'nivel');
+  let level = levelIndex >= 0 ? words[levelIndex + 1] : null;
+  if (!level) {
+    const ageMatch = String(courseTitle || '').match(/\[(\d{1,2})\s*-\s*(\d{1,2})\]/);
+    if (ageMatch && Number(ageMatch[1]) >= REPORT_LEVEL2_MIN_AGE) level = '2';
+  }
   const alias = titleWords.has('digital') && titleWords.has('creativity')
     ? ({ '1': 'curso_creatividad.json', '2': 'curso_creatividad_2.json' })[level]
     : null;
+  const leveledCourse = level && REPORT_LEVELED_COURSES.find(word => titleWords.has(word));
+  const leveledAlias = leveledCourse ? `curso_${leveledCourse}${level === '2' ? '_2' : ''}.json` : null;
   const matches = REPORT_COURSE_FILES.map(file => ({
     file,
     words: normalize(file.replace(/^curso_|\.json$/g, '').replace(/_/g, ' '))
   })).filter(item => item.words.length && item.words.every(word => titleWords.has(word)))
     .sort((left, right) => right.words.length - left.words.length);
-  const file = alias || matches[0]?.file;
+  const file = alias || leveledAlias || matches[0]?.file;
   if (!file) throw new Error(`No encontré una plantilla para el curso «${courseTitle}».`);
   const response = await fetch(chrome.runtime.getURL(`calificador/reportes/${file}`));
   if (!response.ok) throw new Error(`No se pudo cargar la plantilla ${file}.`);
@@ -5454,7 +5482,7 @@ const REPORT_CSS = `
 *{box-sizing:border-box; margin:0; padding:0;}
 body{font-family:"Segoe UI",Arial,Helvetica,sans-serif; color:var(--texto); font-size:12px;}
 .pagina{width:210mm; min-height:297mm; padding:14mm 13mm 16mm; position:relative;
-  page-break-after:always; background:#fff;}
+  page-break-after:always; background:#fff; display:flex; flex-direction:column;}
 .pagina:last-child{page-break-after:auto;}
 h1,h2,h3{font-weight:800;}
 .mut{color:#8a9078; font-size:9px; letter-spacing:.10em; font-weight:700; text-transform:uppercase;}
@@ -5560,13 +5588,16 @@ h1,h2,h3{font-weight:800;}
 .paso .k{font-size:9px; letter-spacing:.1em; color:var(--lima); font-weight:700;}
 .paso h2{font-size:20px; color:var(--lima); margin:2px 0 8px;}
 .paso p{font-size:11px; line-height:1.55;}
-.pie{position:absolute; left:13mm; right:13mm; bottom:8mm;}
+/* margin-top:auto (no position:absolute) a propósito: si el contenido de una
+   página llega a ocupar más de una hoja física, el pie se queda pegado justo
+   después del contenido en vez de "flotar" según la altura total de .pagina
+   y aparecer solo, en una hoja casi en blanco, más adelante. */
+.pie{margin-top:auto; padding-top:10mm;}
 .pie .barra{background:var(--oscuro); border-radius:12px; padding:12px 18px; display:flex;
   justify-content:space-between; align-items:center; color:#fff;}
 .pie .barra .l{color:var(--lima); font-weight:800; font-size:16px;}
 .pie .barra .c{font-size:10px; letter-spacing:.15em; color:#cfcfcf;}
-.pie-num{text-align:center; font-size:8.5px; color:#b8b8b8; position:absolute;
-  left:0; right:0; bottom:4mm;}
+.pie-num{text-align:center; font-size:8.5px; color:#b8b8b8; margin-top:auto; padding-top:6mm;}
 .mensaje{background:var(--oscuro); color:#eee; border-radius:14px; padding:16px 20px; margin-top:14px;}
 .mensaje .k{font-size:9px; letter-spacing:.1em; color:var(--lima); font-weight:700;}
 .mensaje p{font-size:12px; line-height:1.6; margin-top:6px;}
